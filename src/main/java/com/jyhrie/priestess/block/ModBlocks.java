@@ -26,6 +26,31 @@ public class ModBlocks {
     public static final RegistryObject<Block> IBERIAN_SANDSTONE = registerBlock("iberian_sandstone",
             () -> new Block(BlockBehaviour.Properties.copy(Blocks.SANDSTONE)));
 
+    // Siesta is volcanic, so its sand is ash rather than beach gold — the dust colour is
+    // what you see kicked up when you walk on it and when it falls.
+    public static final RegistryObject<Block> SIESTA_SAND = registerBlock("siesta_sand",
+            () -> new SandBlock(0x6B5B4E, BlockBehaviour.Properties.copy(Blocks.SAND)));
+
+    // Copies PACKED_ICE, not ICE: packed ice keeps the friction but does not melt near a
+    // light source, which is what you want for terrain that has to survive worldgen.
+    public static final RegistryObject<Block> BLACK_ICE = registerBlock("black_ice",
+            () -> new Block(BlockBehaviour.Properties.copy(Blocks.PACKED_ICE)));
+
+    // Dossoles' side of the water, against Siesta's volcanic ash. Near-white dust colour
+    // so the two beaches read as different places from across a bay.
+    public static final RegistryObject<Block> PALE_BEACH_SAND = registerBlock("pale_beach_sand",
+            () -> new SandBlock(0xEDE3CB, BlockBehaviour.Properties.copy(Blocks.SAND)));
+
+    // The Sea of Silence floor. CALCITE rather than a sediment: what Aegir left behind is
+    // a bleached crust of dead coral, so it should be brittle and chalky, not soft.
+    public static final RegistryObject<Block> DEAD_SEABED = registerBlock("dead_seabed",
+            () -> new Block(BlockBehaviour.Properties.copy(Blocks.CALCITE)));
+
+    // Frozen ground, not ice. PACKED_MUD is the right analogue: still a shovel block, but
+    // meaningfully harder than dirt.
+    public static final RegistryObject<Block> PERMAFROST = registerBlock("permafrost",
+            () -> new Block(BlockBehaviour.Properties.copy(Blocks.PACKED_MUD)));
+
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block) {
         RegistryObject<T> toReturn = BLOCKS.register(name, block);
         registerBlockItem(name, toReturn);

@@ -23,6 +23,11 @@ public class ModLootTableProvider {
         protected void generate() {
             this.dropSelf(ModBlocks.IBERIAN_SAND.get());
             this.dropSelf(ModBlocks.IBERIAN_SANDSTONE.get());
+            this.dropSelf(ModBlocks.SIESTA_SAND.get());
+            this.dropSelf(ModBlocks.BLACK_ICE.get());
+            this.dropSelf(ModBlocks.PALE_BEACH_SAND.get());
+            this.dropSelf(ModBlocks.DEAD_SEABED.get());
+            this.dropSelf(ModBlocks.PERMAFROST.get());
         }
 
         // Every block registered by the mod must get a table in generate(), or datagen fails.

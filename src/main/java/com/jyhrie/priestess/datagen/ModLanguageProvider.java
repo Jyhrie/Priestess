@@ -15,5 +15,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("creativetab.priestess_tab", "Priestess");
         add(ModBlocks.IBERIAN_SAND.get(), "Iberian Sand");
         add(ModBlocks.IBERIAN_SANDSTONE.get(), "Iberian Sandstone");
+        add(ModBlocks.SIESTA_SAND.get(), "Siesta Sand");
+        add(ModBlocks.BLACK_ICE.get(), "Black Ice");
+        add(ModBlocks.PALE_BEACH_SAND.get(), "Pale Beach Sand");
+        add(ModBlocks.DEAD_SEABED.get(), "Dead Seabed");
+        add(ModBlocks.PERMAFROST.get(), "Permafrost");
     }
 }
