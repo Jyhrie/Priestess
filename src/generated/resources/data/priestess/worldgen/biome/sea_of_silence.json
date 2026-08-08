@@ -1,20 +1,22 @@
 {
   "carvers": {},
-  "downfall": 0.5,
+  "downfall": 0.1,
   "effects": {
-    "fog_color": 12638463,
+    "fog_color": 9082520,
+    "foliage_color": 7239784,
+    "grass_color": 8029304,
     "mood_sound": {
       "block_search_extent": 8,
       "offset": 2.0,
       "sound": "minecraft:ambient.cave",
       "tick_delay": 6000
     },
-    "sky_color": 8103167,
-    "water_color": 4159204,
-    "water_fog_color": 329011
+    "sky_color": 7240832,
+    "water_color": 3822164,
+    "water_fog_color": 1977904
   },
   "features": [],
-  "has_precipitation": true,
+  "has_precipitation": false,
   "spawn_costs": {},
   "spawners": {
     "ambient": [],
@@ -26,5 +28,5 @@
     "water_ambient": [],
     "water_creature": []
   },
-  "temperature": 0.5
+  "temperature": 0.3
 }

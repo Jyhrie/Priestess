@@ -25,6 +25,10 @@ public class DataGenerators {
         generator.addProvider(event.includeServer(), ModLootTableProvider.create(packOutput));
         generator.addProvider(event.includeServer(), new ModWorldGenProvider(packOutput, lookupProvider));
 
+        // Not a datapack file — writes docs/terra_world_preview.png so the hand-authored
+        // Terra map can be checked without launching the game.
+        generator.addProvider(event.includeServer(), new ModTerraPreviewProvider(packOutput));
+
         // Client data -> src/generated/resources/assets/priestess/
         generator.addProvider(event.includeClient(), new ModBlockStateProvider(packOutput, existingFileHelper));
         generator.addProvider(event.includeClient(), new ModItemModelProvider(packOutput, existingFileHelper));

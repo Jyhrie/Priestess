@@ -1,7 +1,7 @@
 # Priestess
 
 A Minecraft Forge mod (MC 1.20.1 / Forge 47.4.10) adding **Terra** — a standalone
-Overworld-like dimension with 13 custom biomes, custom noise-based terrain, and
+Overworld-like dimension with 22 custom biomes across a hand-authored map of Terra, and
 jigsaw structures.
 
 | | |
@@ -58,15 +58,29 @@ src/main/java/com/jyhrie/priestess/
 │   ├── ModLanguageProvider.java    en_us.json
 │   ├── ModLootTableProvider.java   block drops
 │   └── ModWorldGenProvider.java    registry bootstrap order for all worldgen
-└── world/dimension/
-    ├── ModDimensions.java          dimension type + which biome goes where
-    ├── ModBiomes.java              biome definitions (colors, temperature, mobs)
-    ├── ModNoiseSettings.java       terrain shape + surface blocks
-    └── ModStructures.java          structure declarations
+├── world/dimension/
+│   ├── ModDimensions.java          dimension type + chunk generator wiring
+│   ├── ModBiomes.java              biome definitions (colors, temperature, mobs)
+│   ├── ModNoiseSettings.java       terrain shape + surface blocks
+│   └── ModStructures.java          structure declarations
+└── world/terra/                    ← the map: where everything actually is
+    ├── TerraRegion.java            every region, its map colour, its 8 biomes
+    ├── TerraSlot.java              the 8 terrain classes and their elevations
+    ├── TerraMap.java               loads the PNGs, warps and samples them
+    ├── TerraMapBiomeSource.java    the BiomeSource that reads the map
+    ├── TerraElevationFunction.java exposes map elevation to the terrain splines
+    └── TerraMapPreview.java        renders docs/terra_world_preview.png
 
 src/main/resources/                 ← hand-authored assets (safe to edit)
 ├── assets/priestess/textures/block/*.png
-└── data/priestess/structures/*.nbt
+├── data/priestess/structures/*.nbt
+└── data/priestess/terra/
+    ├── regions.png                 ← THE MAP. one flat colour per region
+    └── elevation.png               ← greyscale height, 0 = abyss, 255 = peak
+
+tools/generate_terra_map.py         regenerates those two PNGs from a layout
+docs/terra_map_preview.png          shaded political map, for humans
+docs/terra_world_preview.png        what the generator will actually produce
 
 src/generated/resources/            ← GENERATED, do not edit
 ```
@@ -158,159 +172,73 @@ a loot table, and a matching item.
 
 6. `./gradlew runData`
 
-To then make terrain actually *use* the block, see "Surface rules" below.
+To then make terrain actually *use* the block, see
+[Surface rules](docs/WORLDGEN.md#surface-rules).
 
 ---
 
-## Biomes
+## Worldgen
 
-A biome in this mod is three separate concerns, in three different files. Changing how
-a biome *looks* is a different file from changing *where* it appears.
+**Terra's geography is a hand-authored map, not climate noise.** Two PNGs in
+`src/main/resources/data/priestess/terra/` decide where everything is: `regions.png`
+(one flat colour per region) and `elevation.png` (greyscale height). A custom
+`BiomeSource` reads the region, elevation picks one of eight terrain slots, and the pair
+picks the biome. The same elevation drives the terrain height splines, which is what
+keeps beaches at sea level instead of halfway up a mountain.
+
+![Terra](docs/terra_map_preview.png)
+
+### Scale, origin and height
+
+| | Value | Defined in |
+|---|---|---|
+| **World width** | 131,072 blocks | `TerraMap.WORLD_WIDTH_BLOCKS` — **the scale knob** |
+| **Map resolution** | 1024 × 640 px | `generate_terra_map.py:63`; Java reads it from the PNG |
+| **Blocks per pixel** | 128 | derived: world width ÷ image width |
+| **World size** | 131,072 × 81,920 blocks | derived: height follows the image aspect |
+| **X / Z range** | −65,536 → +65,536 / −40,960 → +40,960 | derived |
+| **Origin (0, 0)** | pixel (512, 320), in Kazimierz — this is spawn | derived: the map is centred |
+| **Origin shift** | none | `ORIGIN_AT_BLOCK_X/Z`, `TerraMap.java:76` — paste a region's coordinates in to spawn there |
+| **Lowest ground** | y 28 | first knot of `mapHeight`, `ModNoiseSettings.java:135` |
+| **Highest ground** | y 244 base, **y 305 with relief** | last knot of `mapHeight` + `ruggedness` |
+| **Sea level** | y 124 | `ModNoiseSettings.java:100` |
+| **World floor / ceiling** | y −64 / y 320 | `NoiseSettings.create(-64, 384, …)` |
+| **Off the N / S edge** | Infy Icefield / Foehn Hotlands, forever | the map's own top and bottom rows |
+| **Off the E / W edge** | open ocean, forever | the map's own left and right columns |
+| **Seed-dependent?** | No. Terra is the same in every world. | — |
+
+Grey value in `elevation.png` becomes a world height like this:
+
+```
+grey 0-255 ──/255──► elevation 0..1 ──×2−1──► density −1..1 ──mapHeight──► terrainHeight
+                                                                                │
+                                                     surfaceY = 128 + 128 × terrainHeight
+```
+
+So a `mapHeight` knot reads `y = 128 + 128 × value`, and only ~15 blocks of headroom are
+left above the tallest peaks. Details and the full "if you want to change X" table are in
+[docs/WORLDGEN.md](docs/WORLDGEN.md#scale-origin-and-height).
+
+**→ Full reference: [docs/WORLDGEN.md](docs/WORLDGEN.md)** — how the PNGs are read, the
+terrain slot table with the grey values to paint, adding regions and biomes, surface
+rules, terrain splines, and troubleshooting.
+
+Quick pointers:
 
 | I want to change… | Edit |
 |---|---|
-| Sky/fog/water colour, temperature, rain, mob spawns | `ModBiomes.java` |
-| Where on the map the biome appears | `ModDimensions.bootstrapStem()` |
+| Where a region physically sits | `data/priestess/terra/regions.png` |
+| How high the ground is | `data/priestess/terra/elevation.png` |
+| Which biome a region wears at a given height | `world/terra/TerraRegion.java` |
+| Sky/fog/water colour, temperature, rain, mob spawns | `world/dimension/ModBiomes.java` |
 | Which blocks the ground is made of | `ModNoiseSettings.createSurfaceRules()` |
+| The whole map layout, from scratch | `tools/generate_terra_map.py` |
 
-### Tuning an existing biome's settings
-
-In `ModBiomes.bootstrap()` every biome is one line through the `blankBiome` helper:
-
-```java
-//                                    context, hasPrecipitation, temperature, downfall, waterColor
-context.register(YANESE_PEAKS, blankBiome(context, true,  0.2F, 0.8F, 4159204));
-```
-
-- `hasPrecipitation` — whether weather falls here at all.
-- `temperature` — **visual/behavioural** temperature: below `0.15` snow falls instead of
-  rain and water freezes; `2.0` is desert-hot. This is *not* the same number as the
-  climate `temperature` used for biome placement (below). They are independent.
-- `downfall` — affects foliage/grass tint dryness.
-- `waterColor` — packed RGB int, e.g. `0x3F76E4` = `4159204`.
-
-For sky/fog colours, mood sounds or music, edit the `blankBiome` helper itself — it
-builds the `BiomeSpecialEffects`. Right now every biome shares one sky colour
-(`8103167`) and fog colour (`12638463`). If you want per-biome skies, add parameters to
-`blankBiome` the same way `waterColor` is threaded through.
-
-Mob spawns and features (trees, ores, flowers) are deliberately empty — `spawnBuilder`
-and `generationBuilder` are built with nothing added, which is why Terra is bare. To add
-ore or vegetation, populate `generationBuilder` with placed features; to add mobs, add
-`spawnBuilder.addSpawn(MobCategory.MONSTER, new MobSpawnSettings.SpawnerData(...))`.
-
-### Adding a new biome
-
-1. **Declare a key** in `ModBiomes.java`:
-
-   ```java
-   public static final ResourceKey<Biome> ASHEN_FLATS = createKey("ashen_flats");
-   ```
-
-2. **Register its settings** in `ModBiomes.bootstrap()`:
-
-   ```java
-   context.register(ASHEN_FLATS, blankBiome(context, false, 1.4F, 0.1F, 4159204));
-   ```
-
-3. **Place it on the climate map** in `ModDimensions.bootstrapStem()`, in the
-   `parameters` list:
-
-   ```java
-   Pair.of(Climate.parameters(0.4f, 0.0f, 0.35f, 0.0f, 0.0f, 0.0f, 0.0f),
-           biomeRegistry.getOrThrow(ModBiomes.ASHEN_FLATS)),
-   ```
-
-   The seven arguments are, **in order**:
-
-   | # | Parameter | Range | What it means here |
-   |---|---|---|---|
-   | 1 | `temperature` | −1…1 | hot vs cold |
-   | 2 | `humidity` | −1…1 | **inert — see warning** |
-   | 3 | `continentalness` | −1…1 | ocean floor (−1) → deep inland (1) |
-   | 4 | `erosion` | −1…1 | low = mountainous, high = flat |
-   | 5 | `depth` | −1…1 | surface (0) vs underground (1) |
-   | 6 | `weirdness` | −1…1 | **inert — see warning** |
-   | 7 | `offset` | 0…1 | a flat penalty; higher = harder to pick |
-
-   The game picks whichever biome's parameter point is *nearest* to the terrain's actual
-   noise values, so these are targets to aim at, not boundaries.
-
-   > **Warning — humidity and weirdness do nothing in Terra.** In
-   > `ModNoiseSettings.createNoiseRouter()` the `vegetation` (humidity) and `ridges`
-   > (weirdness) channels are hardwired to `DensityFunctions.zero()`. The terrain
-   > therefore always reports humidity = 0 and weirdness = 0. Setting a non-zero value
-   > for either on a biome only ever *increases* its distance from every real point,
-   > making it less likely to be chosen — never more. Leave both at `0.0f` unless you
-   > first wire real noise into those two channels of the `NoiseRouter`.
-   >
-   > Only **temperature**, **continentalness**, **erosion** and **depth** currently carry
-   > signal. Existing biomes are separated almost entirely on temperature and
-   > continentalness.
-
-4. **Give it a surface** (next section) — otherwise it generates as bare stone.
-
-5. **Register it in the dimension is automatic**, but the biome JSON only appears if
-   `ModBiomes::bootstrap` runs, which `ModWorldGenProvider.BUILDER` already wires up.
-   Just run `./gradlew runData`.
-
-### Surface rules — what the ground is made of
-
-`ModNoiseSettings.createSurfaceRules()` returns one big ordered sequence. **First
-matching rule wins**, so order matters:
-
-1. bedrock floor (must stay first),
-2. one branch per biome,
-3. the global deepslate transition (must stay last — it's the fallback).
-
-A branch looks like:
-
-```java
-SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.ASHEN_FLATS),
-        SurfaceRules.sequence(
-                SurfaceRules.ifTrue(floor0, ash),        // depth 0        (the top block)
-                SurfaceRules.ifTrue(floor3, coarseDirt), // depths 1–3
-                SurfaceRules.ifTrue(floor8, basalt)      // depths 4–8
-        )
-),
-```
-
-The `floorN` helpers at the top of the method are `stoneDepthCheck(N, …)`, which matches
-**every depth from 0 through N** — it is a *maximum*, not an exact depth. So:
-
-- Order them shallowest-first, or a deep rule will swallow the shallow ones.
-- `floor0` followed by `floor4` with the *same* block is redundant; `floor4` alone does it.
-- You don't need a `floor0` rule at all if the next rule uses the block you want on top.
-
-To make the surface patchy rather than uniform, wrap it in a noise condition. The
-`patchHigh` / `patchMid` / `patchLow` helpers slice the `surface_patch` noise into three
-bands, as Barrenlands, Foehn Hotlands and Kazdel Crags do:
-
-```java
-SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
-        SurfaceRules.ifTrue(patchHigh, rootedDirt),
-        SurfaceRules.ifTrue(patchMid,  cobblestone),
-        SurfaceRules.ifTrue(patchLow,  coarseDirt)
-)),
-```
-
-To use **your own mod block**, add a shorthand next to the others at the top of the
-method:
-
-```java
-var kazdelBasalt = SurfaceRules.state(ModBlocks.KAZDEL_BASALT.get().defaultBlockState());
-```
-
-### Terrain shape
-
-Height, cliffs and continent shape come from `createNoiseRouter()` and the noise
-parameters in `bootstrapNoise()`. `NoiseSettings.create(-64, 384, 1, 2)` sets the world
-height, and `sea_level` is `124` in `bootstrap()`. This is the most delicate part of the
-mod — change one spline point at a time and regenerate, because the interaction between
-`continents`, `erosion` and the y-gradient is not intuitive.
-
-Note that `aquifers_enabled` and `ore_veins_enabled` are both `false`, so there are no
-underground lakes or vanilla ore veins in Terra.
+After any worldgen change: `./gradlew runData`, then check
+`docs/terra_world_preview.png` and the datagen log — the log prints every region's share
+of the world, a teleport coordinate for each, and shouts about any region that came out
+unreachable. **Worldgen changes need a fresh world**; delete the test world in
+`run/saves/`.
 
 ---
 
