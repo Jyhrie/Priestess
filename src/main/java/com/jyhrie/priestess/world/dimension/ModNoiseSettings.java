@@ -306,10 +306,21 @@ public class ModNoiseSettings {
         var andesite      = SurfaceRules.state(Blocks.ANDESITE.defaultBlockState());
         var smoothSand    = SurfaceRules.state(Blocks.SMOOTH_SANDSTONE.defaultBlockState());
         var mossyCobble   = SurfaceRules.state(Blocks.MOSSY_COBBLESTONE.defaultBlockState());
+        var yellowTerra   = SurfaceRules.state(Blocks.YELLOW_TERRACOTTA.defaultBlockState());
 
         // The mod's own blocks, so Iberia looks like Iberia and not like vanilla desert.
         var iberianSand      = SurfaceRules.state(ModBlocks.IBERIAN_SAND.get().defaultBlockState());
         var iberianSandstone = SurfaceRules.state(ModBlocks.IBERIAN_SANDSTONE.get().defaultBlockState());
+        var permafrost       = SurfaceRules.state(ModBlocks.PERMAFROST.get().defaultBlockState());
+        var blackIce         = SurfaceRules.state(ModBlocks.BLACK_ICE.get().defaultBlockState());
+
+        // Kept for zones that are not painted yet — the arid south (redSand, redSandstone,
+        // orangeTerra, smoothSand, sandstone), Victoria's moors (mossyCobble, cobblestone),
+        // and the coasts and seabeds that get their own colours later (siestaSand,
+        // paleBeachSand, deadSeabed). Unused today; delete only if you drop the zone too.
+        var siestaSand       = SurfaceRules.state(ModBlocks.SIESTA_SAND.get().defaultBlockState());
+        var paleBeachSand    = SurfaceRules.state(ModBlocks.PALE_BEACH_SAND.get().defaultBlockState());
+        var deadSeabed       = SurfaceRules.state(ModBlocks.DEAD_SEABED.get().defaultBlockState());
 
         // Noise threshold conditions for surface_patch (~16-block blotches)
         var patchHigh = SurfaceRules.noiseCondition(SURFACE_PATCH,  0.4,  1.0);
@@ -338,30 +349,34 @@ public class ModNoiseSettings {
                         bedrock
                 ),
 
-                // ── Seas ──────────────────────────────────────────────────────
-                // floor4 already covers depth 0, so one rule per biome is enough.
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.SEA_OF_SILENCE),
-                        SurfaceRules.ifTrue(floor4, gravel)),
+                // ══ One rule per zone ═════════════════════════════════════════
+                // Biomes come from the painted map now, one colour to one biome, so this
+                // list is exactly TerraRegion's list. A zone with no rule here generates as
+                // bare stone — that is the failure mode to look for if a new zone comes out
+                // grey.
+                //
+                // Since a zone spans every elevation it is painted over, the height checks
+                // below (aboveSnowline / aboveTreeline) are doing the work the old eight
+                // biome slots used to do. That is the intended division: elevation varies
+                // the *surface* within a zone, it no longer changes which zone you are in.
 
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.AEGIR_DEPTHS),
-                        SurfaceRules.ifTrue(floor4, deepslate)),
-
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.SIESTA_SEA),
-                        SurfaceRules.ifTrue(floor4, basalt)),
-
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.BOLIVAR_DEPTHS),
-                        SurfaceRules.ifTrue(floor4, blackstone)),
-
-                // ── Ice ───────────────────────────────────────────────────────
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.SAMI_SNOWFIELDS),
+                // ── The sea ───────────────────────────────────────────────────
+                // 95% of this zone is deep sea floor, but it also covers the islands the
+                // elevation map lifts above the waterline, so it cannot be gravel alone.
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.OCEAN),
                         SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, snow),
-                                SurfaceRules.ifTrue(floor3, ice),
-                                SurfaceRules.ifTrue(floor8, packedIce)
+                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(patchHigh, sand),
+                                        SurfaceRules.ifTrue(patchMid,  gravel),
+                                        SurfaceRules.ifTrue(patchLow,  clay)
+                                )),
+                                SurfaceRules.ifTrue(floor4, gravel),
+                                SurfaceRules.ifTrue(floor8, deepslate)
                         )
                 ),
 
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.INFY_ICEFIELDS),
+                // ── The north ─────────────────────────────────────────────────
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.INFY_ICEFIELD),
                         SurfaceRules.sequence(
                                 SurfaceRules.ifTrue(floor0, snow),
                                 SurfaceRules.ifTrue(floor3, packedIce),
@@ -369,23 +384,59 @@ public class ModNoiseSettings {
                         )
                 ),
 
-                // Ægir's shelf is the frozen half of the shore band, so it is part beach
-                // and part sea floor — the patch noise mixes drifted snow with the gravel
-                // showing through where the ice has been scoured off.
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.AEGIR_SHELF),
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.SAMI),
                         SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(patchHigh, snow),
-                                        SurfaceRules.ifTrue(patchMid,  packedIce),
-                                        SurfaceRules.ifTrue(patchLow,  gravel)
-                                )),
-                                SurfaceRules.ifTrue(floor3, packedIce),
-                                SurfaceRules.ifTrue(floor8, gravel)
+                                SurfaceRules.ifTrue(floor0, snow),
+                                SurfaceRules.ifTrue(floor3, ice),
+                                SurfaceRules.ifTrue(floor8, packedIce)
                         )
                 ),
 
+                // ── Ursus, three ways ─────────────────────────────────────────
+                // The empire's three climates differ here more than anywhere: frozen duff
+                // in the north, dry cropped ground in the steppe, ordinary forest floor in
+                // the south. This is what carries the split now that they are one biome each.
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.URSUS_COLD),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(aboveTreeline,
+                                        SurfaceRules.ifTrue(floor0, snow)),
+                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(patchHigh, snow),
+                                        SurfaceRules.ifTrue(patchMid,  podzol),
+                                        SurfaceRules.ifTrue(patchLow,  coarseDirt)
+                                )),
+                                SurfaceRules.ifTrue(floor2, permafrost),
+                                SurfaceRules.ifTrue(floor8, dirt)
+                        )
+                ),
+
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.URSUS_DRY),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(patchHigh, coarseDirt),
+                                        SurfaceRules.ifTrue(patchMid,  grass),
+                                        SurfaceRules.ifTrue(patchLow,  coarseDirt)
+                                )),
+                                SurfaceRules.ifTrue(floor3, dirt),
+                                SurfaceRules.ifTrue(floor8, rootedDirt)
+                        )
+                ),
+
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.URSUS_WARM),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(patchHigh, podzol),
+                                        SurfaceRules.ifTrue(patchMid,  grass),
+                                        SurfaceRules.ifTrue(patchLow,  coarseDirt)
+                                )),
+                                SurfaceRules.ifTrue(floor3, dirt),
+                                SurfaceRules.ifTrue(floor8, rootedDirt)
+                        )
+                ),
+
+                // ── The range ─────────────────────────────────────────────────
                 // Kjerag: alpine rather than polar — snow over stone, not snow over ice.
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.KJERAG_SLOPES),
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.KJERAG),
                         SurfaceRules.sequence(
                                 SurfaceRules.ifTrue(aboveSnowline, SurfaceRules.sequence(
                                         SurfaceRules.ifTrue(floor0, snow),
@@ -397,36 +448,107 @@ public class ModNoiseSettings {
                         )
                 ),
 
-                // ── Arid / blasted ────────────────────────────────────────────
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.FOEHN_HOTLANDS),
+                // Karlan is the mountain's body: more exposed rock, less standing snow,
+                // and black ice where the glaciers have scoured it.
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.MOUNT_KARLAN),
                         SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(patchHigh, redSandstone),
-                                        SurfaceRules.ifTrue(patchMid,  redSand),
-                                        SurfaceRules.ifTrue(patchLow,  redSand)
+                                SurfaceRules.ifTrue(aboveSnowline, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(floor0, snow),
+                                        SurfaceRules.ifTrue(floor4, blackIce)
                                 )),
-                                SurfaceRules.ifTrue(floor1, redSand),
-                                SurfaceRules.ifTrue(floor2, redSandstone),
-                                SurfaceRules.ifTrue(floor3, orangeTerra)
+                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(patchHigh, snow),
+                                        SurfaceRules.ifTrue(patchMid,  andesite),
+                                        SurfaceRules.ifTrue(patchLow,  tuff)
+                                )),
+                                SurfaceRules.ifTrue(floor4, andesite)
                         )
                 ),
 
-                // Sargon: the dune sea that lets Dossoles' beaches become Foehn's hotlands
-                // gradually, instead of sand meeting red rock at a line.
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.SARGON_DUNES),
+                // ── The heartland and the west ────────────────────────────────
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.KAZIMIERZ),
                         SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(patchHigh, smoothSand),
-                                        SurfaceRules.ifTrue(patchMid,  sand),
-                                        SurfaceRules.ifTrue(patchLow,  sand)
+                                SurfaceRules.ifTrue(aboveSnowline, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(floor0, snow),
+                                        SurfaceRules.ifTrue(floor4, calcite)
                                 )),
-                                SurfaceRules.ifTrue(floor3, sand),
-                                SurfaceRules.ifTrue(floor8, sandstone)
+                                SurfaceRules.ifTrue(aboveTreeline,
+                                        SurfaceRules.ifTrue(floor2, tuff)),
+                                SurfaceRules.ifTrue(floor0, grass),
+                                SurfaceRules.ifTrue(floor4, dirt)
                         )
                 ),
 
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.COLUMBIA),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(patchHigh, podzol),
+                                        SurfaceRules.ifTrue(patchMid,  grass),
+                                        SurfaceRules.ifTrue(patchLow,  moss)
+                                )),
+                                SurfaceRules.ifTrue(floor3, dirt),
+                                SurfaceRules.ifTrue(floor8, rootedDirt)
+                        )
+                ),
+
+                // Iberia keeps its own sand: a third of this zone is coast, and vanilla
+                // desert sand is the wrong colour for it.
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.IBERIA_LAND),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(patchHigh, iberianSand),
+                                        SurfaceRules.ifTrue(patchMid,  coarseDirt),
+                                        SurfaceRules.ifTrue(patchLow,  grass)
+                                )),
+                                SurfaceRules.ifTrue(floor3, iberianSand),
+                                SurfaceRules.ifTrue(floor8, iberianSandstone)
+                        )
+                ),
+
+                // ── The east ──────────────────────────────────────────────────
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.YAN),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(aboveSnowline, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(floor0, snow),
+                                        SurfaceRules.ifTrue(floor4, calcite)
+                                )),
+                                SurfaceRules.ifTrue(aboveTreeline,
+                                        SurfaceRules.ifTrue(floor2, tuff)),
+                                SurfaceRules.ifTrue(floor0, grass),
+                                SurfaceRules.ifTrue(floor4, dirt)
+                        )
+                ),
+
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.HIGASHI_COLD),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(aboveSnowline,
+                                        SurfaceRules.ifTrue(floor0, snow)),
+                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(patchHigh, snow),
+                                        SurfaceRules.ifTrue(patchMid,  podzol),
+                                        SurfaceRules.ifTrue(patchLow,  grass)
+                                )),
+                                SurfaceRules.ifTrue(floor3, dirt),
+                                SurfaceRules.ifTrue(floor8, rootedDirt)
+                        )
+                ),
+
+                // Paddy country: wet ground, clay under it, mud in the low pockets.
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.HIGASHI_WARM),
+                        SurfaceRules.sequence(
+                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
+                                        SurfaceRules.ifTrue(patchHigh, grass),
+                                        SurfaceRules.ifTrue(patchMid,  mud),
+                                        SurfaceRules.ifTrue(patchLow,  moss)
+                                )),
+                                SurfaceRules.ifTrue(floor2, clay),
+                                SurfaceRules.ifTrue(floor8, dirt)
+                        )
+                ),
+
+                // ── The south ─────────────────────────────────────────────────
                 // Kazdel: exposed crag faces go bare basalt, lower slopes stay scree.
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.KAZDEL_CRAGS),
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.KAZDEL),
                         SurfaceRules.sequence(
                                 SurfaceRules.ifTrue(aboveTreeline,
                                         SurfaceRules.ifTrue(floor2, blackstone)),
@@ -441,127 +563,13 @@ public class ModNoiseSettings {
                         )
                 ),
 
-                // ── Coasts ────────────────────────────────────────────────────
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.IBERIAN_SHORES),
+                // ── Unpainted ─────────────────────────────────────────────────
+                // Loud on purpose. Unzoned ground should look wrong from a distance, not
+                // pass for a design decision you forgot you made.
+                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.TEMPORARY_LAYER),
                         SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor3, iberianSand),
-                                SurfaceRules.ifTrue(floor4, iberianSandstone)
-                        )
-                ),
-
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.DOSSOLES_BEACHES),
-                        SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor3, sand),
-                                SurfaceRules.ifTrue(floor4, sandstone)
-                        )
-                ),
-
-                // Siracusa: pale limestone headlands broken by pockets of sand.
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.SIRACUSAN_COAST),
-                        SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(patchHigh, calcite),
-                                        SurfaceRules.ifTrue(patchMid,  sand),
-                                        SurfaceRules.ifTrue(patchLow,  gravel)
-                                )),
-                                SurfaceRules.ifTrue(floor3, sand),
-                                SurfaceRules.ifTrue(floor8, sandstone)
-                        )
-                ),
-
-                // ── The neutral belt ──────────────────────────────────────────
-                // Ordinary green ground. These exist so the extremes have something to
-                // fade through, so they are deliberately the least dramatic surfaces here.
-
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.URSUS_TAIGA),
-                        SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(patchHigh, snow),
-                                        SurfaceRules.ifTrue(patchMid,  podzol),
-                                        SurfaceRules.ifTrue(patchLow,  coarseDirt)
-                                )),
-                                SurfaceRules.ifTrue(floor4, dirt)
-                        )
-                ),
-
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.KAZIMIERZ_PLAINS),
-                        SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, grass),
-                                SurfaceRules.ifTrue(floor4, dirt)
-                        )
-                ),
-
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.VICTORIAN_MOORS),
-                        SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(patchHigh, mossyCobble),
-                                        SurfaceRules.ifTrue(patchMid,  grass),
-                                        SurfaceRules.ifTrue(patchLow,  coarseDirt)
-                                )),
-                                SurfaceRules.ifTrue(floor3, dirt),
-                                SurfaceRules.ifTrue(floor8, rootedDirt)
-                        )
-                ),
-
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.LEITHANIEN_WOODS),
-                        SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(patchHigh, podzol),
-                                        SurfaceRules.ifTrue(patchMid,  grass),
-                                        SurfaceRules.ifTrue(patchLow,  moss)
-                                )),
-                                SurfaceRules.ifTrue(floor3, dirt),
-                                SurfaceRules.ifTrue(floor8, rootedDirt)
-                        )
-                ),
-
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.BOLIVAR_MIRE),
-                        SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(patchHigh, moss),
-                                        SurfaceRules.ifTrue(patchMid,  mud),
-                                        SurfaceRules.ifTrue(patchLow,  coarseDirt)
-                                )),
-                                SurfaceRules.ifTrue(floor2, clay),
-                                SurfaceRules.ifTrue(floor8, dirt)
-                        )
-                ),
-
-                // ── Mountains ─────────────────────────────────────────────────
-                // Snowcap, then bare rock, then grass on the lower slopes.
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.YANESE_PEAKS),
-                        SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(aboveSnowline, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(floor0, snow),
-                                        SurfaceRules.ifTrue(floor4, calcite)
-                                )),
-                                SurfaceRules.ifTrue(aboveTreeline,
-                                        SurfaceRules.ifTrue(floor2, tuff)),
-                                SurfaceRules.ifTrue(floor0, grass),
-                                SurfaceRules.ifTrue(floor4, dirt)
-                        )
-                ),
-
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.HIGASHI_HIGHLANDS),
-                        SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(aboveSnowline, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(floor0, snow),
-                                        SurfaceRules.ifTrue(floor4, tuff)
-                                )),
-                                SurfaceRules.ifTrue(floor0, grass),
-                                SurfaceRules.ifTrue(floor4, dirt)
-                        )
-                ),
-
-                // ── The wastes ────────────────────────────────────────────────
-                SurfaceRules.ifTrue(SurfaceRules.isBiome(ModBiomes.BARRENLANDS),
-                        SurfaceRules.sequence(
-                                SurfaceRules.ifTrue(floor0, SurfaceRules.sequence(
-                                        SurfaceRules.ifTrue(patchHigh, rootedDirt),
-                                        SurfaceRules.ifTrue(patchMid,  cobblestone),
-                                        SurfaceRules.ifTrue(patchLow,  coarseDirt)
-                                )),
-                                SurfaceRules.ifTrue(floor3, dirt)
+                                SurfaceRules.ifTrue(floor0, yellowTerra),
+                                SurfaceRules.ifTrue(floor4, coarseDirt)
                         )
                 ),
 

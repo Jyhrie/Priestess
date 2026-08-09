@@ -1,5 +1,5 @@
-// 1.20.1	2026-08-08T23:59:34.7901897	Registries
-9b9d40912d2005f1917f8da794ea3647ee240e80 data/priestess/dimension/terra.json
+// 1.20.1	2026-08-09T11:08:52.8058815	Registries
+e13591a2f88b1af8aecd260cc6fdc10e92beb574 data/priestess/dimension/terra.json
 6a473d8fbf138c04de6a165880b83dc7b27b79cc data/priestess/dimension_type/terra_type.json
 bc401acd0d381dea7f767c68077729aaab5957de data/priestess/worldgen/biome/aegir_depths.json
 fb87683699a698e9254a8610cbdbfbb9848b9eee data/priestess/worldgen/biome/aegir_shelf.json
@@ -8,9 +8,13 @@ ec468dc04889b04a65e627550428b27287779fd6 data/priestess/worldgen/biome/barrenlan
 51218de4e736e71cd6d8891727e514a48e5f1e72 data/priestess/worldgen/biome/bolivar_mire.json
 d60886aa6cf6e70ef146979d2f1fe09197cd6da7 data/priestess/worldgen/biome/dossoles_beaches.json
 3accc4576e81a2e22ed6b5635a3f3a316682ed01 data/priestess/worldgen/biome/foehn_hotlands.json
+b6d7c54b4b743322cbf6a878f4f9e7c900342b15 data/priestess/worldgen/biome/higashi_frostwoods.json
 116c65ae85495467ff4d990f9c8e43b99a37755c data/priestess/worldgen/biome/higashi_highlands.json
+fbb23f8dbcb2cb4284038b3569f83a90ea4b3d59 data/priestess/worldgen/biome/higashi_ricelands.json
+b1b4590c70e56ff37f3f9aeff03d3013dcfc2a16 data/priestess/worldgen/biome/iberian_heath.json
 6d735fcfb60bc2be7cd2820c1598d959fc61d311 data/priestess/worldgen/biome/iberian_shores.json
 e0a265b48203e484d53fb4f04f0bd3846295eff9 data/priestess/worldgen/biome/infy_icefields.json
+71e10b1b83003a58e03c100dfd3c370fc5f0aff1 data/priestess/worldgen/biome/karlan_peaks.json
 194ad75789204c20555eb1b7ae8cc229f11d0d6b data/priestess/worldgen/biome/kazdel_crags.json
 0e45e640647464b3331d80e656caad6f96a5fe52 data/priestess/worldgen/biome/kazimierz_plains.json
 fb54b12be2e376988057531fbc257da8e5800901 data/priestess/worldgen/biome/kjerag_slopes.json
@@ -20,6 +24,9 @@ eae3681fe8836814828bee0c28fcfc1e530343d8 data/priestess/worldgen/biome/sargon_du
 06ef2e254e791cd09a1c7d5079a38b56fc4114d5 data/priestess/worldgen/biome/sea_of_silence.json
 a3db7682fdac104c0c304c6d5a0b08a9f1333e12 data/priestess/worldgen/biome/siesta_sea.json
 1dc16956dc98554022e49f5b7986b3d60388ba4e data/priestess/worldgen/biome/siracusan_coast.json
+531ccaf7d5cd9e8ebec41e77e9c26993510d06eb data/priestess/worldgen/biome/temporary_layer.json
+ad5b5f10e2515055a3eb47bf25e1778f08217124 data/priestess/worldgen/biome/ursus_mixedwood.json
+7a85b9bcad4870da957bb624f370783cb8a335c0 data/priestess/worldgen/biome/ursus_steppe.json
 99c4485b8de44d38b70b77a9ed6df71619b57826 data/priestess/worldgen/biome/ursus_taiga.json
 78db628b3205a781762fbdaa6d8abac60d42313d data/priestess/worldgen/biome/victorian_moors.json
 fe204871ad02e633093d91ddb59a9b322b46f6de data/priestess/worldgen/biome/yanese_peaks.json
@@ -27,7 +34,7 @@ fe204871ad02e633093d91ddb59a9b322b46f6de data/priestess/worldgen/biome/yanese_pe
 7f5f110a211b82bc22627b2f901c5f3c6a1265dd data/priestess/worldgen/noise/erosion.json
 7ee30d29ad8335dd8c715f538c2fe86bed46dbb0 data/priestess/worldgen/noise/ridges.json
 b6a6012cbeb19cc6c2aeb36e8d40b0c4914bdad2 data/priestess/worldgen/noise/surface_patch.json
-79678167e2830709269435d2d8f87dc288076571 data/priestess/worldgen/noise_settings/settings.json
+de55410103ee7311cd1a60b65319f82689cf51a1 data/priestess/worldgen/noise_settings/settings.json
 2c8c19601dbb71d5ad4e0e67ce606d13881478d8 data/priestess/worldgen/structure/infy_ice_spike.json
 dfe6a3f4ee1ac18d2ab84dc96562a299b75f33f8 data/priestess/worldgen/structure_set/infy_ice_spike_set.json
 e56e64c4d7902503f9718842ee00eaf957e4617a data/priestess/worldgen/template_pool/infy_ice_spike_pool.json

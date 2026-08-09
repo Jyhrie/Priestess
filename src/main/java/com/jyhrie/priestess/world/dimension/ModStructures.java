@@ -56,7 +56,7 @@ public class ModStructures {
         registerStructure(
                 "infy_ice_spike",
                 List.of("ice_spike_medium_normal"),   // one entry per .nbt variant; picked at random
-                ModBiomes.INFY_ICEFIELDS,
+                ModBiomes.INFY_ICEFIELD,
                 1,                                     // spacing (chunks)
                 0,                                     // separation (chunks, must be < spacing)
                 14325892,                              // salt — must be unique per structure

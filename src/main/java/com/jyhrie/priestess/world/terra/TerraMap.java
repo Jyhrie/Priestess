@@ -78,7 +78,7 @@ public final class TerraMap {
      * 4096x4096 is 33 MiB, with a transient spike of maybe four times that while the
      * images decode.
      */
-    public static final int WORLD_WIDTH_BLOCKS = 131_072;
+    public static final int WORLD_WIDTH_BLOCKS = 65_536;
 
     /**
      * Origin shift: the point on the map that should become block (0, 0), given in the

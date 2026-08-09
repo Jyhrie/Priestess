@@ -1,7 +1,22 @@
-// 1.20.1	2026-08-08T13:10:50.5008753	Block States: priestess
+// 1.20.1	2026-08-09T11:01:39.8297022	Block States: priestess
+0fbc2a230ca3e83db581f9681d90b89f64afc543 assets/priestess/blockstates/black_ice.json
+bd1bdb2ecf93c532d710142e6522d84bbf47d3e7 assets/priestess/blockstates/dead_seabed.json
 49821fa3ee9fc23b80feb0c4b5ad4ffb432426e0 assets/priestess/blockstates/iberian_sand.json
 b3b5b7c1665bf623ccbfec3079f9f5c790c9438f assets/priestess/blockstates/iberian_sandstone.json
+e986ea750e1309a4552a92540262c280ba837e81 assets/priestess/blockstates/pale_beach_sand.json
+fcf6ee8449bf6ec4dbea7c930628ea770b32df8f assets/priestess/blockstates/permafrost.json
+5e1292f637066aacf654b9f716fb713c9ea22669 assets/priestess/blockstates/siesta_sand.json
+2b1314852548821e6fd5f34acd5d57a86bc10f8d assets/priestess/models/block/black_ice.json
+46c9bc4a8bcffafb1419801e85e0259735251c1d assets/priestess/models/block/dead_seabed.json
 72120de852f16c13ee92ad230d68f8358ae8cd22 assets/priestess/models/block/iberian_sand.json
 d66ca9ae1842178d24196997d083b8b7d28c11bf assets/priestess/models/block/iberian_sandstone.json
+31ea2b9ab76bebbd81432f9c6778365afbc5a6ba assets/priestess/models/block/pale_beach_sand.json
+e2d5ff8d8a79f24058b73abc8abc53df9143d6d9 assets/priestess/models/block/permafrost.json
+4061202872d35778eb389d1fe8e54617835d233e assets/priestess/models/block/siesta_sand.json
+7ae635060d282e271ed64fdd80ae065ce8398b1c assets/priestess/models/item/black_ice.json
+e52a5aa2263cdb19b72a0b98f1d59def2c7d0af6 assets/priestess/models/item/dead_seabed.json
 ac8965ef85fc33e80654221ad3c6d746d420fa02 assets/priestess/models/item/iberian_sand.json
 60953220c37e1034cea312e46c3477b39572a180 assets/priestess/models/item/iberian_sandstone.json
+cff256536387814a1f7efe5b00f8e37347cc4c7c assets/priestess/models/item/pale_beach_sand.json
+5fb11bd5dc8e9f2a6baeb87cd362f4240a0a1a9c assets/priestess/models/item/permafrost.json
+bed73ede013bd899fa1d69113e41ff00f295e299 assets/priestess/models/item/siesta_sand.json

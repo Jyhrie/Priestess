@@ -1,3 +1,8 @@
-// 1.20.1	2026-08-08T13:10:50.4983683	Loot Tables
+// 1.20.1	2026-08-09T11:01:39.827203	Loot Tables
+e25008b5eb2960f09a2f2e364b4e98490e0d76fc data/priestess/loot_tables/blocks/black_ice.json
+4d28eda8c4c1b0eeaf9db40dfd23f4c7868d9ca5 data/priestess/loot_tables/blocks/dead_seabed.json
 7d3016791e73ca6e3d2a26c62cd78320e874d41b data/priestess/loot_tables/blocks/iberian_sand.json
 ccbd8c4bb4ea8eb20a08c544cf53cfceb1c5a3f8 data/priestess/loot_tables/blocks/iberian_sandstone.json
+3655da9c19908b7b0b896446e4ee9e2ebd6ec375 data/priestess/loot_tables/blocks/pale_beach_sand.json
+39b36cf244ea9ab7e061dd22f491c096d2a3b401 data/priestess/loot_tables/blocks/permafrost.json
+7c1cc09aee6258655c1c71f75594e91561976a5c data/priestess/loot_tables/blocks/siesta_sand.json

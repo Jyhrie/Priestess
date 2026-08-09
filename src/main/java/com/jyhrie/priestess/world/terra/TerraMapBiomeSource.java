@@ -18,19 +18,22 @@ import java.util.stream.Stream;
 /**
  * Picks biomes from Terra's map rather than from climate noise.
  *
- * <p>A position resolves in two lookups: which {@link TerraRegion} the pixel belongs to,
- * and which {@link TerraSlot} its elevation falls into. The pair indexes a flat table of
- * region x slot biomes. The {@link Climate.Sampler} handed in by the chunk generator is
- * ignored entirely — there is no climate model here any more, the map <em>is</em> the
- * model.
+ * <p>A position resolves in exactly one lookup: which {@link TerraRegion} the pixel belongs
+ * to. That zone names one biome and that is the answer, at every height. The
+ * {@link Climate.Sampler} handed in by the chunk generator is ignored entirely — there is
+ * no climate model here, the map <em>is</em> the model.
+ *
+ * <p>Elevation is not consulted. It used to select one of eight {@link TerraSlot} biomes
+ * per zone, which meant a painted zone could generate biomes nobody had zoned for; now
+ * elevation only shapes terrain height, through the {@code mapHeight} spline in
+ * {@code ModNoiseSettings}.
  *
  * <h2>The table is serialised, the layout is not</h2>
- * The codec writes out the biomes as one flat list in {@code TerraRegion.values()} x
- * {@code TerraSlot.values()} order. That keeps the dimension JSON self-describing and
- * datapack-overridable without needing to encode the enum names, at the cost that
- * reordering either enum invalidates an existing dimension JSON — so re-run
- * {@code gradlew runData} after any such reorder. The size check in the constructor is
- * what stops that mistake being silent.
+ * The codec writes out the biomes as one flat list in {@code TerraRegion.values()} order.
+ * That keeps the dimension JSON self-describing and datapack-overridable without needing to
+ * encode the enum names, at the cost that reordering the enum invalidates an existing
+ * dimension JSON — so re-run {@code gradlew runData} after any such reorder. The size check
+ * in the constructor is what stops that mistake being silent.
  */
 public class TerraMapBiomeSource extends BiomeSource {
 
@@ -41,16 +44,16 @@ public class TerraMapBiomeSource extends BiomeSource {
                             .forGetter(source -> source.table)
             ).apply(instance, TerraMapBiomeSource::new));
 
-    private static final int EXPECTED = TerraRegion.VALUES.length * TerraSlot.COUNT;
+    private static final int EXPECTED = TerraRegion.VALUES.length;
 
     private final List<Holder<Biome>> table;
 
     public TerraMapBiomeSource(List<Holder<Biome>> table) {
         if (table.size() != EXPECTED) {
             throw new IllegalArgumentException(String.format(
-                    "Terra map biome table has %d entries, expected %d (%d regions x %d slots). "
-                            + "Re-run `gradlew runData` after changing TerraRegion or TerraSlot.",
-                    table.size(), EXPECTED, TerraRegion.VALUES.length, TerraSlot.COUNT));
+                    "Terra map biome table has %d entries, expected %d (one per zone). "
+                            + "Re-run `gradlew runData` after changing TerraRegion.",
+                    table.size(), EXPECTED));
         }
         this.table = List.copyOf(table);
     }
@@ -59,9 +62,7 @@ public class TerraMapBiomeSource extends BiomeSource {
     public static TerraMapBiomeSource create(HolderGetter<Biome> biomes) {
         List<Holder<Biome>> table = new ArrayList<>(EXPECTED);
         for (TerraRegion region : TerraRegion.VALUES) {
-            for (TerraSlot slot : TerraSlot.VALUES) {
-                table.add(biomes.getOrThrow(region.biome(slot)));
-            }
+            table.add(biomes.getOrThrow(region.biome()));
         }
         return new TerraMapBiomeSource(table);
     }
@@ -81,10 +82,6 @@ public class TerraMapBiomeSource extends BiomeSource {
         int blockX = QuartPos.toBlock(quartX);
         int blockZ = QuartPos.toBlock(quartZ);
 
-        TerraMap map = TerraMap.get();
-        TerraRegion region = map.regionAt(blockX, blockZ);
-        TerraSlot slot = TerraSlot.of(map.elevationAt(blockX, blockZ));
-
-        return table.get(region.ordinal() * TerraSlot.COUNT + slot.ordinal());
+        return table.get(TerraMap.get().regionAt(blockX, blockZ).ordinal());
     }
 }

@@ -8,213 +8,111 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Every region of Terra, and which biome each one wears at each terrain class.
+ * Every zone of Terra: one colour in {@code data/priestess/terra/regions.png}, one biome.
  *
- * <h2>The colour is a contract</h2>
- * The {@code colour} field must exactly match the colour that region is painted in
- * {@code data/priestess/terra/regions.png}. {@code tools/generate_terra_map.py} prints
- * the full list when it runs; if you repaint the map by hand, use an editor with a
- * pencil tool rather than a brush, because anti-aliased edges produce colours that are
- * in no region. ({@link TerraMap} tolerates that by snapping unknown colours to the
- * nearest known one, but a hard-edged map is what you want.)
+ * <h2>The colour is the contract</h2>
+ * The {@code colour} field must exactly match the colour that zone is painted in. Use an
+ * editor with a pencil tool rather than a brush, because anti-aliased edges produce colours
+ * that are in no zone. ({@link TerraMap} tolerates that by snapping unknown colours to the
+ * nearest known one and logging a warning, but a hard-edged map is what you want — and a
+ * clean load reports zero unrecognised colours, which is the check worth watching.)
  *
- * <h2>Reading the table</h2>
- * Each row is one region and its eight slots, in {@link TerraSlot} order:
- * <pre>
- *     deep sea, sea, shore, lowland, flats, midland, hills, mountain
- * </pre>
- * Ocean regions still declare land slots and land regions still declare sea slots. They
- * are usually unreachable — an ocean region has no pixels above the waterline — but they
- * have to be filled, and filling them sensibly means the map stays correct if you later
- * repaint a coastline and hand some land to a region that never had any.
+ * <h2>One colour, one biome, no exceptions</h2>
+ * This table used to give each zone eight biomes indexed by elevation, so a zone's coast,
+ * flats and peaks were different biomes. That is gone. The map defines where the biomes
+ * are, full stop: what you paint is what generates, at every height.
  *
- * <p>Where a region borders another, their tables should agree at the shared slot, or
- * you get a hard seam. The old climate-wedge model enforced that structurally; here it is
- * on you, because the whole point of a hand-authored map is that you place things.
+ * <p>The consequence to keep in mind is that a zone no longer produces a coastline on its
+ * own. Paint a nation across a bay and the water in that bay is the nation's biome, not
+ * ocean. Coasts, beaches and named seas become their own colours when you paint them.
+ *
+ * <p>Elevation has not stopped mattering — it still drives terrain height through the
+ * {@code mapHeight} spline, and the surface rules in {@code ModNoiseSettings} still key off
+ * height within a zone, so a zone can go bare rock above its treeline without that being a
+ * separate biome. What elevation no longer does is choose the biome.
+ *
+ * <h2>Adding a zone</h2>
+ * Register the biome in {@link ModBiomes}, add the row here, give it a surface rule in
+ * {@code ModNoiseSettings}, then re-run {@code gradlew runData}. A zone painted on the map
+ * with no row here is a warning at load and a nearest-colour guess in the world; a row here
+ * with no paint on the map is dead weight in the serialised table.
  */
 public enum TerraRegion {
 
-    // ── Open water ────────────────────────────────────────────────────────────
-    /** The ocean south of Iberia, where Ægir lies. The two are at war. */
-    AEGIR(0x0E1A2E,
-            ModBiomes.AEGIR_DEPTHS, ModBiomes.SEA_OF_SILENCE, ModBiomes.IBERIAN_SHORES,
-            ModBiomes.BARRENLANDS, ModBiomes.BARRENLANDS, ModBiomes.VICTORIAN_MOORS,
-            ModBiomes.YANESE_PEAKS, ModBiomes.YANESE_PEAKS),
-
-    /** Everything else: west of Bolívar, east of Yan and Higashi. */
-    OPEN_OCEAN(0x1D4E7A,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.BOLIVAR_DEPTHS, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.VICTORIAN_MOORS,
-            ModBiomes.LEITHANIEN_WOODS, ModBiomes.YANESE_PEAKS),
-
-    /** The great inland sea. Canon gives it Mediterranean biomes, so it runs warm. */
-    CLARISIDE(0x39B9D6,
-            ModBiomes.SIESTA_SEA, ModBiomes.SIESTA_SEA, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.SIRACUSAN_COAST, ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.VICTORIAN_MOORS,
-            ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.HIGASHI_HIGHLANDS),
-
-    /** Northern Bolívar's sea, which feeds Dossoles' artificial one. */
-    NORTE_SEA(0x49C4C0,
-            ModBiomes.SIESTA_SEA, ModBiomes.SIESTA_SEA, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.BOLIVAR_MIRE, ModBiomes.BOLIVAR_MIRE, ModBiomes.VICTORIAN_MOORS,
-            ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.HIGASHI_HIGHLANDS),
+    /**
+     * Everything outside the continent, painted flat black — 72% of the map, and 95% of
+     * that is below the waterline.
+     *
+     * <p>It needs a row of its own even though it is "just" the sea. Black is not a colour
+     * any nation is painted in, so without one {@link #byNearestColour} hands the entire
+     * world ocean to whichever zone happens to be darkest.
+     */
+    OCEAN(0x000000, ModBiomes.OCEAN),
 
     // ── The north ─────────────────────────────────────────────────────────────
     /** The Infy Icefield: the frontier north of Sami and Ursus, and terra incognita past it. */
-    INFY(0xEAF6FF,
-            ModBiomes.AEGIR_DEPTHS, ModBiomes.SEA_OF_SILENCE, ModBiomes.AEGIR_SHELF,
-            ModBiomes.INFY_ICEFIELDS, ModBiomes.INFY_ICEFIELDS, ModBiomes.INFY_ICEFIELDS,
-            ModBiomes.KJERAG_SLOPES, ModBiomes.KJERAG_SLOPES),
+    INFY(0xFFFFFF, ModBiomes.INFY_ICEFIELD),
+    SAMI(0x98CAFF, ModBiomes.SAMI),
 
-    SAMI(0xBFE3F2,
-            ModBiomes.AEGIR_DEPTHS, ModBiomes.SEA_OF_SILENCE, ModBiomes.AEGIR_SHELF,
-            ModBiomes.URSUS_TAIGA, ModBiomes.SAMI_SNOWFIELDS, ModBiomes.SAMI_SNOWFIELDS,
-            ModBiomes.SAMI_SNOWFIELDS, ModBiomes.KJERAG_SLOPES),
+    // ── Ursus, split three ways ───────────────────────────────────────────────
+    /** Northern Ursus, against the ice. */
+    URSUS_COLD(0x6B0A0A, ModBiomes.URSUS_COLD),
+    /** The Ursine steppe: cold, open, and too dry for forest. */
+    URSUS_DRY(0xFFC532, ModBiomes.URSUS_DRY),
+    /** Southern Ursus, where birch gets in among the pine. */
+    URSUS_WARM(0xFF3232, ModBiomes.URSUS_WARM),
 
-    URSUS(0x7A93B5,
-            ModBiomes.AEGIR_DEPTHS, ModBiomes.SEA_OF_SILENCE, ModBiomes.AEGIR_SHELF,
-            ModBiomes.URSUS_TAIGA, ModBiomes.URSUS_TAIGA, ModBiomes.SAMI_SNOWFIELDS,
-            ModBiomes.LEITHANIEN_WOODS, ModBiomes.KJERAG_SLOPES),
+    // ── The range ─────────────────────────────────────────────────────────────
+    // One massif painted as two zones. The elevation map says which is which: Kjerag sits
+    // almost entirely above 0.86 while Mount Karlan wraps around it lower down, so Karlan
+    // is the body of the mountain and Kjerag is the summit country on top of it.
 
-    /** The mountain basin on the range running from northern Kazimierz to Sargon. */
-    KJERAG(0xE4EEF5,
-            ModBiomes.AEGIR_DEPTHS, ModBiomes.SEA_OF_SILENCE, ModBiomes.AEGIR_SHELF,
-            ModBiomes.KJERAG_SLOPES, ModBiomes.KJERAG_SLOPES, ModBiomes.KJERAG_SLOPES,
-            ModBiomes.KJERAG_SLOPES, ModBiomes.KJERAG_SLOPES),
+    /** The high basin at the top of the range from northern Kazimierz to Sargon. */
+    KJERAG(0x165A74, ModBiomes.KJERAG),
+    /** Mount Karlan itself: the flanks Kjerag sits on, and the long climb up to it. */
+    MOUNT_KARLAN(0x558496, ModBiomes.MOUNT_KARLAN),
 
-    // ── The heartland ─────────────────────────────────────────────────────────
-    KAZIMIERZ(0x9CC46A,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SIESTA_SEA, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.KAZIMIERZ_PLAINS,
-            ModBiomes.VICTORIAN_MOORS, ModBiomes.KJERAG_SLOPES),
+    // ── The heartland and the west ────────────────────────────────────────────
+    KAZIMIERZ(0x4EFF61, ModBiomes.KAZIMIERZ),
+    COLUMBIA(0x837CFF, ModBiomes.COLUMBIA),
+    /** Cold, and dead along the coast — Ægir saw to that. Inland it is sour heath. */
+    IBERIA_LAND(0x2E1AFF, ModBiomes.IBERIA_LAND),
 
-    /** Central Terra, and canon's most fertile ground. */
-    VICTORIA(0x6FA86B,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SIESTA_SEA, ModBiomes.SIRACUSAN_COAST,
-            ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.VICTORIAN_MOORS,
-            ModBiomes.LEITHANIEN_WOODS, ModBiomes.YANESE_PEAKS),
-
-    /** Gaul disintegrated after the War of the Four Nations. What is left is waste. */
-    GAUL(0x9C9478,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SEA_OF_SILENCE, ModBiomes.IBERIAN_SHORES,
-            ModBiomes.BARRENLANDS, ModBiomes.BARRENLANDS, ModBiomes.BARRENLANDS,
-            ModBiomes.VICTORIAN_MOORS, ModBiomes.YANESE_PEAKS),
-
-    LEITHANIEN(0x4E7C55,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SIESTA_SEA, ModBiomes.SIRACUSAN_COAST,
-            ModBiomes.LEITHANIEN_WOODS, ModBiomes.LEITHANIEN_WOODS, ModBiomes.LEITHANIEN_WOODS,
-            ModBiomes.LEITHANIEN_WOODS, ModBiomes.YANESE_PEAKS),
-
-    // ── The Clariside rim ─────────────────────────────────────────────────────
-    /** Cold, and dead along the coast — Ægir saw to that. Inland it is barrenlands. */
-    IBERIA(0x8FA0B0,
-            ModBiomes.AEGIR_DEPTHS, ModBiomes.SEA_OF_SILENCE, ModBiomes.IBERIAN_SHORES,
-            ModBiomes.IBERIAN_SHORES, ModBiomes.BARRENLANDS, ModBiomes.BARRENLANDS,
-            ModBiomes.VICTORIAN_MOORS, ModBiomes.YANESE_PEAKS),
-
-    /** A volcanic peninsula in the Clariside, so its high ground is crag, not meadow. */
-    SIESTA(0xF0C86A,
-            ModBiomes.SIESTA_SEA, ModBiomes.SIESTA_SEA, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.SIRACUSAN_COAST, ModBiomes.SIRACUSAN_COAST, ModBiomes.KAZDEL_CRAGS,
-            ModBiomes.KAZDEL_CRAGS, ModBiomes.KAZDEL_CRAGS),
-
-    ACAHUALLA(0x7FA05A,
-            ModBiomes.SIESTA_SEA, ModBiomes.SIESTA_SEA, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.BOLIVAR_MIRE, ModBiomes.BOLIVAR_MIRE, ModBiomes.LEITHANIEN_WOODS,
-            ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.HIGASHI_HIGHLANDS),
-
-    LATERANO(0xF2E9C4,
-            ModBiomes.SIESTA_SEA, ModBiomes.SIESTA_SEA, ModBiomes.SIRACUSAN_COAST,
-            ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.VICTORIAN_MOORS,
-            ModBiomes.LEITHANIEN_WOODS, ModBiomes.YANESE_PEAKS),
-
-    SIRACUSA(0xD9A25C,
-            ModBiomes.SIESTA_SEA, ModBiomes.SIESTA_SEA, ModBiomes.SIRACUSAN_COAST,
-            ModBiomes.SIRACUSAN_COAST, ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.VICTORIAN_MOORS,
-            ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.HIGASHI_HIGHLANDS),
-
-    MINOS(0xC9B98A,
-            ModBiomes.SIESTA_SEA, ModBiomes.SIESTA_SEA, ModBiomes.SIRACUSAN_COAST,
-            ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.BARRENLANDS, ModBiomes.VICTORIAN_MOORS,
-            ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.YANESE_PEAKS),
+    // ── The east ──────────────────────────────────────────────────────────────
+    YAN(0xFF9D00, ModBiomes.YAN),
+    /** Northern Higashi: cedar under snow. */
+    HIGASHI_COLD(0x9E5252, ModBiomes.HIGASHI_COLD),
+    /** Southern Higashi: terraced paddy and wet heat. */
+    HIGASHI_WARM(0x760006, ModBiomes.HIGASHI_WARM),
 
     // ── The south ─────────────────────────────────────────────────────────────
     /** The Sarkaz homeland: fought over until nothing green was left. */
-    KAZDEL(0x7A3A3A,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SEA_OF_SILENCE, ModBiomes.IBERIAN_SHORES,
-            ModBiomes.BARRENLANDS, ModBiomes.BARRENLANDS, ModBiomes.KAZDEL_CRAGS,
-            ModBiomes.KAZDEL_CRAGS, ModBiomes.KAZDEL_CRAGS),
+    KAZDEL(0x2D0000, ModBiomes.KAZDEL),
 
-    SARGON(0xE0B060,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SIESTA_SEA, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.SARGON_DUNES, ModBiomes.SARGON_DUNES, ModBiomes.FOEHN_HOTLANDS,
-            ModBiomes.KAZDEL_CRAGS, ModBiomes.KAZDEL_CRAGS),
-
-    /** The Foehn Hotlands: Sargon's southern frontier, and terra incognita past it. */
-    FOEHN(0xD9743A,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SIESTA_SEA, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.SARGON_DUNES, ModBiomes.FOEHN_HOTLANDS, ModBiomes.FOEHN_HOTLANDS,
-            ModBiomes.KAZDEL_CRAGS, ModBiomes.KAZDEL_CRAGS),
-
-    // ── The east ──────────────────────────────────────────────────────────────
-    YAN(0x8FB8A0,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SIESTA_SEA, ModBiomes.SIRACUSAN_COAST,
-            ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.HIGASHI_HIGHLANDS,
-            ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.YANESE_PEAKS),
-
-    HIGASHI(0xA8CBB4,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SIESTA_SEA, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.HIGASHI_HIGHLANDS,
-            ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.YANESE_PEAKS),
-
-    /** Mining country. Its hills are quarried rock rather than pasture. */
-    RIM_BILLITON(0x8A7F6E,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SIESTA_SEA, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.BARRENLANDS, ModBiomes.BARRENLANDS, ModBiomes.KAZDEL_CRAGS,
-            ModBiomes.KAZDEL_CRAGS, ModBiomes.KAZDEL_CRAGS),
-
-    // ── The west ──────────────────────────────────────────────────────────────
-    COLUMBIA(0xB4C8D8,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.BOLIVAR_DEPTHS, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.KAZIMIERZ_PLAINS, ModBiomes.LEITHANIEN_WOODS,
-            ModBiomes.LEITHANIEN_WOODS, ModBiomes.YANESE_PEAKS),
-
-    BOLIVAR(0x6E8A5E,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.BOLIVAR_DEPTHS, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.BOLIVAR_MIRE, ModBiomes.BOLIVAR_MIRE, ModBiomes.BARRENLANDS,
-            ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.YANESE_PEAKS),
-
-    /** Bolívar's resort capital, and its enormous artificial sea. */
-    DOSSOLES(0x6FD8E0,
-            ModBiomes.SIESTA_SEA, ModBiomes.SIESTA_SEA, ModBiomes.DOSSOLES_BEACHES,
-            ModBiomes.DOSSOLES_BEACHES, ModBiomes.BOLIVAR_MIRE, ModBiomes.BOLIVAR_MIRE,
-            ModBiomes.HIGASHI_HIGHLANDS, ModBiomes.HIGASHI_HIGHLANDS),
-
-    // ── Unclaimed ─────────────────────────────────────────────────────────────
-    /** Canon's own word for the territory no nation holds. The wastes between cities. */
-    BARRENLANDS(0xA89A80,
-            ModBiomes.BOLIVAR_DEPTHS, ModBiomes.SEA_OF_SILENCE, ModBiomes.IBERIAN_SHORES,
-            ModBiomes.BARRENLANDS, ModBiomes.BARRENLANDS, ModBiomes.BARRENLANDS,
-            ModBiomes.VICTORIAN_MOORS, ModBiomes.YANESE_PEAKS);
+    // ── Unpainted ─────────────────────────────────────────────────────────────
+    /**
+     * Ground no nation has been painted onto yet. It wears a deliberately garish biome so
+     * that unfinished map reads as unfinished from inside the world, and it is also where
+     * {@link #byNearestColour} sends a colour it does not recognise — the right answer for
+     * both cases that can arise from, a zone you have not got to yet and a soft-brush
+     * artefact on a border.
+     */
+    TEMPORARY(0xD1FF00, ModBiomes.TEMPORARY_LAYER);
 
     public static final TerraRegion[] VALUES = values();
 
     /** RGB as painted in regions.png. */
     public final int colour;
-    private final ResourceKey<Biome>[] slots;
+    private final ResourceKey<Biome> biome;
 
-    @SafeVarargs
-    TerraRegion(int colour, ResourceKey<Biome>... slots) {
-        if (slots.length != TerraSlot.COUNT) {
-            throw new IllegalArgumentException(
-                    name() + " declares " + slots.length + " slots, expected " + TerraSlot.COUNT);
-        }
+    TerraRegion(int colour, ResourceKey<Biome> biome) {
         this.colour = colour;
-        this.slots = slots;
+        this.biome = biome;
     }
 
-    public ResourceKey<Biome> biome(TerraSlot slot) {
-        return slots[slot.ordinal()];
+    /** The biome this zone generates, everywhere within it. */
+    public ResourceKey<Biome> biome() {
+        return biome;
     }
 
     // ── Colour lookup ─────────────────────────────────────────────────────────
@@ -236,12 +134,12 @@ public enum TerraRegion {
     }
 
     /**
-     * The region whose colour is closest in RGB. Used only for pixels that are not an
-     * exact match, which in practice means someone hand-edited the map with a soft brush.
+     * The zone whose colour is closest in RGB. Used only for pixels that are not an exact
+     * match, which in practice means someone hand-edited the map with a soft brush.
      */
     public static TerraRegion byNearestColour(int rgb) {
         int r = (rgb >> 16) & 0xFF, g = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
-        TerraRegion best = BARRENLANDS;
+        TerraRegion best = TEMPORARY;
         int bestDistance = Integer.MAX_VALUE;
         for (TerraRegion region : VALUES) {
             int dr = ((region.colour >> 16) & 0xFF) - r;

@@ -1,5 +1,10 @@
 {
+  "block.priestess.black_ice": "Black Ice",
+  "block.priestess.dead_seabed": "Dead Seabed",
   "block.priestess.iberian_sand": "Iberian Sand",
   "block.priestess.iberian_sandstone": "Iberian Sandstone",
+  "block.priestess.pale_beach_sand": "Pale Beach Sand",
+  "block.priestess.permafrost": "Permafrost",
+  "block.priestess.siesta_sand": "Siesta Sand",
   "creativetab.priestess_tab": "Priestess"
 }

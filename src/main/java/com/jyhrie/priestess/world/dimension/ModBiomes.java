@@ -12,156 +12,157 @@ import net.minecraft.world.level.biome.BiomeSpecialEffects;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 
 /**
- * The 22 regions of Terra.
+ * One biome per zone painted in {@code data/priestess/terra/regions.png}.
  *
- * Each biome is defined by a {@link Palette} (what it looks like) plus a temperature,
- * downfall and precipitation flag (how it behaves). Where each one physically appears
- * is decided separately, by the climate parameters in
- * {@link ModDimensions#bootstrapStem}; what the ground is made of is decided in
- * {@link ModNoiseSettings}.
+ * <h2>The map is the whole placement model</h2>
+ * A colour on the map <em>is</em> a biome. There is no climate noise, no elevation banding,
+ * and no rule that quietly substitutes something else — paint a zone and that zone is what
+ * generates, from the seabed to the summit. If you want a beach, an ocean or a snowline,
+ * you paint it as its own colour.
  *
- * <p>The regions are grouped into five climate wedges, coldest to hottest. Every biome
- * in a wedge borders only its own neighbours in that wedge, so walking inland from an
- * Iberian beach takes you through Iberian water, never across the map into Siesta.
- * Keep that grouping in mind when adding a region: it is the whole reason the wedge
- * table in {@link ModDimensions} is shaped the way it is.
+ * <p>That is a deliberate trade. The previous model gave every zone eight biomes indexed by
+ * elevation, which meant painting Infy also got you Ægir shelf on its coast and Kjerag on
+ * its peaks — biomes you never asked for appearing on ground you never zoned. This costs
+ * detail per zone and buys back the property that the map is literally what you get.
+ *
+ * <p>Elevation still matters, it just no longer picks biomes. {@code elevation.png} drives
+ * the {@code mapHeight} spline in {@link ModNoiseSettings}, so terrain still rises and falls
+ * exactly as painted; and the surface rules there key off height <em>within</em> a biome, so
+ * a zone can still go bare rock above the treeline without that being a different biome.
+ *
+ * <h2>Adding a zone</h2>
+ * Three edits, in this order, or the game will not start:
+ * <ol>
+ *   <li>register the biome here,</li>
+ *   <li>add the colour and this key to {@link com.jyhrie.priestess.world.terra.TerraRegion},</li>
+ *   <li>give it a surface rule in {@link ModNoiseSettings}, or it generates as bare stone.</li>
+ * </ol>
+ * Then re-run {@code gradlew runData}.
  */
 public class ModBiomes {
 
     // ── Keys ──────────────────────────────────────────────────────────────────
-    public static final ResourceKey<Biome> BARRENLANDS = createKey("barrenlands");
+    // One per colour in regions.png. Nothing else belongs in this list — a biome with no
+    // zone painted for it is a biome that cannot generate.
 
-    public static final ResourceKey<Biome> AEGIR_DEPTHS = createKey("aegir_depths");
-    public static final ResourceKey<Biome> BOLIVAR_DEPTHS = createKey("bolivar_depths");
-    public static final ResourceKey<Biome> SEA_OF_SILENCE = createKey("sea_of_silence");
-    public static final ResourceKey<Biome> SIESTA_SEA = createKey("siesta_sea");
+    /** Everything outside the continent. Split into named seas once they are painted. */
+    public static final ResourceKey<Biome> OCEAN = createKey("ocean");
 
-    public static final ResourceKey<Biome> AEGIR_SHELF = createKey("aegir_shelf");
-    public static final ResourceKey<Biome> IBERIAN_SHORES = createKey("iberian_shores");
-    public static final ResourceKey<Biome> SIRACUSAN_COAST = createKey("siracusan_coast");
-    public static final ResourceKey<Biome> DOSSOLES_BEACHES = createKey("dossoles_beaches");
+    public static final ResourceKey<Biome> INFY_ICEFIELD = createKey("infy_icefield");
+    public static final ResourceKey<Biome> SAMI = createKey("sami");
 
-    public static final ResourceKey<Biome> INFY_ICEFIELDS = createKey("infy_icefields");
-    public static final ResourceKey<Biome> SAMI_SNOWFIELDS = createKey("sami_snowfields");
-    public static final ResourceKey<Biome> KJERAG_SLOPES = createKey("kjerag_slopes");
+    public static final ResourceKey<Biome> URSUS_COLD = createKey("ursus_cold");
+    public static final ResourceKey<Biome> URSUS_DRY = createKey("ursus_dry");
+    public static final ResourceKey<Biome> URSUS_WARM = createKey("ursus_warm");
 
-    public static final ResourceKey<Biome> FOEHN_HOTLANDS = createKey("foehn_hotlands");
-    public static final ResourceKey<Biome> KAZDEL_CRAGS = createKey("kazdel_crags");
-    public static final ResourceKey<Biome> SARGON_DUNES = createKey("sargon_dunes");
+    public static final ResourceKey<Biome> KJERAG = createKey("kjerag");
+    public static final ResourceKey<Biome> MOUNT_KARLAN = createKey("mount_karlan");
 
-    public static final ResourceKey<Biome> YANESE_PEAKS = createKey("yanese_peaks");
-    public static final ResourceKey<Biome> HIGASHI_HIGHLANDS = createKey("higashi_highlands");
+    public static final ResourceKey<Biome> KAZIMIERZ = createKey("kazimierz");
+    public static final ResourceKey<Biome> COLUMBIA = createKey("columbia");
+    public static final ResourceKey<Biome> IBERIA_LAND = createKey("iberia_land");
 
-    // The neutral middle of the map: the green, liveable belt the nations fight over.
-    public static final ResourceKey<Biome> URSUS_TAIGA = createKey("ursus_taiga");
-    public static final ResourceKey<Biome> KAZIMIERZ_PLAINS = createKey("kazimierz_plains");
-    public static final ResourceKey<Biome> VICTORIAN_MOORS = createKey("victorian_moors");
-    public static final ResourceKey<Biome> LEITHANIEN_WOODS = createKey("leithanien_woods");
-    public static final ResourceKey<Biome> BOLIVAR_MIRE = createKey("bolivar_mire");
+    public static final ResourceKey<Biome> YAN = createKey("yan");
+    public static final ResourceKey<Biome> HIGASHI_COLD = createKey("higashi_cold");
+    public static final ResourceKey<Biome> HIGASHI_WARM = createKey("higashi_warm");
+
+    public static final ResourceKey<Biome> KAZDEL = createKey("kazdel");
+
+    /** Not a place. Ground that has not been zoned yet, in the same acid yellow as the map. */
+    public static final ResourceKey<Biome> TEMPORARY_LAYER = createKey("temporary_layer");
 
     private static ResourceKey<Biome> createKey(String name) {
         return ResourceKey.create(Registries.BIOME, new ResourceLocation(Priestess.MOD_ID, name));
     }
 
-    /** Everything that decides how a region reads on screen. */
+    /** Everything that decides how a zone reads on screen. */
     private record Palette(int sky, int fog, int water, int waterFog, int grass, int foliage) {}
 
-    // ── Region palettes ───────────────────────────────────────────────────────
-    // Dust and ash dominate inland Terra; the seas run from resort-blue in the south
-    // to dead grey in the Sea of Silence to near-black in the Aegir trenches.
+    // ── Zone palettes ─────────────────────────────────────────────────────────
 
-    /** The wastes between the cities: dust haze, sour water, dead scrub. */
-    private static final Palette P_BARRENLANDS = new Palette(0xB0A48C, 0xC9BCA0, 0x6E7A5E, 0x4A5240, 0x9C8F6B, 0x8E8460);
-    /** Kazdel: scorched, blood-dark, nothing green left. */
-    private static final Palette P_KAZDEL      = new Palette(0x4A2B2B, 0x5C3535, 0x3A2020, 0x241414, 0x6B4A3A, 0x5A3E30);
-    /** Arid highlands baked by the foehn wind. */
-    private static final Palette P_FOEHN       = new Palette(0xD98E4A, 0xE0A868, 0x8C6A3A, 0x5A4424, 0xB09050, 0xA07C40);
+    /** The open sea: cold, deep and unlit, until the named oceans get painted in. */
+    private static final Palette P_OCEAN       = new Palette(0x3A5A7C, 0x50708C, 0x1C3A54, 0x0E1E30, 0x6E8474, 0x627866);
 
+    /** Infy: harsh, white, the far north. */
+    private static final Palette P_INFY        = new Palette(0xC6E2F0, 0xE0F0F8, 0x2E6A8C, 0x1A3E52, 0xCFE0E0, 0xC4D6D6);
     /** Sami: pale northern sky with a cold cast. */
     private static final Palette P_SAMI        = new Palette(0xA8C4E0, 0xC8DCEC, 0x3D6E8C, 0x223F52, 0xC0CFC0, 0xB4C4B4);
-    /** Infy: harsher, whiter, further north still. */
-    private static final Palette P_INFY        = new Palette(0xC6E2F0, 0xE0F0F8, 0x2E6A8C, 0x1A3E52, 0xCFE0E0, 0xC4D6D6);
 
-    /** Yan: misted blue-green mountains. */
-    private static final Palette P_YANESE      = new Palette(0x7FA8C4, 0xA8C0CC, 0x3E7A8C, 0x244852, 0x6E9C6A, 0x5E8C5A);
-    /** Higashi: softer, wetter highlands. */
-    private static final Palette P_HIGASHI     = new Palette(0x8FB8D4, 0xB8CEDC, 0x4A8CA0, 0x2A525E, 0x7CA85E, 0x6C9850);
+    /** Northern Ursus: black pine and old snow, the last green before the ice. */
+    private static final Palette P_URSUS_COLD  = new Palette(0x9CB4C8, 0xB8C8D4, 0x3A6E80, 0x203E4A, 0x6E8C64, 0x5C7A54);
+    /** The Ursine steppe: cropped, strawy grass and nothing to break the wind. */
+    private static final Palette P_URSUS_DRY   = new Palette(0xA8BCC8, 0xC4D0D4, 0x486E7C, 0x283E46, 0x9C9C64, 0x8C8C58);
+    /** Southern Ursus: birch gets in among the pine and the whole place lightens. */
+    private static final Palette P_URSUS_WARM  = new Palette(0x9CB8CC, 0xB8CCD8, 0x3E7488, 0x22424E, 0x6E9C50, 0x5E8C44);
 
     /** Kjerag: alpine white, thin air, glare off the snowfields. */
     private static final Palette P_KJERAG      = new Palette(0xC8DCF0, 0xE4F0F8, 0x3468A0, 0x1E3C5E, 0xB8C8C0, 0xACBCB4);
+    /** Mount Karlan: Kjerag with the colour bleached out of it. Nothing grows this high. */
+    private static final Palette P_KARLAN      = new Palette(0xDCEEFA, 0xF2FAFF, 0x2C5E96, 0x18345A, 0xAEC0BC, 0xA2B4B0);
 
-    /** Iberia: overcast Atlantic coast — the Deep Sea took the warmth with it. */
-    private static final Palette P_IBERIAN     = new Palette(0x8CA8C0, 0xB8CCD8, 0x2E6E94, 0x1A3E56, 0x849464, 0x748456);
-    /** Ægir's shelf: an ice lid over water nobody has seen the bottom of. */
-    private static final Palette P_AEGIR_SHELF = new Palette(0xB4D0E4, 0xD4E6F0, 0x1C3A54, 0x0E1E30, 0x8FA8A0, 0x819A92);
-    /** Siracusa: limestone headlands over a bright, deep-blue sea. */
-    private static final Palette P_SIRACUSA    = new Palette(0x9CD0EC, 0xDCEAF0, 0x2FA0C8, 0x1A5E78, 0xA8B96A, 0x98A85C);
-    /** Dossoles: tropical resort blue. */
-    private static final Palette P_DOSSOLES    = new Palette(0x7FD0F0, 0xCCEEF8, 0x24B8D8, 0x146E80, 0x8FC46A, 0x7FB45A);
-    /** Siesta: warm, shallow, holiday water. */
-    private static final Palette P_SIESTA      = new Palette(0x86CCEC, 0xC4E8F4, 0x2AA8CC, 0x186476, 0x8AB86A, 0x7AA85A);
-
-    /** The Sea of Silence: colour drained out of it. Iberia abandoned this water. */
-    private static final Palette P_SILENCE     = new Palette(0x6E7C80, 0x8A9698, 0x3A5254, 0x1E2E30, 0x7A8478, 0x6E7868);
-    /** Bolivar's drowned coast: murky, silted, war-fouled. */
-    private static final Palette P_BOLIVAR     = new Palette(0x5A6A70, 0x74848A, 0x2E4448, 0x18282C, 0x74806C, 0x68745E);
-    /** Aegir: the abyss. Almost no light gets down here. */
-    private static final Palette P_AEGIR       = new Palette(0x2A3A52, 0x3A4A62, 0x0E1A2E, 0x060C18, 0x54604E, 0x4A5646);
-
-    // The neutral belt. These read green and ordinary on purpose — they are the ground
-    // the extremes are measured against, and the buffer that stops Infy touching Foehn.
-
-    /** Ursus: black pine and old snow, the last green before the ice. */
-    private static final Palette P_URSUS       = new Palette(0x9CB4C8, 0xB8C8D4, 0x3A6E80, 0x203E4A, 0x6E8C64, 0x5C7A54);
     /** Kazimierz: open grassland under a big clean sky. */
     private static final Palette P_KAZIMIERZ   = new Palette(0x8FC0E4, 0xC8DCEC, 0x3E86B4, 0x244E68, 0x8CBB63, 0x7CAB55);
-    /** Victoria: heather moor, weathered and grey-green. */
-    private static final Palette P_VICTORIA    = new Palette(0x9EB0C0, 0xC0CCD4, 0x486E80, 0x28404A, 0x86976A, 0x76875C);
-    /** Leithanien: deep, close forest on the hill flanks. */
-    private static final Palette P_LEITHANIEN  = new Palette(0x86A8C4, 0xAEC4D0, 0x3A7288, 0x20404E, 0x5E8C4A, 0x4E7C3E);
-    /** Bolivar's inland mire: warm, silted, half water. */
-    private static final Palette P_BOLIVAR_MIRE = new Palette(0x8CA894, 0xAEBCA8, 0x50663E, 0x2C3A22, 0x6E8C48, 0x5E7C3C);
-    /** Sargon: pale dune sea between the beaches and the hotlands. */
-    private static final Palette P_SARGON      = new Palette(0xE0C48C, 0xEEDCB0, 0x9C8A50, 0x5E5230, 0xC4B070, 0xB4A064);
+    /** Columbia: deep close forest on the hill flanks. */
+    private static final Palette P_COLUMBIA    = new Palette(0x86A8C4, 0xAEC4D0, 0x3A7288, 0x20404E, 0x5E8C4A, 0x4E7C3E);
+    /** Iberia: overcast coast and sour heath — the Deep Sea took the warmth with it. */
+    private static final Palette P_IBERIA      = new Palette(0x8CA8C0, 0xB8CCD8, 0x2E6E94, 0x1A3E56, 0x849464, 0x748456);
+
+    /** Yan: misted blue-green mountains. */
+    private static final Palette P_YAN         = new Palette(0x7FA8C4, 0xA8C0CC, 0x3E7A8C, 0x244852, 0x6E9C6A, 0x5E8C5A);
+    /** Northern Higashi: cedar under snow, the light gone flat and grey. */
+    private static final Palette P_HIGASHI_COLD = new Palette(0x8CA8C0, 0xB0C4D0, 0x3A6E86, 0x203E4C, 0x5E7C5E, 0x4E6C50);
+    /** Southern Higashi: paddy green under a humid haze. */
+    private static final Palette P_HIGASHI_WARM = new Palette(0x9CC4DC, 0xC8DCE4, 0x4E96A8, 0x2C5662, 0x8CBC58, 0x7CAC4A);
+
+    /** Kazdel: scorched, blood-dark, nothing green left. */
+    private static final Palette P_KAZDEL      = new Palette(0x4A2B2B, 0x5C3535, 0x3A2020, 0x241414, 0x6B4A3A, 0x5A3E30);
+
+    /**
+     * The placeholder. Deliberately hideous, in the same acid yellow the zone is painted in
+     * {@code regions.png}, so that ground you have not assigned yet announces itself from a
+     * distance instead of being mistaken for a design decision.
+     */
+    private static final Palette P_TEMPORARY   = new Palette(0xD1FF00, 0xE4FF66, 0xD1FF00, 0xA0C000, 0xD1FF00, 0xD1FF00);
 
     // ── Bootstrap ─────────────────────────────────────────────────────────────
     public static void bootstrap(BootstapContext<Biome> context) {
-        // Grouped by the climate wedge each region belongs to, coldest first, because
-        // the visual temperature below has to agree with where ModDimensions puts it —
-        // a "cold" Iberia with temperature 0.8F would still grow palm-tree colours.
+        // Grouped coldest to hottest. The grouping carries no mechanical weight any more —
+        // the map places things, not a climate wedge — but temperature still decides whether
+        // water freezes and whether precipitation falls as snow, so it has to agree with the
+        // company a zone keeps. Below 0.15 freezes.
 
-        // ── Frigid ────────────────────────────────────────────────────────────
-        //                                            precip  temp  downfall  palette
-        context.register(AEGIR_DEPTHS,      biome(context, true,  0.2F, 0.5F,  P_AEGIR));
-        context.register(AEGIR_SHELF,       biome(context, true, -0.4F, 0.6F,  P_AEGIR_SHELF));
-        context.register(INFY_ICEFIELDS,    biome(context, true, -0.7F, 0.5F,  P_INFY));
-        context.register(KJERAG_SLOPES,     biome(context, true, -0.6F, 0.5F,  P_KJERAG));
+        //                                          precip   temp   downfall  palette
+        context.register(OCEAN,         biome(context, true,  0.4F,  0.5F,  P_OCEAN));
 
-        // ── Cold: Iberia and the north ────────────────────────────────────────
-        context.register(SEA_OF_SILENCE,    biome(context, false, 0.3F, 0.1F,  P_SILENCE));
-        context.register(IBERIAN_SHORES,    biome(context, true,  0.3F, 0.6F,  P_IBERIAN));
-        context.register(URSUS_TAIGA,       biome(context, true, -0.1F, 0.7F,  P_URSUS));
-        context.register(SAMI_SNOWFIELDS,   biome(context, true, -0.3F, 0.5F,  P_SAMI));
-        context.register(YANESE_PEAKS,      biome(context, true,  0.1F, 0.7F,  P_YANESE));
+        // ── The north ─────────────────────────────────────────────────────────
+        context.register(INFY_ICEFIELD, biome(context, true, -0.7F,  0.5F,  P_INFY));
+        context.register(SAMI,          biome(context, true, -0.3F,  0.5F,  P_SAMI));
 
-        // ── Temperate: the neutral belt ───────────────────────────────────────
-        context.register(KAZIMIERZ_PLAINS,  biome(context, true,  0.6F, 0.4F,  P_KAZIMIERZ));
-        context.register(VICTORIAN_MOORS,   biome(context, true,  0.5F, 0.7F,  P_VICTORIA));
-        context.register(LEITHANIEN_WOODS,  biome(context, true,  0.45F, 0.8F, P_LEITHANIEN));
+        context.register(URSUS_COLD,    biome(context, true, -0.1F,  0.7F,  P_URSUS_COLD));
+        // Above freezing, and dry: that low downfall is what makes it steppe, not forest.
+        context.register(URSUS_DRY,     biome(context, true,  0.3F,  0.2F,  P_URSUS_DRY));
+        context.register(URSUS_WARM,    biome(context, true,  0.4F,  0.7F,  P_URSUS_WARM));
 
-        // ── Warm ──────────────────────────────────────────────────────────────
-        context.register(BOLIVAR_DEPTHS,    biome(context, true,  0.8F, 0.6F,  P_BOLIVAR));
-        context.register(SIRACUSAN_COAST,   biome(context, true,  0.9F, 0.4F,  P_SIRACUSA));
-        context.register(BOLIVAR_MIRE,      biome(context, true,  0.9F, 0.9F,  P_BOLIVAR_MIRE));
-        context.register(BARRENLANDS,       biome(context, false, 1.1F, 0.05F, P_BARRENLANDS));
-        context.register(HIGASHI_HIGHLANDS, biome(context, true,  0.7F, 0.8F,  P_HIGASHI));
+        // ── The range ─────────────────────────────────────────────────────────
+        context.register(KJERAG,        biome(context, true, -0.6F,  0.5F,  P_KJERAG));
+        // Colder than the slopes below it, so the summit keeps snow when Kjerag thaws.
+        context.register(MOUNT_KARLAN,  biome(context, true, -0.9F,  0.4F,  P_KARLAN));
 
-        // ── Hot ───────────────────────────────────────────────────────────────
-        context.register(SIESTA_SEA,        biome(context, true,  0.9F, 0.6F,  P_SIESTA));
-        context.register(DOSSOLES_BEACHES,  biome(context, true,  1.0F, 0.5F,  P_DOSSOLES));
-        context.register(SARGON_DUNES,      biome(context, false, 2.0F, 0.0F,  P_SARGON));
-        context.register(FOEHN_HOTLANDS,    biome(context, false, 2.0F, 0.0F,  P_FOEHN));
-        context.register(KAZDEL_CRAGS,      biome(context, false, 1.6F, 0.0F,  P_KAZDEL));
+        // ── The heartland and the west ────────────────────────────────────────
+        context.register(KAZIMIERZ,     biome(context, true,  0.6F,  0.4F,  P_KAZIMIERZ));
+        context.register(COLUMBIA,      biome(context, true,  0.45F, 0.8F,  P_COLUMBIA));
+        context.register(IBERIA_LAND,   biome(context, true,  0.25F, 0.5F,  P_IBERIA));
+
+        // ── The east ──────────────────────────────────────────────────────────
+        context.register(YAN,           biome(context, true,  0.1F,  0.7F,  P_YAN));
+        context.register(HIGASHI_COLD,  biome(context, true,  0.0F,  0.8F,  P_HIGASHI_COLD));
+        context.register(HIGASHI_WARM,  biome(context, true,  0.85F, 0.9F,  P_HIGASHI_WARM));
+
+        // ── The south ─────────────────────────────────────────────────────────
+        context.register(KAZDEL,        biome(context, false, 1.6F,  0.0F,  P_KAZDEL));
+
+        // ── Not a climate ─────────────────────────────────────────────────────
+        context.register(TEMPORARY_LAYER, biome(context, false, 0.7F, 0.5F, P_TEMPORARY));
     }
 
     /**
@@ -169,9 +170,10 @@ public class ModBiomes {
      * To populate one, add placed features to {@code generationBuilder} and spawner data
      * to {@code spawnBuilder}.
      *
-     * @param temperature visual/behavioural temperature: below 0.15 water freezes and
-     *                    snow falls instead of rain. This is NOT the climate temperature
-     *                    used to place the biome — that lives in ModDimensions.
+     * @param temperature visual/behavioural temperature: below 0.15 water freezes and snow
+     *                    falls instead of rain. Nothing places the biome by this any more —
+     *                    the map does that — so it is purely how the zone behaves once you
+     *                    are standing in it.
      */
     private static Biome biome(BootstapContext<Biome> context, boolean hasPrecipitation,
                                float temperature, float downfall, Palette palette) {
