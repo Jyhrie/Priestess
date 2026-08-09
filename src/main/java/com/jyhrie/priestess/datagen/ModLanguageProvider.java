@@ -13,6 +13,11 @@ public class ModLanguageProvider extends LanguageProvider {
     @Override
     protected void addTranslations() {
         add("creativetab.priestess_tab", "Priestess");
+
+        // Death message for the priestess:oripathy damage type. The key comes from the
+        // DamageType's message id, not from its registry name.
+        add("death.attack.oripathy", "%1$s was crystallised by Oripathy");
+
         add(ModBlocks.IBERIAN_SAND.get(), "Iberian Sand");
         add(ModBlocks.IBERIAN_SANDSTONE.get(), "Iberian Sandstone");
         add(ModBlocks.SIESTA_SAND.get(), "Siesta Sand");

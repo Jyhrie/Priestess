@@ -6,5 +6,6 @@
   "block.priestess.pale_beach_sand": "Pale Beach Sand",
   "block.priestess.permafrost": "Permafrost",
   "block.priestess.siesta_sand": "Siesta Sand",
-  "creativetab.priestess_tab": "Priestess"
+  "creativetab.priestess_tab": "Priestess",
+  "death.attack.oripathy": "%1$s was crystallised by Oripathy"
 }

@@ -122,6 +122,15 @@ map doesn't have.
 So to go from a 1024 map to a 4096 one while keeping a ~20k world: repaint at 4096 ×
 4096, set `WORLD_WIDTH_BLOCKS = 20_480`, done. Nothing else changes.
 
+Two things a repaint changes that are easy to miss. **Terrain shape must not be one of
+them** — `rangeScale` used to key off blocks-per-pixel, so repainting Terra at 4092 px
+(16 blocks/px) drove the ridge octaves from 512/256/128 blocks down to 64/32/16 and
+turned the mountains into gravel: ±28 blocks of relief every ~16 blocks, on slopes that
+climb 23 blocks in 865. It is derived from world width now, so a repaint cannot do that
+again. What a repaint *does* legitimately change is the **domain warp measured in
+blocks** (it is fixed in *pixels*, so a finer map means borders wander less far in
+blocks) and **memory** — see the table below.
+
 #### What follows automatically
 
 These used to be hardcoded to 128 blocks/px and would have quietly broken at any other
@@ -130,7 +139,7 @@ scale. They are all derived now:
 | Derived | Why it has to be |
 |---|---|
 | The domain warp (`TerraMap`) | Fixed in blocks, it would be ±2 px at 128 blocks/px but ±13 px at 5 — Laterano is ~4 px across and would simply cease to exist |
-| Ridge/erosion `xz_scale` (`ModNoiseSettings`) | A range's spurs are a map-scale feature; a quarter-size world otherwise gets ranges built from full-size mountains |
+| Ridge/erosion `xz_scale` (`ModNoiseSettings`) | A range's spurs are a **world**-scale feature, so this is derived from `WORLD_WIDTH_BLOCKS`, *not* from blocks-per-pixel — a quarter-size world otherwise gets ranges built from full-size mountains, but a finer repaint must leave them alone |
 | Preview sampling (`TerraMapPreview`) | Otherwise a small world renders as a 128 px thumbnail |
 
 Verified: at `WORLD_WIDTH_BLOCKS = 20_480` the terrain-slot shares come out identical to

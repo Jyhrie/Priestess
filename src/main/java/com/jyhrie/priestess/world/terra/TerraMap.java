@@ -19,7 +19,14 @@ import java.util.Map;
  * <pre>
  *     data/priestess/terra/regions.png     one flat colour per region
  *     data/priestess/terra/elevation.png   greyscale, 0 = abyss, 255 = peak
+ *     data/priestess/terra/relief.png      greyscale, 0 = flat, 255 = broken crag
  * </pre>
+ *
+ * <p>Elevation and relief are deliberately two maps and not one. Elevation says how high
+ * the ground is; relief says how much it rises and falls once it gets there. Deriving the
+ * second from the first — which is what this used to do — means a high plateau and a
+ * rugged lowland are both unpaintable, and it makes brightening a mountain on the
+ * elevation map quietly make it bumpier as well as taller.
  *
  * <h2>Why a fixed map at all</h2>
  * Terra has a real geography — Ægir is south of Iberia, the Foehn Hotlands are south of
@@ -104,6 +111,15 @@ public final class TerraMap {
 
     private static final String REGIONS_PATH = "/data/priestess/terra/regions.png";
     private static final String ELEVATION_PATH = "/data/priestess/terra/elevation.png";
+    private static final String RELIEF_PATH = "/data/priestess/terra/relief.png";
+
+    /**
+     * What relief.png falls back to when it is missing: grey 80, about ±15 blocks — the
+     * "ordinary rolling country" value. A missing relief map is a warning and a uniformly
+     * rolling world, not a crash, because it is the one of the three that a world can be
+     * perfectly playable without.
+     */
+    private static final int DEFAULT_RELIEF_GREY = 80;
 
     /**
      * The blocks-per-pixel the warp constants were tuned at. Everything is expressed
@@ -133,6 +149,7 @@ public final class TerraMap {
     private final int height;
     private final byte[] regions;      // index into TerraRegion.VALUES
     private final byte[] elevation;    // 0..255, unsigned
+    private final byte[] relief;       // 0..255, unsigned
 
     // Derived from WORLD_WIDTH_BLOCKS and the image size, so they cannot be set to
     // something inconsistent with each other.
@@ -147,7 +164,7 @@ public final class TerraMap {
     private final ImprovedNoise warpFineX;
     private final ImprovedNoise warpFineZ;
 
-    private TerraMap(BufferedImage regionImage, BufferedImage elevationImage) {
+    private TerraMap(BufferedImage regionImage, BufferedImage elevationImage, BufferedImage reliefImage) {
         this.width = regionImage.getWidth();
         this.height = regionImage.getHeight();
 
@@ -155,6 +172,12 @@ public final class TerraMap {
             throw new IllegalStateException(String.format(
                     "regions.png is %dx%d but elevation.png is %dx%d — they must match",
                     width, height, elevationImage.getWidth(), elevationImage.getHeight()));
+        }
+        if (reliefImage != null
+                && (reliefImage.getWidth() != width || reliefImage.getHeight() != height)) {
+            throw new IllegalStateException(String.format(
+                    "regions.png is %dx%d but relief.png is %dx%d — they must match",
+                    width, height, reliefImage.getWidth(), reliefImage.getHeight()));
         }
 
         this.blocksPerPixel = WORLD_WIDTH_BLOCKS / (double) width;
@@ -167,6 +190,14 @@ public final class TerraMap {
 
         this.regions = new byte[width * height];
         this.elevation = new byte[width * height];
+        this.relief = new byte[width * height];
+
+        if (reliefImage == null) {
+            java.util.Arrays.fill(this.relief, (byte) DEFAULT_RELIEF_GREY);
+            LOG.warn("{} is missing — every zone gets a uniform ~{} blocks of relief. "
+                            + "Paint one to control ruggedness per place.",
+                    RELIEF_PATH, DEFAULT_RELIEF_GREY * 48 / 255);
+        }
 
         // Colour -> region is resolved once per distinct colour, not once per pixel: a
         // 1024x640 map is 655k pixels but only a couple of dozen colours.
@@ -179,6 +210,7 @@ public final class TerraMap {
         // 0.44, so the deep ocean generated as hill country. getSample returns the byte
         // that is actually in the file.
         var elevationRaster = elevationImage.getRaster();
+        var reliefRaster = reliefImage == null ? null : reliefImage.getRaster();
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -197,6 +229,9 @@ public final class TerraMap {
                 int i = y * width + x;
                 regions[i] = (byte) region.ordinal();
                 elevation[i] = (byte) elevationRaster.getSample(x, y, 0);
+                if (reliefRaster != null) {
+                    relief[i] = (byte) reliefRaster.getSample(x, y, 0);
+                }
             }
         }
 
@@ -228,11 +263,14 @@ public final class TerraMap {
 
     private static TerraMap load() {
         try (InputStream regionStream = TerraMap.class.getResourceAsStream(REGIONS_PATH);
-             InputStream elevationStream = TerraMap.class.getResourceAsStream(ELEVATION_PATH)) {
+             InputStream elevationStream = TerraMap.class.getResourceAsStream(ELEVATION_PATH);
+             InputStream reliefStream = TerraMap.class.getResourceAsStream(RELIEF_PATH)) {
             if (regionStream == null || elevationStream == null) {
                 throw new IOException("missing " + REGIONS_PATH + " or " + ELEVATION_PATH);
             }
-            return new TerraMap(ImageIO.read(regionStream), ImageIO.read(elevationStream));
+            // relief.png is optional — see DEFAULT_RELIEF_GREY.
+            return new TerraMap(ImageIO.read(regionStream), ImageIO.read(elevationStream),
+                    reliefStream == null ? null : ImageIO.read(reliefStream));
         } catch (IOException e) {
             throw new IllegalStateException("Could not load the Terra map from the mod jar", e);
         }
@@ -293,6 +331,31 @@ public final class TerraMap {
 
     /** Normalised elevation in [0,1] at a block position, bilinearly interpolated. */
     public double elevationAt(double blockX, double blockZ) {
+        return sample(elevation, blockX, blockZ);
+    }
+
+    /**
+     * Normalised relief in [0,1] at a block position, bilinearly interpolated.
+     *
+     * <p>Bilinear rather than nearest-neighbour matters more here than it does for
+     * elevation: a hard step in relief is a place where the hills stop mid-slope, which
+     * reads as a seam. Painted gradients stay gradients all the way into the world.
+     */
+    public double reliefAt(double blockX, double blockZ) {
+        return sample(relief, blockX, blockZ);
+    }
+
+    /** The terrain class at a block position. */
+    public TerraSlot slotAt(int blockX, int blockZ) {
+        return TerraSlot.of(elevationAt(blockX, blockZ));
+    }
+
+    /**
+     * Bilinear lookup into one of the greyscale channels, through the shared domain warp.
+     * Both channels use the same warp, which is what keeps a relief edge sitting exactly
+     * on the coastline it was painted against.
+     */
+    private double sample(byte[] channel, double blockX, double blockZ) {
         double px = pixelX(blockX, blockZ);
         double pz = pixelZ(blockX, blockZ);
 
@@ -310,21 +373,16 @@ public final class TerraMap {
         x0 = clampX(x0);
         z0 = clampZ(z0);
 
-        double e00 = raw(x0, z0);
-        double e10 = raw(x1, z0);
-        double e01 = raw(x0, z1);
-        double e11 = raw(x1, z1);
+        double e00 = raw(channel, x0, z0);
+        double e10 = raw(channel, x1, z0);
+        double e01 = raw(channel, x0, z1);
+        double e11 = raw(channel, x1, z1);
 
         return Mth.lerp(tz, Mth.lerp(tx, e00, e10), Mth.lerp(tx, e01, e11));
     }
 
-    /** The terrain class at a block position. */
-    public TerraSlot slotAt(int blockX, int blockZ) {
-        return TerraSlot.of(elevationAt(blockX, blockZ));
-    }
-
-    private double raw(int x, int z) {
-        return (elevation[z * width + x] & 0xFF) / 255.0;
+    private double raw(byte[] channel, int x, int z) {
+        return (channel[z * width + x] & 0xFF) / 255.0;
     }
 
     private int clampX(int x) {

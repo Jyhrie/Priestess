@@ -1,7 +1,7 @@
 # Priestess
 
 A Minecraft Forge mod (MC 1.20.1 / Forge 47.4.10) adding **Terra** — a standalone
-Overworld-like dimension with 22 custom biomes across a hand-authored map of Terra, and
+Overworld-like dimension with 15 custom biomes across a hand-authored map of Terra, and
 jigsaw structures.
 
 | | |
@@ -51,6 +51,12 @@ src/main/java/com/jyhrie/priestess/
 ├── item/
 │   ├── ModItems.java               item registry
 │   └── ModCreativeTabs.java        the "Priestess" creative tab
+├── damage/ModDamageTypes.java      damage types (datapack JSON, like worldgen)
+├── oripathy/                       ← the infection
+│   ├── Oripathy.java               the value, its thresholds, the capability
+│   ├── OripathyProvider.java       attaches it to a Player, saves it to NBT
+│   ├── OripathyEvents.java         symptoms, carrying it through death
+│   └── OripathyCommand.java        /oripathy get|set|add
 ├── datagen/                        ← turns the Java below into JSON
 │   ├── DataGenerators.java         wires up every provider
 │   ├── ModBlockStateProvider.java  blockstates + block models
@@ -69,6 +75,7 @@ src/main/java/com/jyhrie/priestess/
     ├── TerraMap.java               loads the PNGs, warps and samples them
     ├── TerraMapBiomeSource.java    the BiomeSource that reads the map
     ├── TerraElevationFunction.java exposes map elevation to the terrain splines
+    ├── TerraReliefFunction.java    exposes map relief to the terrain splines
     └── TerraMapPreview.java        renders docs/terra_world_preview.png
 
 src/main/resources/                 ← hand-authored assets (safe to edit)
@@ -76,9 +83,11 @@ src/main/resources/                 ← hand-authored assets (safe to edit)
 ├── data/priestess/structures/*.nbt
 └── data/priestess/terra/
     ├── regions.png                 ← THE MAP. one flat colour per region
-    └── elevation.png               ← greyscale height, 0 = abyss, 255 = peak
+    ├── elevation.png               ← greyscale height, 0 = abyss, 255 = peak
+    └── relief.png                  ← greyscale ruggedness, 0 = flat, 255 = crag
 
-tools/generate_terra_map.py         regenerates those two PNGs from a layout
+tools/generate_terra_map.py         regenerates regions + elevation from a layout
+tools/generate_relief_map.py        first draft of relief.png, from regions.png
 docs/terra_map_preview.png          shaded political map, for humans
 docs/terra_world_preview.png        what the generator will actually produce
 
@@ -179,12 +188,20 @@ To then make terrain actually *use* the block, see
 
 ## Worldgen
 
-**Terra's geography is a hand-authored map, not climate noise.** Two PNGs in
-`src/main/resources/data/priestess/terra/` decide where everything is: `regions.png`
-(one flat colour per region) and `elevation.png` (greyscale height). A custom
-`BiomeSource` reads the region, elevation picks one of eight terrain slots, and the pair
-picks the biome. The same elevation drives the terrain height splines, which is what
-keeps beaches at sea level instead of halfway up a mountain.
+**Terra's geography is a hand-authored map, not climate noise.** Three PNGs in
+`src/main/resources/data/priestess/terra/` decide everything: `regions.png` (one flat
+colour per region), `elevation.png` (greyscale height) and `relief.png` (greyscale
+ruggedness). A custom `BiomeSource` reads the region, elevation picks one of eight terrain
+slots, and the pair picks the biome. The same elevation drives the terrain height splines,
+which is what keeps beaches at sea level instead of halfway up a mountain.
+
+**Elevation and relief are separate on purpose.** Elevation says how high the ground is;
+relief says how much it rises and falls once it gets there. Grey in `relief.png` reads
+directly as blocks — 0 is dead flat, 80 is ordinary rolling country at ±15 blocks, 255 is
+a broken crag at ±48 — and that is the height of a spur, not its spacing. Relief used to
+be derived from elevation, which meant brightening a mountain quietly made it bumpier as
+well as taller, and a high plateau or a rugged lowland could not be authored at all.
+Relief is damped to zero at the waterline whatever you paint, so coastlines stay clean.
 
 ![Terra](docs/terra_map_preview.png)
 
@@ -192,15 +209,16 @@ keeps beaches at sea level instead of halfway up a mountain.
 
 | | Value | Defined in |
 |---|---|---|
-| **World width** | 131,072 blocks | `TerraMap.WORLD_WIDTH_BLOCKS` — **the scale knob** |
-| **Map resolution** | 1024 × 640 px | `generate_terra_map.py:63`; Java reads it from the PNG |
-| **Blocks per pixel** | 128 | derived: world width ÷ image width |
-| **World size** | 131,072 × 81,920 blocks | derived: height follows the image aspect |
-| **X / Z range** | −65,536 → +65,536 / −40,960 → +40,960 | derived |
-| **Origin (0, 0)** | pixel (512, 320), in Kazimierz — this is spawn | derived: the map is centred |
-| **Origin shift** | none | `ORIGIN_AT_BLOCK_X/Z`, `TerraMap.java:76` — paste a region's coordinates in to spawn there |
-| **Lowest ground** | y 28 | first knot of `mapHeight`, `ModNoiseSettings.java:135` |
-| **Highest ground** | y 244 base, **y 305 with relief** | last knot of `mapHeight` + `ruggedness` |
+| **World width** | 65,536 blocks | `TerraMap.WORLD_WIDTH_BLOCKS` — **the scale knob** |
+| **Map resolution** | 4092 × 4092 px | Java reads it from the PNG |
+| **Blocks per pixel** | 16 | derived: world width ÷ image width |
+| **World size** | 65,536 × 65,536 blocks | derived: height follows the image aspect |
+| **X / Z range** | −32,768 → +32,768, both axes | derived |
+| **Origin (0, 0)** | pixel (2046, 2046), in Kazimierz — this is spawn | derived: the map is centred |
+| **Origin shift** | none | `ORIGIN_AT_BLOCK_X/Z`, `TerraMap.java:102` — paste a region's coordinates in to spawn there |
+| **Mountain spur spacing** | ~128 blocks | `rangeScale`, derived from world width — **not** from blocks/px |
+| **Lowest ground** | y 28 | first knot of `mapHeight` |
+| **Highest ground** | y 244 base, **y 292 with relief** | last knot of `mapHeight` + `ruggedness` × `reliefVariation` |
 | **Sea level** | y 124 | `ModNoiseSettings.java:100` |
 | **World floor / ceiling** | y −64 / y 320 | `NoiseSettings.create(-64, 384, …)` |
 | **Off the N / S edge** | Infy Icefield / Foehn Hotlands, forever | the map's own top and bottom rows |
@@ -215,7 +233,7 @@ grey 0-255 ──/255──► elevation 0..1 ──×2−1──► density −
                                                      surfaceY = 128 + 128 × terrainHeight
 ```
 
-So a `mapHeight` knot reads `y = 128 + 128 × value`, and only ~15 blocks of headroom are
+So a `mapHeight` knot reads `y = 128 + 128 × value`, and only ~28 blocks of headroom are
 left above the tallest peaks. Details and the full "if you want to change X" table are in
 [docs/WORLDGEN.md](docs/WORLDGEN.md#scale-origin-and-height).
 
@@ -232,7 +250,14 @@ Quick pointers:
 | Which biome a region wears at a given height | `world/terra/TerraRegion.java` |
 | Sky/fog/water colour, temperature, rain, mob spawns | `world/dimension/ModBiomes.java` |
 | Which blocks the ground is made of | `ModNoiseSettings.createSurfaceRules()` |
+| How bumpy a place is | `data/priestess/terra/relief.png` — paint it |
+| How far apart mountain spurs are | `rangeScale` in `ModNoiseSettings` |
 | The whole map layout, from scratch | `tools/generate_terra_map.py` |
+
+> **If terrain comes out as gravel after repainting the map**, check `rangeScale`. Spur
+> size is derived from `WORLD_WIDTH_BLOCKS`, *not* from blocks-per-pixel — repainting at a
+> finer resolution must not shrink the mountains. It used to key off blocks-per-pixel,
+> which turned a 4092px repaint into ridges 16 blocks apart carrying ±28 blocks of relief.
 
 After any worldgen change: `./gradlew runData`, then check
 `docs/terra_world_preview.png` and the datagen log — the log prints every region's share
@@ -287,6 +312,63 @@ Notes on the fields:
 - The structure targets exactly one biome. For several biomes, change
   `HolderSet.direct(biomes.getOrThrow(data.targetBiome()))` in `bootstrapStructures` to
   take a list.
+
+---
+
+## Oripathy
+
+A per-player infection level, in the spirit of Thaumcraft's warp: a single number that
+sits on the player, saves with them, and is **never shown**. There is no HUD and no chat
+message — you find out how infected you are by noticing that you have started to limp.
+
+| | |
+|---|---|
+| Range | **1 – 10000**. Everyone carries a trace; there is no zero. |
+| Stored as | a capability on the Player → saves to the player file, survives logout |
+| Read/written by | `Oripathy.of(player)`, `Oripathy.set(player, n)`, `Oripathy.add(player, n)` |
+| Clamped | always. `add(-99999)` lands on 1, `set(50000)` lands on 10000. |
+
+### Stages
+
+Symptoms are **cumulative** — each stage keeps what the one below it gave you.
+
+| From | Symptoms |
+|---|---|
+| 1 | none |
+| **5000** | Slowness II |
+| **7500** | Slowness II + Weakness II |
+| **9000** | Slowness II + Weakness II + Blindness |
+| **10000** | **Death** — `priestess:oripathy` damage, "*was crystallised by Oripathy*" |
+
+Creative and spectator players are exempt from all of it.
+
+Effects are *refreshed*, not held: `OripathyEvents` tops them up once a second with a
+10-second duration. So they never lapse, they fade within 10 s of a cure, and a stronger
+or longer potion the player drank is never overwritten or cut short.
+
+### Death and respawn
+
+Oripathy survives death and dimension changes — `PlayerEvent.Clone` copies it onto the new
+player. The one exception is dying *of* it: a player killed at 10000 respawns at
+**7000** (`Oripathy.AFTER_DEATH`), limping but able to see and fight. Without that they
+would respawn still terminal and die again a second later.
+
+### Raising it
+
+**Nothing raises oripathy on its own yet.** This is the substrate — the number, the
+symptoms, the persistence. Content that infects people (originium blocks, mobs, a biome)
+calls `Oripathy.add(player, n)` and everything else follows.
+
+### Command
+
+Op-only (permission level 2) — it is an admin and testing tool, not something a survival
+player is meant to consult.
+
+```
+/oripathy get [target]            defaults to yourself; also prints the stage name
+/oripathy set <targets> <value>   1..10000
+/oripathy add <targets> <amount>  negative to treat; result is clamped
+```
 
 ---
 

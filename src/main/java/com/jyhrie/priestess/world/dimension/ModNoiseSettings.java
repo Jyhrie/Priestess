@@ -4,6 +4,7 @@ import com.jyhrie.priestess.Priestess;
 import com.jyhrie.priestess.block.ModBlocks;
 import com.jyhrie.priestess.world.terra.TerraElevationFunction;
 import com.jyhrie.priestess.world.terra.TerraMap;
+import com.jyhrie.priestess.world.terra.TerraReliefFunction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
@@ -36,18 +37,24 @@ import java.util.List;
  *
  * <h2>How terrainHeight is built</h2>
  * <pre>
- *     terrainHeight = mapHeight(mapElevation)                   // base elevation, from the map
- *                   + ruggedness(mapElevation)                  // how much local relief
+ *     terrainHeight = mapHeight(mapElevation)                   // base height, from elevation.png
+ *                   + mapRelief * shoreDamping(mapElevation)    // how much local relief, from relief.png
  *                     * reliefVariation(erosion)                // varied along a range
  *                     * ridgeShape(ridges)                      // where the spurs run
  * </pre>
+ *
+ * <p>Two painted maps, two jobs: {@code elevation.png} decides how high the ground is and
+ * {@code relief.png} decides how much it rises and falls once it is there. They are
+ * independent on purpose — relief used to be a spline over elevation, which made
+ * brightening a mountain quietly make it bumpier as well as taller and left a high
+ * plateau unpaintable.
  * plus a 3D detail noise added to the density itself, which is what produces
  * cliffs, ledges and overhangs rather than a smooth height field.
  *
  * <h2>The map, not noise</h2>
  * {@code mapElevation} is {@link com.jyhrie.priestess.world.terra.TerraElevationFunction},
  * reading {@code data/priestess/terra/elevation.png}. There is no continentalness noise:
- * where the land is, is authored. Noise only supplies detail below the map's 128-block
+ * where the land is, is authored. Noise only supplies detail below the map's 16-block
  * resolution. Every knot in {@code mapHeight} sits on a
  * {@link com.jyhrie.priestess.world.terra.TerraSlot} band edge, which is what keeps the
  * height of a place and the biome chosen for it in agreement.
@@ -58,6 +65,20 @@ public class ModNoiseSettings {
             Registries.NOISE_SETTINGS,
             new ResourceLocation(Priestess.MOD_ID, "settings")
     );
+
+    /**
+     * The world width {@code rangeScale} was tuned at. Spur size is derived from this and
+     * {@link TerraMap#WORLD_WIDTH_BLOCKS} — deliberately <b>not</b> from blocks-per-pixel.
+     *
+     * <p>A mountain spur is a feature of the world, measured in blocks. Blocks-per-pixel
+     * moves for two unrelated reasons — resizing the world, or repainting the map at a
+     * different resolution — and only the first should change how big a mountain is.
+     * Keying off it conflated the two: repainting Terra at 4092px instead of 1024px took
+     * the map to 16 blocks/px, drove {@code rangeScale} to 2.0, and made every ridge
+     * octave eight times too fine. Kjerag came out as 16-block gravel with ±28 blocks of
+     * relief on it, on a slope that only climbs 23 blocks in 865.
+     */
+    private static final double TUNED_AT_WORLD_WIDTH_BLOCKS = 65_536.0;
 
     // ── Noise keys ────────────────────────────────────────────────────────────
     // There is no continentalness, temperature or vegetation noise any more. Where a
@@ -126,14 +147,18 @@ public class ModNoiseSettings {
         // Local variety still comes from noise — the map says where the mountains are,
         // not what any individual ridge looks like.
         //
-        // The scale follows TerraMap.BLOCKS_PER_PIXEL. A range's spurs are a map-scale
-        // feature, so if the world is rescaled they have to rescale with it, or a
-        // quarter-size world gets ranges built out of full-size mountains. (The detail
-        // noise further down does NOT scale — that is surface texture, and a boulder is
-        // a boulder whatever size the continent is.)
-        // Loads the map, which datagen does anyway for the preview. At runtime this value
-        // is already baked into settings.json, so the game never re-derives it.
-        double rangeScale = 0.25 * (128.0 / TerraMap.get().blocksPerPixel());
+        // The scale follows the world's size in blocks. A range's spurs are a feature of
+        // the world, so if the world is rescaled they have to rescale with it, or a
+        // quarter-size world gets ranges built out of full-size mountains. Repainting the
+        // map at a finer resolution is NOT a rescale and must not touch them — see
+        // TUNED_AT_WORLD_WIDTH_BLOCKS. (The detail noise further down does not scale at
+        // all — that is surface texture, and a boulder is a boulder whatever size the
+        // continent is.)
+        //
+        // At today's 65,536-block world this is exactly 0.25, putting the ridge octaves at
+        // 512 / 256 / 128 blocks. ridgeShape folds that, so spurs land ~128 blocks apart.
+        // This value is baked into settings.json by runData; the game never re-derives it.
+        double rangeScale = 0.25 * (TUNED_AT_WORLD_WIDTH_BLOCKS / TerraMap.WORLD_WIDTH_BLOCKS);
         DensityFunction ridges = DensityFunctions.flatCache(
                 DensityFunctions.noise(noises.getOrThrow(RIDGES), rangeScale, 0.0));
         DensityFunction erosion = DensityFunctions.flatCache(
@@ -155,18 +180,25 @@ public class ModNoiseSettings {
                  1.00f,  0.906f); // y 244  1.00  the highest peaks
 
         // --- How much local relief sits on top of that ------------------------
-        // Near zero at sea and on the shore, so coastlines stay clean; large in the
-        // mountains, where the ridge noise is what turns a smooth mapped dome into an
-        // actual range with spurs and valleys.
-        DensityFunction ruggedness = spline(mapElevation,
-                -1.00f, 0.000f,
-                -0.32f, 0.004f,   // sea
-                -0.20f, 0.010f,   // shore: +/- 1 block
-                -0.04f, 0.022f,   // lowland
-                 0.24f, 0.048f,   // flats: +/- 6 blocks, still walkable
-                 0.48f, 0.105f,   // midland
-                 0.72f, 0.195f,   // hills
-                 1.00f, 0.300f);  // mountain: +/- 38 blocks
+        // Painted, in data/priestess/terra/relief.png — grey 0 is dead flat and grey 255
+        // is a broken crag. This used to be a spline over mapElevation, which meant
+        // brightening the elevation map made a place bumpier as well as taller and put a
+        // high plateau or a rugged lowland out of reach. The two are separate maps now.
+        DensityFunction mapRelief = DensityFunctions.flatCache(TerraReliefFunction.INSTANCE);
+
+        // The one thing relief still takes from elevation, and only near the water: a
+        // painted crag running into the sea would break the waterline into a scatter of
+        // one-block islands and potholes, so relief is damped to nothing below the shore
+        // and comes fully in by the time the ground is properly inland. Above that it is
+        // flat, so height genuinely does not affect ruggedness any more.
+        DensityFunction shoreDamping = spline(mapElevation,
+                -1.00f, 0.00f,
+                -0.32f, 0.00f,   // SEA / SHORE
+                -0.20f, 0.00f,   // SHORE / LOWLAND — the whole shore band stays clean
+                -0.04f, 1.00f,   // LOWLAND / FLATS — full relief from here on
+                 1.00f, 1.00f);
+
+        DensityFunction ruggedness = DensityFunctions.mul(mapRelief, shoreDamping);
 
         // --- Where the ranges actually run -----------------------------------
         // Folded so peaks land on |ridges| ~ 0.65, giving long chains with basins
@@ -207,20 +239,29 @@ public class ModNoiseSettings {
         //
         // Its amplitude is no longer a constant. A flat 0.08 everywhere meant the wastes
         // and the beaches got the same +/-10 blocks of churn as the crags, which is what
-        // made low ground look chewed rather than smooth. Now the roughness follows the
-        // relief class, so terrain that is supposed to be walkable actually is.
-        // Both the roughness and the shore damping now key off the map elevation, so a
-        // beach on the map is a smooth beach in the world.
-        DensityFunction detailAmount = spline(mapElevation,
+        // made low ground look chewed rather than smooth.
+        //
+        // On land it follows the painted relief map, so one grey value controls both the
+        // shape of a place's hills and how broken their faces are — there is no second
+        // map to keep in step. The fraction is what makes grey 255 land on the +/-13
+        // blocks of crag face this was tuned to, and grey 80 on the +/-4 of walkable
+        // flats it used to give.
+        DensityFunction landDetail = DensityFunctions.mul(
+                DensityFunctions.mul(mapRelief, shoreDamping),
+                DensityFunctions.constant(0.28));
+
+        // Underwater is the exception, and stays keyed to elevation: the relief map is
+        // about land, nobody paints the sea floor, and the shore still has to be smooth
+        // or the waterline becomes a scatter of one-block islands and potholes. This term
+        // is zero everywhere landDetail is non-zero, so the two never fight.
+        DensityFunction waterDetail = spline(mapElevation,
                 -1.00f, 0.055f,   // +/- 7 blocks: broken sea floor
-                -0.32f, 0.030f,
-                -0.20f, 0.012f,   // shore: nearly nothing, so the waterline is an edge
-                                  // and not a scatter of one-block islands and potholes
-                -0.04f, 0.026f,
-                 0.24f, 0.034f,   // flats: +/- 4 blocks, still walkable
-                 0.48f, 0.058f,
-                 0.72f, 0.082f,
-                 1.00f, 0.100f);  // +/- 13 blocks: broken crag faces
+                -0.32f, 0.030f,   // SEA / SHORE
+                -0.20f, 0.008f,   // shore: nearly nothing
+                -0.04f, 0.000f,   // on land the relief map takes over
+                 1.00f, 0.000f);
+
+        DensityFunction detailAmount = DensityFunctions.add(waterDetail, landDetail);
 
         DensityFunction detail = DensityFunctions.mul(
                 detailAmount,

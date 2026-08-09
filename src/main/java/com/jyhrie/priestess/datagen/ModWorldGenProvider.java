@@ -1,6 +1,7 @@
 package com.jyhrie.priestess.datagen;
 
 import com.jyhrie.priestess.Priestess;
+import com.jyhrie.priestess.damage.ModDamageTypes;
 import com.jyhrie.priestess.world.dimension.ModDimensions;
 import com.jyhrie.priestess.world.dimension.ModNoiseSettings;
 import net.minecraft.core.HolderLookup;
@@ -27,7 +28,11 @@ public class ModWorldGenProvider extends DatapackBuiltinEntriesProvider {
             .add(Registries.LEVEL_STEM, ModDimensions::bootstrapStem)
 
             .add(Registries.NOISE, ModNoiseSettings::bootstrapNoise)
-            .add(Registries.NOISE_SETTINGS, ModNoiseSettings::bootstrap);
+            .add(Registries.NOISE_SETTINGS, ModNoiseSettings::bootstrap)
+
+            // Not worldgen, but damage types are datapack registries too and this is the
+            // one provider that writes them.
+            .add(Registries.DAMAGE_TYPE, ModDamageTypes::bootstrap);
 
     public ModWorldGenProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries, BUILDER, Set.of(Priestess.MOD_ID));
