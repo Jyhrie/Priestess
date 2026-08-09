@@ -18,6 +18,9 @@ public class ModLanguageProvider extends LanguageProvider {
         // DamageType's message id, not from its registry name.
         add("death.attack.oripathy", "%1$s was crystallised by Oripathy");
 
+        add("effect.priestess.open_wounds", "Open Wounds");
+        add("effect.priestess.acute_oripathy", "Acute Oripathy");
+
         add(ModBlocks.IBERIAN_SAND.get(), "Iberian Sand");
         add(ModBlocks.IBERIAN_SANDSTONE.get(), "Iberian Sandstone");
         add(ModBlocks.SIESTA_SAND.get(), "Siesta Sand");

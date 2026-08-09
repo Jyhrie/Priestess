@@ -1,6 +1,9 @@
 package com.jyhrie.priestess.oripathy;
 
 import com.jyhrie.priestess.damage.ModDamageTypes;
+import com.jyhrie.priestess.effect.ModEffects;
+import com.jyhrie.priestess.world.dimension.ModDimensions;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -10,12 +13,14 @@ import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 /**
- * Everything that makes {@link Oripathy} actually happen: attaching it to players,
- * carrying it through death, and turning the number into symptoms.
+ * Everything that makes {@link Oripathy} actually happen: attaching it to players, carrying it
+ * through death, dosing and draining an Acute Oripathy flare-up, handing out the ambient dose
+ * to anyone standing on Terra, and turning the number into symptoms.
  *
  * <p>Registered from {@code Priestess}' constructor rather than by annotation, to keep
  * runtime wiring in one place. {@link Oripathy#registerCapability} goes on the mod bus,
@@ -33,6 +38,16 @@ public class OripathyEvents {
     private static final int EFFECT_DURATION_TICKS = 200;
     /** Only re-apply once an effect has burned past halfway, to avoid a packet a second. */
     private static final int REFRESH_BELOW_TICKS = 100;
+
+    /**
+     * Ambient exposure: 1 oripathy every 15 seconds, to everyone standing on Terra. Placeholder
+     * for the real passive model — a flat drip everywhere, with no regard for biome, depth or
+     * what you are wearing. It goes in through {@code Oripathy.add} rather than
+     * {@code Oripathy.infect}, because breathing the place in is not a wound and Open Wounds
+     * has nothing to bite on.
+     */
+    private static final int PASSIVE_INTERVAL_TICKS = 300;
+    private static final int PASSIVE_GAIN = 1;
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         Oripathy.registerCapability(event);
@@ -60,25 +75,87 @@ public class OripathyEvents {
         // The old player's capabilities are already invalidated by the time this fires.
         original.reviveCaps();
         int carried = Oripathy.of(original);
+        // The whole state, not just the number: an acute flare-up part way through paying
+        // itself back has to survive the End portal, or the player keeps a dose that was
+        // meant to be temporary.
+        CompoundTag state = Oripathy.snapshot(original);
         original.invalidateCaps();
 
-        // Dying of oripathy is the one thing that lowers it: you come back at AFTER_DEATH
-        // instead of at the lethal threshold, which would kill you again on the next tick.
-        boolean diedOfIt = event.isWasDeath() && carried >= Oripathy.LETHAL;
-        Oripathy.set(event.getEntity(), diedOfIt ? Oripathy.AFTER_DEATH : carried);
+        Player respawned = event.getEntity();
+        Oripathy.restore(respawned, state);
+
+        if (event.isWasDeath()) {
+            // Death ends the flare-up. Whatever it still owed is written off — the drop it
+            // was going to give you is meaningless next to having just died of the disease.
+            Oripathy.cancelRelief(respawned);
+            // Dying of oripathy is the one thing that lowers it: you come back at AFTER_DEATH
+            // instead of at the lethal threshold, which would kill you again on the next tick.
+            if (carried >= Oripathy.LETHAL) {
+                Oripathy.set(respawned, Oripathy.AFTER_DEATH);
+            }
+        }
+    }
+
+    /**
+     * A flare-up of Acute Oripathy drives a whole dose in the moment it lands, then hands most
+     * of it back over the effect's own duration — 1000 up front at level III, 900 of it gone
+     * again by the time the effect wears off, 100 of it yours forever.
+     *
+     * <p>The dose is a wound, so Open Wounds adds its bonus on top; only the dose itself is
+     * refunded, which means Open Wounds makes the permanent residue bigger, not the peak.
+     *
+     * <p>Only a <i>new</i> flare-up doses you. A re-application at the same level or a weaker
+     * one layered under a stronger one refreshes the timer and nothing else — otherwise
+     * anything that reapplied the effect every tick would pour in 20 doses a second.
+     */
+    @SubscribeEvent
+    public static void doseOnAcuteOripathy(MobEffectEvent.Added event) {
+        if (!(event.getEntity() instanceof Player player) || player.level().isClientSide()) {
+            return;
+        }
+        MobEffectInstance added = event.getEffectInstance();
+        if (added.getEffect() != ModEffects.ACUTE_ORIPATHY.get()) {
+            return;
+        }
+        MobEffectInstance previous = event.getOldEffectInstance();
+        if (previous != null && previous.getAmplifier() >= added.getAmplifier()) {
+            return;
+        }
+
+        int dose = ModEffects.acuteDose(added.getAmplifier());
+        Oripathy.infect(player, dose);
+        // Paid out over exactly as long as the effect lasts, so the fall you feel and the icon
+        // you can see run out together. A longer /effect duration means a slower fall.
+        Oripathy.scheduleRelief(player, ModEffects.acuteRelief(dose), added.getDuration());
     }
 
     @SubscribeEvent
-    public static void applySymptoms(TickEvent.PlayerTickEvent event) {
+    public static void playerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
         Player player = event.player;
         // Server-side only: the value never leaves the server, and effects sync themselves.
-        // Creative and spectator are exempt, so building a world is not done at Slowness II.
-        if (player.level().isClientSide() || player.isCreative() || player.isSpectator()) {
+        if (player.level().isClientSide()) {
             return;
         }
+
+        // Ahead of the creative check on purpose: relief already promised is always paid off,
+        // whatever mode the player switches to part way through. Otherwise one /gamemode
+        // during a flare-up would freeze the dose in place permanently.
+        Oripathy.tickRelief(player);
+
+        // Creative and spectator are exempt from the rest, so building a world is not done at
+        // Slowness II and does not slowly infect you either.
+        if (player.isCreative() || player.isSpectator()) {
+            return;
+        }
+
+        if (player.tickCount % PASSIVE_INTERVAL_TICKS == 0
+                && player.level().dimension().equals(ModDimensions.TERRA_KEY)) {
+            Oripathy.add(player, PASSIVE_GAIN);
+        }
+
         if (player.tickCount % CHECK_INTERVAL_TICKS != 0) {
             return;
         }

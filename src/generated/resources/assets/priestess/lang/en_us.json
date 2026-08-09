@@ -7,5 +7,7 @@
   "block.priestess.permafrost": "Permafrost",
   "block.priestess.siesta_sand": "Siesta Sand",
   "creativetab.priestess_tab": "Priestess",
-  "death.attack.oripathy": "%1$s was crystallised by Oripathy"
+  "death.attack.oripathy": "%1$s was crystallised by Oripathy",
+  "effect.priestess.acute_oripathy": "Acute Oripathy",
+  "effect.priestess.open_wounds": "Open Wounds"
 }

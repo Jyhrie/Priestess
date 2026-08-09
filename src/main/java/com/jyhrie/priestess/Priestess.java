@@ -1,6 +1,7 @@
 package com.jyhrie.priestess;
 
 import com.jyhrie.priestess.block.ModBlocks;
+import com.jyhrie.priestess.effect.ModEffects;
 import com.jyhrie.priestess.item.ModCreativeTabs;
 import com.jyhrie.priestess.item.ModItems;
 import com.jyhrie.priestess.oripathy.OripathyEvents;
@@ -49,6 +50,7 @@ public class Priestess {
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
+        ModEffects.register(modEventBus);
 
         BIOME_SOURCES.register(modEventBus);
         DENSITY_FUNCTIONS.register(modEventBus);

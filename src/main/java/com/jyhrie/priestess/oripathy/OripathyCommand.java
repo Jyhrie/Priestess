@@ -52,8 +52,12 @@ public class OripathyCommand {
 
     private static int get(CommandSourceStack source, ServerPlayer target) {
         int value = Oripathy.of(target);
-        source.sendSuccess(() -> Component.literal(
-                target.getName().getString() + " has " + value + " oripathy (" + stage(value) + ")"), false);
+        // A flare-up that is still draining is otherwise completely invisible, and it is the
+        // one thing you need to see to tell whether Acute Oripathy is working.
+        int owed = Oripathy.reliefOwed(target);
+        String draining = owed > 0 ? ", " + owed + " still draining off" : "";
+        source.sendSuccess(() -> Component.literal(target.getName().getString()
+                + " has " + value + " oripathy (" + stage(value) + draining + ")"), false);
         return value;
     }
 

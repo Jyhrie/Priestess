@@ -325,7 +325,7 @@ message — you find out how infected you are by noticing that you have started 
 |---|---|
 | Range | **1 – 10000**. Everyone carries a trace; there is no zero. |
 | Stored as | a capability on the Player → saves to the player file, survives logout |
-| Read/written by | `Oripathy.of(player)`, `Oripathy.set(player, n)`, `Oripathy.add(player, n)` |
+| Read/written by | `Oripathy.of(player)`, `Oripathy.set(player, n)`, `Oripathy.add(player, n)`, `Oripathy.infect(player, n)` |
 | Clamped | always. `add(-99999)` lands on 1, `set(50000)` lands on 10000. |
 
 ### Stages
@@ -353,11 +353,64 @@ player. The one exception is dying *of* it: a player killed at 10000 respawns at
 **7000** (`Oripathy.AFTER_DEATH`), limping but able to see and fight. Without that they
 would respawn still terminal and die again a second later.
 
-### Raising it
+### Raising it — two doors, and the difference matters
 
-**Nothing raises oripathy on its own yet.** This is the substrate — the number, the
-symptoms, the persistence. Content that infects people (originium blocks, mobs, a biome)
-calls `Oripathy.add(player, n)` and everything else follows.
+| Call | For | Open Wounds applies? |
+|---|---|---|
+| `Oripathy.infect(player, n)` | a **wound** — a mob, a hit, a block that got into you | **yes** |
+| `Oripathy.add(player, n)` | ambient exposure, treatment (negative `n`), the command, the acute drain | no |
+
+Content that infects people should call **`infect`**. `add` is the raw number.
+`infect` ignores non-positive amounts — a wound that heals you is not a thing, and a
+negative one would be made *worse* by Open Wounds, which is backwards.
+
+The only thing raising oripathy by itself today is ambient exposure: **+1 every 15 seconds
+while you are in `priestess:terra`**, and nothing else — no regard for biome, depth, or what
+you are wearing. That is a placeholder for the real passive model. It goes in through `add`,
+so Open Wounds deliberately does not touch it.
+
+### Effects
+
+Two potion effects, registered in `effect/ModEffects.java` — where both level tables live, so
+all the tuning for both is in one file. Neither effect does anything on its own; each is a
+number that oripathy code reads. Obtainable only via `/effect give` so far.
+
+**Open Wounds** — every wound drives in a flat bonus more. It does not scale the wound, it
+adds to it, and it does not touch anything that came through `add`.
+
+| Level | Bonus per wound |
+|---|---|
+| I | +15 |
+| II | +30 |
+| III | +50 |
+
+**Acute Oripathy** — a flare-up. The moment it lands it drives a whole dose in, then hands
+**90%** of that dose back over the effect's own duration. The remaining 10% is permanent.
+
+| Level | Dose on landing | Drains back | Keeps forever |
+|---|---|---|---|
+| I | +250 | 225 | 25 |
+| II | +500 | 450 | 50 |
+| III | +1000 | 900 | 100 |
+
+So `/effect give @s priestess:acute_oripathy 5 2` is +1000 now and −900 spread over those
+5 seconds, ending +100 up. The drain is timed to the effect's duration, so a longer `/effect`
+means a slower fall, and the icon disappearing and the number settling happen together.
+
+Notes on the two of them together:
+
+- The dose is a **wound**, so Open Wounds adds its bonus on top — but only the dose is
+  refunded. Open Wounds III + Acute Oripathy III is +1050 now and **+150 forever**: it makes
+  the residue bigger, not the peak.
+- Only a **new** flare-up doses you. Re-applying at the same level, or a weaker one under a
+  stronger one, just refreshes the timer. Without that, anything reapplying the effect each
+  tick would pour in twenty doses a second.
+- The drain is *scheduled state*, not a property of the effect: it is stored on the capability
+  and saved to NBT, so drinking milk or logging out mid-flare-up still gets you the refund.
+  Milk clears the icon, it does not make the dose permanent.
+- **Death writes off whatever the flare-up still owed.** You died of the disease; the refund
+  is meaningless next to that.
+- Levels above III are treated as III rather than extrapolated.
 
 ### Command
 
@@ -369,6 +422,9 @@ player is meant to consult.
 /oripathy set <targets> <value>   1..10000
 /oripathy add <targets> <amount>  negative to treat; result is clamped
 ```
+
+`get` also reports how much a flare-up still has to drain off, when there is one — otherwise
+Acute Oripathy is completely invisible and there is no way to tell it is working.
 
 ---
 
@@ -386,6 +442,18 @@ Useful in-game commands (creative + cheats):
 /execute in minecraft:overworld run tp @s ~ ~ ~ leave it
 /locate biome priestess:infy_icefields          find a biome
 /place structure priestess:infy_ice_spike       force-place a structure here
+```
+
+Oripathy is invisible, so watch it with `/oripathy get` before and after. Note that creative
+and spectator are exempt from ambient gain and from symptoms — **switch to survival** or you
+will conclude nothing works:
+
+```
+/gamemode survival
+/oripathy set @s 1
+/effect give @s priestess:open_wounds 60 2      Open Wounds III for a minute
+/effect give @s priestess:acute_oripathy 5 2    +1000, then -900 over those 5 s
+/oripathy get                                   spam it and watch the number fall
 ```
 
 If a change doesn't show up, check in this order:
