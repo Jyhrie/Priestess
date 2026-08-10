@@ -157,32 +157,20 @@ health.
 the cooldown is up, the target is within 24 blocks, and there is line of sight. The cooldown
 is 45 ticks, so a beam every 2.25 seconds at most.
 
-Note step 4: **cooldowns only tick down while he has a target.** Lose aggro and everything
-freezes where it was, so breaking line of sight and running does not quietly bank a summon
-wave for when you come back.
+Note: **the cooldown only ticks down while he has a target.** Lose aggro and it freezes
+where it was, so breaking line of sight and running does not quietly bank a beam for when
+you come back.
 
-### Summoning
+### Summoning — removed
 
-Phase two only, every 160 ticks (8 s), 3 per wave, hard cap of 8 alive:
+Phase two used to also summon Imprisoned Shadows: 3 per wave every 160 ticks, capped at 8
+alive, spawned on a ring 2–5 blocks out so they were never free damage inside his hitbox.
 
-```java
-long live = serverLevel.getEntitiesOfClass(ImprisonedShadow.class,
-        this.getBoundingBox().inflate(SUMMON_SEARCH_RADIUS)).size();   // 24 blocks
-if (live >= MAX_LIVE_SHADOWS) return;                                  // 8
-```
-
-The adds spawn on a **ring** — a random angle, 2–5 blocks out — rather than on top of him.
-Adds that spawn inside the boss's hitbox are free damage for anyone already swinging at it.
-
-They go out through `finalizeSpawn` with `MobSpawnType.MOB_SUMMONED` and inherit his current
-target, then get 12 soul particles so the wave reads as an event.
-
-`ImprisonedShadow` is built to be *annoying rather than dangerous* — 14 HP, speed 0.34,
-4 damage, knockback-immune. The thing that keeps a long fight from silting up is that each
-one **fades after 1200 ticks (60 s) whether or not you killed it**, tracked by its own
-`shadowAge` and saved to NBT. They are also not gated on the boss being alive: kill Jesselton
-mid-summon and the ones already out stay, because an arena going instantly silent robs the
-kill of its ending.
+**That mob was cut, and the summon machinery went with it.** `enterPhaseTwo` is now a bar
+colour, a sound and nothing else, and phase two is carried entirely by the damage-type
+change described above. It still reads as a turn — the armour stops working — but it is
+thinner than it was designed to be, and the swarm is the obvious slot for whatever replaces
+it.
 
 ### Staying put
 

@@ -141,10 +141,7 @@ def item_texture(name, base, accent, seed, glyph):
 ENTITIES = [
     # name,                    w,   h,  base colour, accent colour, seed, stripe
     ("originium_slug",         64,  32, (0x4A, 0x5A, 0x66), (0x5F, 0xC8, 0xE8), 101, 6),
-    ("imprisoned_shadow",      64,  64, (0x2A, 0x25, 0x3A), (0x6B, 0x5F, 0xA8), 102, 0),
     ("jesselton_williams",     64,  64, (0x3A, 0x30, 0x4E), (0xB8, 0x26, 0x2E), 103, 8),
-    ("rogue_power_armour",     64,  64, (0x5A, 0x60, 0x68), (0xE8, 0xB8, 0x4A), 106, 8),
-    ("rhine_security_drone",   32,  32, (0xD8, 0xDC, 0xE0), (0x2E, 0x86, 0xC8), 107, 4),
     # NOT "awaken". Its texture is a real 128x128 export that belongs to the Blockbench
     # model in geo/entity/awaken.geo.json, and the UVs only line up with that file. This
     # script overwrites by name, so putting it back here would destroy hand-made art the

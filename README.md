@@ -55,19 +55,16 @@ src/main/java/com/jyhrie/priestess/
 ├── entity/                         ← the Columbia roster
 │   ├── ModEntities.java            entity types, attributes, spawn placements
 │   ├── OriginiumSlug.java          the wastes: eats machine power, bursts when killed
-│   ├── ImprisonedShadow.java       Jesselton's phase-two adds
 │   ├── bosses/
 │   │   ├── JesseltonWilliams.java  Mansfield boss — two phases, drops the Master Key
 │   │   └── Awaken.java             Dorothy's boss — GeckoLib model, no behaviour yet
-│   ├── RoguePowerArmour.java       Rhine Lab: halves kinetic damage
-│   ├── RhineSecurityDrone.java     Rhine Lab: flying, strips armour durability
 │   ├── ArtsBeam.java               the shared hitscan attack
 │   └── Machines.java               finds/drains Forge-Energy blocks, mod-agnostically
 ├── client/                         ← client only; models and renderers
 │   ├── PriestessClient.java        renderer + layer bindings
-│   ├── PriestessModelLayers.java   geometry for the two hand-built non-humanoid mobs
+│   ├── PriestessModelLayers.java   geometry for the slug, the one hand-built mesh
 │   ├── PriestessEntityModel.java   the shared placeholder model
-│   ├── PriestessMobRenderer.java   one renderer for the five non-GeckoLib mobs
+│   ├── PriestessMobRenderer.java   one renderer for the two non-GeckoLib mobs
 │   └── AwakenRenderer.java         GeckoLib renderer for "Awaken"
 ├── oripathy/                       ← the infection
 │   ├── Oripathy.java               the value, its thresholds, the capability
@@ -384,10 +381,7 @@ output with real art or a real build and delete its entry from the script.
 |---|---|---|
 | **Originium Slug** | the open wastes (the only natural spawn) | Drains stored energy out of any block exposing Forge's energy capability, so it works against any tech mod and none. Bursts on death: corrodes anything nearby, drains machines, and infects you with Oripathy. |
 | **Jesselton Williams** | Mansfield State Prison | Boss. Phase one is heavy kinetic Arts that armour answers; below half health he switches to `priestess:void_arts`, which is in `bypasses_armor`, and starts summoning adds. Drops the **Mansfield Master Key**. |
-| **Imprisoned Shadow** | Mansfield | Jesselton's adds. Fast, frail, knockback-immune, and every one fades after a minute so a long fight cannot silt up. |
 | **Awaken** | Dorothy's Vision | Boss. Summoned by Dorothy's Terminal. Cannot move, cannot be pushed, and has **no attacks yet** — a 6.75-block GeckoLib silhouette with a health bar and nothing behind it. |
-| **Rogue Columbian Power Armour** | Rhine Lab HQ | Halves kinetic damage on top of heavy armour; anything that bypasses armour comes through whole. |
-| **Rhine Security Drone** | Rhine Lab HQ | Flies. Its beam does almost no damage and a great deal of armour durability — it exists to take the gear the power armour demands. |
 
 **→ How a boss is built: [docs/BOSSES.md](docs/BOSSES.md)** — the shared skeleton, the
 hitscan Arts beam, and a full walkthrough of Jesselton Williams.

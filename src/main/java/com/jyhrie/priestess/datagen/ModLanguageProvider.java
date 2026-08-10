@@ -35,10 +35,7 @@ public class ModLanguageProvider extends LanguageProvider {
 
         // ── Mobs ──────────────────────────────────────────────────────────────
         add(ModEntities.ORIGINIUM_SLUG.get(), "Originium Slug");
-        add(ModEntities.IMPRISONED_SHADOW.get(), "Imprisoned Shadow");
         add(ModEntities.JESSELTON_WILLIAMS.get(), "Jesselton Williams");
-        add(ModEntities.ROGUE_POWER_ARMOUR.get(), "Rogue Columbian Power Armour");
-        add(ModEntities.RHINE_SECURITY_DRONE.get(), "Rhine Security Drone");
         // The quotes are part of the name, not punctuation around it — it is called
         // "Awaken", quotation marks and all, everywhere it is written.
         add(ModEntities.AWAKEN.get(), "\"Awaken\"");
@@ -51,10 +48,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModItems.CORRUPTED_NEURAL_SHARD.get(), "Corrupted Neural Shard");
 
         add(ModItems.ORIGINIUM_SLUG_SPAWN_EGG.get(), "Originium Slug Spawn Egg");
-        add(ModItems.IMPRISONED_SHADOW_SPAWN_EGG.get(), "Imprisoned Shadow Spawn Egg");
         add(ModItems.JESSELTON_WILLIAMS_SPAWN_EGG.get(), "Jesselton Williams Spawn Egg");
-        add(ModItems.ROGUE_POWER_ARMOUR_SPAWN_EGG.get(), "Rogue Power Armour Spawn Egg");
-        add(ModItems.RHINE_SECURITY_DRONE_SPAWN_EGG.get(), "Rhine Security Drone Spawn Egg");
         add(ModItems.AWAKEN_SPAWN_EGG.get(), "\"Awaken\" Spawn Egg");
 
         // ── Blocks ────────────────────────────────────────────────────────────

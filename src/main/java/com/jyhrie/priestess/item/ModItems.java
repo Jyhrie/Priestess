@@ -71,21 +71,9 @@ public class ModItems {
             ITEMS.register("originium_slug_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.ORIGINIUM_SLUG, 0x4A5A66, 0x5FC8E8, new Item.Properties()));
 
-    public static final RegistryObject<Item> IMPRISONED_SHADOW_SPAWN_EGG =
-            ITEMS.register("imprisoned_shadow_spawn_egg",
-                    () -> new ForgeSpawnEggItem(ModEntities.IMPRISONED_SHADOW, 0x1E1B29, 0x6B5FA8, new Item.Properties()));
-
     public static final RegistryObject<Item> JESSELTON_WILLIAMS_SPAWN_EGG =
             ITEMS.register("jesselton_williams_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.JESSELTON_WILLIAMS, 0x2A2438, 0xB8262E, new Item.Properties()));
-
-    public static final RegistryObject<Item> ROGUE_POWER_ARMOUR_SPAWN_EGG =
-            ITEMS.register("rogue_power_armour_spawn_egg",
-                    () -> new ForgeSpawnEggItem(ModEntities.ROGUE_POWER_ARMOUR, 0x5A6068, 0xE8B84A, new Item.Properties()));
-
-    public static final RegistryObject<Item> RHINE_SECURITY_DRONE_SPAWN_EGG =
-            ITEMS.register("rhine_security_drone_spawn_egg",
-                    () -> new ForgeSpawnEggItem(ModEntities.RHINE_SECURITY_DRONE, 0xD8DCE0, 0x2E86C8, new Item.Properties()));
 
     /** Dorothy's Terminal summons "Awaken" in place; this is the way to meet one anywhere else. */
     public static final RegistryObject<Item> AWAKEN_SPAWN_EGG =

@@ -6,7 +6,8 @@ import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
@@ -52,6 +53,14 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class Awaken extends BossMonster implements GeoEntity {
 
     /**
+     * Degrees of yaw per tick, so 20x this is degrees per second. At 2.5 a half-turn takes
+     * about three and a half seconds, which is slow enough to read as mass rather than as
+     * lag. This is the dial to turn if it still feels wrong; it is the only thing that
+     * decides how fast it comes round.
+     */
+    private static final float TURN_DEGREES_PER_TICK = 2.5F;
+
+    /**
      * Per-entity animation state. {@code createInstanceCache} rather than the singleton
      * variant because every Awaken in the world needs its own playhead — the singleton cache
      * is for items and blocks, where one shared state is the point.
@@ -81,23 +90,61 @@ public class Awaken extends BossMonster implements GeoEntity {
     }
 
     /**
-     * A look goal and two target selectors. No movement, no attack.
+     * Two target selectors and nothing else. No movement, no attack, and deliberately no
+     * {@code LookAtPlayerGoal} — see {@link #facePlayerSlowly}.
      *
-     * <p>The look goal is not decoration — a cube that tracks you is the only cue that it is
-     * awake at all, and without it the placeholder is indistinguishable from a block.
+     * <p>Turning to watch you is not decoration: a shape that tracks you is the only cue
+     * that it is awake at all, and without it the placeholder is indistinguishable from a
+     * block. It just cannot be vanilla's look goal that does it.
      */
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new LookAtPlayerGoal(this, Player.class, 32.0F));
-
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
-    /** Nothing yet. {@code super} keeps the boss bar in step with its health. */
+    /** {@code super} keeps the boss bar in step with its health. */
     @Override
     protected void customServerAiStep() {
         super.customServerAiStep();
+        facePlayerSlowly();
+    }
+
+    /**
+     * Turns to face its target at a fixed rate, instead of letting vanilla do it.
+     *
+     * <h2>Why not {@code LookAtPlayerGoal}</h2>
+     * Because for a mob that never moves, vanilla's rotation does not ease — it lurches.
+     * {@code BodyRotationControl} only runs its body-follows-head step when
+     * {@code isMoving()}, and this thing never is; the stationary path instead waits until
+     * the head has drifted more than 15 degrees and then calls
+     * {@code yBodyRot = Mth.rotateIfNecessary(yBodyRot, yHeadRot, getMaxHeadYRot())}, which
+     * closes the whole gap in a single tick. The result is a body that sits still and then
+     * jumps, which at six and three quarter blocks across is what reads as a snap.
+     *
+     * <p>Turning {@code getMaxHeadYRot()} down does not fix that. The 15-degree gate still
+     * fires in steps, so a smaller cap buys a stutter of little jerks instead of one big
+     * one. The only way to get a constant rate is to own the rotation.
+     *
+     * <p>So: head, body and entity yaw are all set to the same value every tick. Keeping
+     * them equal is also what stops {@code BodyRotationControl} interfering — it still runs,
+     * but with no gap between head and body there is nothing for it to close.
+     */
+    private void facePlayerSlowly() {
+        LivingEntity target = this.getTarget();
+        if (target == null || !target.isAlive()) {
+            return;
+        }
+
+        double dx = target.getX() - this.getX();
+        double dz = target.getZ() - this.getZ();
+        float wanted = (float) (Mth.atan2(dz, dx) * (180.0 / Math.PI)) - 90.0F;
+        float yaw = Mth.approachDegrees(this.getYRot(), wanted, TURN_DEGREES_PER_TICK);
+
+        // All three, or the renderer and the body control disagree about which way it faces.
+        this.setYRot(yaw);
+        this.setYBodyRot(yaw);
+        this.setYHeadRot(yaw);
     }
 
     /** Nothing moves it: not a piston, not water, not the blast that is trying to kill it. */

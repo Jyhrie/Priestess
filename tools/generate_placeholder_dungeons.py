@@ -393,12 +393,9 @@ def rhine_lab_hq():
             s.set(width - 4, y, depth - 4, "minecraft:ladder",
                   {"facing": "west", "waterlogged": "false"})
 
-        # Garrison. Armour on the floor, drones in the air above it — the two halves of the
-        # dungeon's one idea, on every storey.
+        # No garrison. The armour and the drones that used to hold every storey were
+        # removed with those entities; the tower is empty until Rhine Lab is restaffed.
         if floor < floors - 1:
-            s.mob(3, base + 1, 3, "priestess:rogue_power_armour")
-            if floor % 2 == 0:
-                s.mob(width - 4, base + 3, 4, "priestess:rhine_security_drone")
             if floor % 3 == 0:
                 s.chest(2, base + 1, depth - 3, "north", RHINE_LOOT)
 
@@ -409,8 +406,6 @@ def rhine_lab_hq():
     top = (floors - 1) * floor_height
     s.fill(2, top + 1, 2, width - 3, top + 1, depth - 3, "minecraft:polished_deepslate")
     s.chest(width // 2, top + 2, 3, "south", DIRECTORS_OFFICE_LOOT)
-    s.mob(width // 2 - 3, top + 2, depth // 2, "priestess:rogue_power_armour")
-    s.mob(width // 2 + 3, top + 4, depth // 2, "priestess:rhine_security_drone")
 
     return s
 

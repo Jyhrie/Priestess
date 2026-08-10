@@ -10,7 +10,8 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Geometry for the two mobs that are neither humanoid shapes nor GeckoLib models.
+ * Geometry for the mobs that are neither humanoid shapes nor GeckoLib models — currently
+ * just the slug.
  *
  * <p>Each is a handful of cubes chosen to give a readable silhouette and nothing more —
  * see {@link PriestessEntityModel} for why placeholders stop there. The numbers are model
@@ -26,9 +27,6 @@ public final class PriestessModelLayers {
 
     /** Texture 64x32. Low and long, with two stalks so you can see which end is the head. */
     public static final ModelLayerLocation ORIGINIUM_SLUG = layer("originium_slug");
-
-    /** Texture 32x32. A body and a lens; the hover is in the model, not the geometry. */
-    public static final ModelLayerLocation RHINE_SECURITY_DRONE = layer("rhine_security_drone");
 
     private static ModelLayerLocation layer(String name) {
         return new ModelLayerLocation(new ResourceLocation(Priestess.MOD_ID, name), "main");
@@ -55,25 +53,6 @@ public final class PriestessModelLayers {
                 PartPose.offset(-2.0F, 3.0F, -6.0F));
 
         return LayerDefinition.create(mesh, 64, 32);
-    }
-
-    public static LayerDefinition drone() {
-        MeshDefinition mesh = new MeshDefinition();
-        PartDefinition root = mesh.getRoot();
-
-        PartDefinition body = root.addOrReplaceChild("body", CubeListBuilder.create()
-                        .texOffs(0, 0)
-                        .addBox(-4.0F, -3.0F, -4.0F, 8.0F, 6.0F, 8.0F),
-                PartPose.offset(0.0F, 12.0F, 0.0F));
-
-        // The lens hangs off the front face, which is the only asymmetry the drone has and
-        // therefore the only way to tell where it is aiming.
-        body.addOrReplaceChild("lens", CubeListBuilder.create()
-                        .texOffs(0, 16)
-                        .addBox(-2.0F, -2.0F, -1.0F, 4.0F, 4.0F, 1.0F),
-                PartPose.offset(0.0F, 0.0F, -4.0F));
-
-        return LayerDefinition.create(mesh, 32, 32);
     }
 
     private PriestessModelLayers() {

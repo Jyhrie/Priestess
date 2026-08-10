@@ -32,12 +32,9 @@ import net.minecraftforge.registries.RegistryObject;
  *   <tr><th>Mob</th><th>Where</th><th>What it is for</th></tr>
  *   <tr><td>Originium Slug</td><td>the open wastes</td><td>attrition, and a tax on leaving
  *       machines running unguarded</td></tr>
- *   <tr><td>Imprisoned Shadow</td><td>Mansfield</td><td>Jesselton's phase-two adds</td></tr>
  *   <tr><td>Jesselton Williams</td><td>Mansfield</td><td>boss 1 — drops the Master Key</td></tr>
  *   <tr><td>Awaken</td><td>Dorothy's Vision</td><td>boss 2 — summoned by the terminal, no
  *       behaviour yet</td></tr>
- *   <tr><td>Rogue Power Armour</td><td>Rhine Lab</td><td>the wall between you and the lifts</td></tr>
- *   <tr><td>Rhine Security Drone</td><td>Rhine Lab</td><td>strips the armour that wall demands</td></tr>
  * </table>
  *
  * <h2>Adding a mob</h2>
@@ -69,14 +66,6 @@ public class ModEntities {
 
     // ── Mansfield State Prison ────────────────────────────────────────────────
 
-    public static final RegistryObject<EntityType<ImprisonedShadow>> IMPRISONED_SHADOW =
-            ENTITY_TYPES.register("imprisoned_shadow", () -> EntityType.Builder
-                    .of(ImprisonedShadow::new, MobCategory.MONSTER)
-                    .sized(0.6F, 1.95F)
-                    .fireImmune()
-                    .clientTrackingRange(8)
-                    .build("imprisoned_shadow"));
-
     public static final RegistryObject<EntityType<JesseltonWilliams>> JESSELTON_WILLIAMS =
             ENTITY_TYPES.register("jesselton_williams", () -> EntityType.Builder
                     .of(JesseltonWilliams::new, MobCategory.MONSTER)
@@ -86,24 +75,6 @@ public class ModEntities {
                     // rendered from further away than the mob that shares its arena.
                     .clientTrackingRange(16)
                     .build("jesselton_williams"));
-
-    // ── Rhine Lab Headquarters ────────────────────────────────────────────────
-
-    public static final RegistryObject<EntityType<RoguePowerArmour>> ROGUE_POWER_ARMOUR =
-            ENTITY_TYPES.register("rogue_power_armour", () -> EntityType.Builder
-                    .of(RoguePowerArmour::new, MobCategory.MONSTER)
-                    .sized(1.0F, 2.4F)
-                    .fireImmune()
-                    .clientTrackingRange(10)
-                    .build("rogue_power_armour"));
-
-    public static final RegistryObject<EntityType<RhineSecurityDrone>> RHINE_SECURITY_DRONE =
-            ENTITY_TYPES.register("rhine_security_drone", () -> EntityType.Builder
-                    .of(RhineSecurityDrone::new, MobCategory.MONSTER)
-                    .sized(0.8F, 0.7F)
-                    .fireImmune()
-                    .clientTrackingRange(12)
-                    .build("rhine_security_drone"));
 
     // ── Dorothy's Vision ──────────────────────────────────────────────────────
 
@@ -134,10 +105,7 @@ public class ModEntities {
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(ORIGINIUM_SLUG.get(), OriginiumSlug.attributes().build());
-        event.put(IMPRISONED_SHADOW.get(), ImprisonedShadow.attributes().build());
         event.put(JESSELTON_WILLIAMS.get(), JesseltonWilliams.attributes().build());
-        event.put(ROGUE_POWER_ARMOUR.get(), RoguePowerArmour.attributes().build());
-        event.put(RHINE_SECURITY_DRONE.get(), RhineSecurityDrone.attributes().build());
         event.put(AWAKEN.get(), Awaken.attributes().build());
     }
 
