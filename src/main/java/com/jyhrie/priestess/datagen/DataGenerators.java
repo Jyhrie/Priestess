@@ -23,7 +23,16 @@ public class DataGenerators {
 
         // Server data -> src/generated/resources/data/priestess/
         generator.addProvider(event.includeServer(), ModLootTableProvider.create(packOutput));
-        generator.addProvider(event.includeServer(), new ModWorldGenProvider(packOutput, lookupProvider));
+
+        ModWorldGenProvider worldGen = new ModWorldGenProvider(packOutput, lookupProvider);
+        generator.addProvider(event.includeServer(), worldGen);
+
+        // Fed from the worldgen provider's registries, NOT from the event's. Damage types
+        // are a datapack registry this mod writes itself, so the vanilla lookup has never
+        // heard of priestess:void_arts — and a tag provider that cannot resolve an entry it
+        // is asked to tag fails datagen outright rather than skipping it.
+        generator.addProvider(event.includeServer(),
+                new ModDamageTypeTagsProvider(packOutput, worldGen.getRegistryProvider(), existingFileHelper));
 
         // Not a datapack file — writes docs/terra_world_preview.png so the hand-authored
         // Terra map can be checked without launching the game.

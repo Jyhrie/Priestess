@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "priestess:single_in_region",
+    "index": 2,
+    "region": "COLUMBIA",
+    "total": 3
+  },
+  "structures": [
+    {
+      "structure": "priestess:rhine_lab_hq",
+      "weight": 1
+    }
+  ]
+}

@@ -23,7 +23,14 @@
     "axolotls": [],
     "creature": [],
     "misc": [],
-    "monster": [],
+    "monster": [
+      {
+        "type": "priestess:originium_slug",
+        "maxCount": 4,
+        "minCount": 2,
+        "weight": 40
+      }
+    ],
     "underground_water_creature": [],
     "water_ambient": [],
     "water_creature": []

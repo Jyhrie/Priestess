@@ -52,6 +52,22 @@ src/main/java/com/jyhrie/priestess/
 │   ├── ModItems.java               item registry
 │   └── ModCreativeTabs.java        the "Priestess" creative tab
 ├── damage/ModDamageTypes.java      damage types (datapack JSON, like worldgen)
+├── entity/                         ← the Columbia roster
+│   ├── ModEntities.java            entity types, attributes, spawn placements
+│   ├── OriginiumSlug.java          the wastes: eats machine power, bursts when killed
+│   ├── JesseltonsShadow.java       Mansfield boss — two phases, drops the Master Key
+│   ├── ImprisonedShadow.java       Jesselton's phase-two adds
+│   ├── Frank.java                  Dorothy's Vision: Mining Fatigue + Nausea on hit
+│   ├── FailedVision.java           Dorothy's boss — neural nodes, immobile
+│   ├── RoguePowerArmour.java       Rhine Lab: halves kinetic damage
+│   ├── RhineSecurityDrone.java     Rhine Lab: flying, strips armour durability
+│   ├── ArtsBeam.java               the shared hitscan attack
+│   └── Machines.java               finds/drains Forge-Energy blocks, mod-agnostically
+├── client/                         ← client only; models and renderers
+│   ├── PriestessClient.java        renderer + layer bindings
+│   ├── PriestessModelLayers.java   geometry for the three non-humanoid mobs
+│   ├── PriestessEntityModel.java   the shared placeholder model
+│   └── PriestessMobRenderer.java   one renderer for all seven
 ├── oripathy/                       ← the infection
 │   ├── Oripathy.java               the value, its thresholds, the capability
 │   ├── OripathyProvider.java       attaches it to a Player, saves it to NBT
@@ -68,7 +84,9 @@ src/main/java/com/jyhrie/priestess/
 │   ├── ModDimensions.java          dimension type + chunk generator wiring
 │   ├── ModBiomes.java              biome definitions (colors, temperature, mobs)
 │   ├── ModNoiseSettings.java       terrain shape + surface blocks
-│   └── ModStructures.java          structure declarations
+│   ├── ModStructures.java          structure declarations
+│   ├── ModStructurePlacements.java the one placement type this mod adds
+│   └── SingleInRegionStructurePlacement.java  one per world, anywhere in a region
 └── world/terra/                    ← the map: where everything actually is
     ├── TerraRegion.java            every region, its map colour, its 8 biomes
     ├── TerraSlot.java              the 8 terrain classes and their elevations
@@ -76,7 +94,8 @@ src/main/java/com/jyhrie/priestess/
     ├── TerraMapBiomeSource.java    the BiomeSource that reads the map
     ├── TerraElevationFunction.java exposes map elevation to the terrain splines
     ├── TerraReliefFunction.java    exposes map relief to the terrain splines
-    └── TerraMapPreview.java        renders docs/terra_world_preview.png
+    ├── TerraMapPreview.java        renders docs/terra_world_preview.png
+    └── TerraAnchors.java           picks a spot in a region for a one-per-world structure
 
 src/main/resources/                 ← hand-authored assets (safe to edit)
 ├── assets/priestess/textures/block/*.png
@@ -88,6 +107,8 @@ src/main/resources/                 ← hand-authored assets (safe to edit)
 
 tools/generate_terra_map.py         regenerates regions + elevation from a layout
 tools/generate_relief_map.py        first draft of relief.png, from regions.png
+tools/generate_placeholder_art.py   placeholder mob + item textures
+tools/generate_placeholder_dungeons.py  the three dungeon .nbt files
 docs/terra_map_preview.png          shaded political map, for humans
 docs/terra_world_preview.png        what the generator will actually produce
 
@@ -214,8 +235,8 @@ Relief is damped to zero at the waterline whatever you paint, so coastlines stay
 | **Blocks per pixel** | 16 | derived: world width ÷ image width |
 | **World size** | 65,536 × 65,536 blocks | derived: height follows the image aspect |
 | **X / Z range** | −32,768 → +32,768, both axes | derived |
-| **Origin (0, 0)** | pixel (2046, 2046), in Kazimierz — this is spawn | derived: the map is centred |
-| **Origin shift** | none | `ORIGIN_AT_BLOCK_X/Z`, `TerraMap.java:102` — paste a region's coordinates in to spawn there |
+| **Origin (0, 0)** | **in Columbia** — this is spawn, and where the chapter starts | `ORIGIN_AT_BLOCK_X/Z` |
+| **Origin shift** | −10,240, −3,072 | `ORIGIN_AT_BLOCK_X/Z`, `TerraMap.java` — paste a region's coordinates in to spawn there |
 | **Mountain spur spacing** | ~128 blocks | `rangeScale`, derived from world width — **not** from blocks/px |
 | **Lowest ground** | y 28 | first knot of `mapHeight` |
 | **Highest ground** | y 244 base, **y 292 with relief** | last knot of `mapHeight` + `ruggedness` × `reliefVariation` |
@@ -312,6 +333,76 @@ Notes on the fields:
 - The structure targets exactly one biome. For several biomes, change
   `HolderSet.direct(biomes.getOrThrow(data.targetBiome()))` in `bootstrapStructures` to
   take a list.
+
+### One per world
+
+A landmark that gates progression cannot use `registerScattered` — a spacing is "one per
+*area*", never "one, ever", and two Mansfield State Prisons means two Master Keys. Use
+`registerUnique` instead, which names a **region** rather than a spacing:
+
+```java
+registerUnique(
+        "mansfield_state_prison",
+        List.of("mansfield_state_prison"),
+        ModBiomes.COLUMBIA,          // biome it must land in — checked when the chunk generates
+        TerraRegion.COLUMBIA,        // region the spot is drawn from
+        UniformHeight.of(VerticalAnchor.absolute(-2), VerticalAnchor.absolute(-1)),
+        true
+);
+```
+
+There is no coordinate here and none in the generated JSON either. The JSON names the
+region; `TerraAnchors` scans the map for land well inside it and picks a spot **from the
+world seed** when the world is created. So it is one per world, anywhere in that biome, and
+somewhere different in every save.
+
+Two notes:
+
+- **The coordinates are only in the server log.** `/locate` searches about a hundred chunks
+  and these can be thousands away. `TerraAnchors` logs its picks at world creation —
+  `Terra anchors in COLUMBIA for seed …` — and that is the only place they exist.
+- **Declaration order picks who goes where.** Several unique structures in one region are
+  dealt positions in the order declared, at least 1024 blocks apart. Re-ordering the
+  configuration block reshuffles them within an existing seed.
+
+---
+
+## The Columbia chapter
+
+The first chapter of progression: land in Columbia, survive the wastes, clear three
+dungeons, come away with the blueprint that unlocks Originium refining. Spawn is in Columbia
+because `ORIGIN_AT_BLOCK` puts it there.
+
+**Everything below is a placeholder.** The mobs are cubes and flat-coloured zombies, and the
+dungeons are generated from a Python script rather than built. They exist so the chapter can
+be walked end to end and the pacing judged, which is the only question a placeholder answers.
+Both generators are idempotent and seeded — re-run them and nothing changes; overwrite an
+output with real art or a real build and delete its entry from the script.
+
+| Mob | Where | What it does |
+|---|---|---|
+| **Originium Slug** | the open wastes (the only natural spawn) | Drains stored energy out of any block exposing Forge's energy capability, so it works against any tech mod and none. Bursts on death: corrodes anything nearby, drains machines, and infects you with Oripathy. |
+| **Jesselton's Shadow** | Mansfield State Prison | Boss. Phase one is heavy kinetic Arts that armour answers; below half health he switches to `priestess:void_arts`, which is in `bypasses_armor`, and starts summoning adds. Drops the **Mansfield Master Key**. |
+| **Imprisoned Shadow** | Mansfield | Jesselton's adds. Fast, frail, knockback-immune, and every one fades after a minute so a long fight cannot silt up. |
+| **Frank** | Dorothy's Vision | Fast and frail. Every landed hit is Mining Fatigue II + Nausea — you keep your health and lose your ability to use the room. |
+| **The Failed Vision** | Dorothy's Vision | Boss. Cannot move. While it has neural nodes, ordinary damage is **refused outright** — only explosions and fire take a node off it. Spawns Franks, fires armour-piercing lasers. Drops **Dorothy's Neural Processor**. |
+| **Rogue Columbian Power Armour** | Rhine Lab HQ | Halves kinetic damage on top of heavy armour; anything that bypasses armour comes through whole. |
+| **Rhine Security Drone** | Rhine Lab HQ | Flies. Its beam does almost no damage and a great deal of armour durability — it exists to take the gear the power armour demands. |
+
+**→ How a boss is built: [docs/BOSSES.md](docs/BOSSES.md)** — the shared skeleton, the
+hitscan Arts beam, and a full walkthrough of Jesselton's Shadow.
+
+The three dungeons are `registerUnique`, so there is exactly one of each per world, somewhere
+in Columbia. Rhine Lab's Director's Office holds **Blueprint: Originium Refinement** in a
+chest; that is a stand-in for rebooting the Archival Mainframe, and the pool to delete when
+the mainframe exists.
+
+Test with the spawn eggs — every mob has one, in the Priestess tab:
+
+```
+/give @s priestess:jesseltons_shadow_spawn_egg
+/locate structure priestess:mansfield_state_prison    only if you are already near it
+```
 
 ---
 

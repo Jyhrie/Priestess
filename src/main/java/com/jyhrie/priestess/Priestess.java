@@ -1,10 +1,14 @@
 package com.jyhrie.priestess;
 
 import com.jyhrie.priestess.block.ModBlocks;
+import com.jyhrie.priestess.block.entity.ModBlockEntities;
 import com.jyhrie.priestess.effect.ModEffects;
+import com.jyhrie.priestess.entity.ModEntities;
 import com.jyhrie.priestess.item.ModCreativeTabs;
 import com.jyhrie.priestess.item.ModItems;
 import com.jyhrie.priestess.oripathy.OripathyEvents;
+import com.jyhrie.priestess.world.dimension.AnchorReport;
+import com.jyhrie.priestess.world.dimension.ModStructurePlacements;
 import com.jyhrie.priestess.world.terra.TerraElevationFunction;
 import com.jyhrie.priestess.world.terra.TerraMapBiomeSource;
 import com.jyhrie.priestess.world.terra.TerraReliefFunction;
@@ -49,16 +53,24 @@ public class Priestess {
 
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
+        ModBlockEntities.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
         ModEffects.register(modEventBus);
+        ModEntities.register(modEventBus);
 
         BIOME_SOURCES.register(modEventBus);
         DENSITY_FUNCTIONS.register(modEventBus);
+        // Same reason as the two above: the structure-set JSON names a placement type, and
+        // the codec for it has to be in the registry before that JSON can be parsed.
+        ModStructurePlacements.register(modEventBus);
 
         // Oripathy: the capability type is a mod-bus registration, everything that acts on
         // it (attaching it to players, symptoms, the /oripathy command) is a Forge-bus one.
         modEventBus.addListener(OripathyEvents::registerCapabilities);
         MinecraftForge.EVENT_BUS.register(OripathyEvents.class);
+
+        // Reports where this world put its one-per-world dungeons, to operators on login.
+        MinecraftForge.EVENT_BUS.register(AnchorReport.class);
     }
 
 }

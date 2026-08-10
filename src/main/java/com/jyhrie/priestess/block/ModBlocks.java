@@ -51,6 +51,22 @@ public class ModBlocks {
     public static final RegistryObject<Block> PERMAFROST = registerBlock("permafrost",
             () -> new Block(BlockBehaviour.Properties.copy(Blocks.PACKED_MUD)));
 
+    // ── Boss summoners ────────────────────────────────────────────────────────
+    // One altar per boss. Right-click with the matching catalyst and the boss stands up out
+    // of it; it stays spent until that boss is dead. See BossSummonerBlock.
+    //
+    // Copied from LODESTONE: stone-like, needs a pickaxe, and blast-resistant enough that a
+    // creeper cannot delete a fight you were about to have. They light while armed, which is
+    // the only way to see the state from more than a few blocks away.
+
+    public static final RegistryObject<Block> JESSELTONS_EFFIGY = registerBlock("jesseltons_effigy",
+            () -> new JesseltonsEffigyBlock(BlockBehaviour.Properties.copy(Blocks.LODESTONE)
+                    .lightLevel(BossSummonerBlock::glow)));
+
+    public static final RegistryObject<Block> DOROTHYS_TERMINAL = registerBlock("dorothys_terminal",
+            () -> new DorothysTerminalBlock(BlockBehaviour.Properties.copy(Blocks.LODESTONE)
+                    .lightLevel(BossSummonerBlock::glow)));
+
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block) {
         RegistryObject<T> toReturn = BLOCKS.register(name, block);
         registerBlockItem(name, toReturn);

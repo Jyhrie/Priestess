@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "priestess:single_in_region",
+    "index": 0,
+    "region": "COLUMBIA",
+    "total": 3
+  },
+  "structures": [
+    {
+      "structure": "priestess:mansfield_state_prison",
+      "weight": 1
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "armed=false": {
+      "model": "priestess:block/jesseltons_effigy_spent"
+    },
+    "armed=true": {
+      "model": "priestess:block/jesseltons_effigy"
+    }
+  }
+}

@@ -1,15 +1,19 @@
 package com.jyhrie.priestess.world.dimension;
 
 import com.jyhrie.priestess.Priestess;
+import com.jyhrie.priestess.entity.ModEntities;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.AmbientMoodSettings;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
 import net.minecraft.world.level.biome.MobSpawnSettings;
+
+import java.util.function.Consumer;
 
 /**
  * One biome per zone painted in {@code data/priestess/terra/regions.png}.
@@ -150,7 +154,9 @@ public class ModBiomes {
 
         // ── The heartland and the west ────────────────────────────────────────
         context.register(KAZIMIERZ,     biome(context, true,  0.6F,  0.4F,  P_KAZIMIERZ));
-        context.register(COLUMBIA,      biome(context, true,  0.45F, 0.8F,  P_COLUMBIA));
+        // The one biome with anything living in it. See columbiaSpawns().
+        context.register(COLUMBIA,      biome(context, true,  0.45F, 0.8F,  P_COLUMBIA,
+                                              ModBiomes::columbiaSpawns));
         context.register(IBERIA_LAND,   biome(context, true,  0.25F, 0.5F,  P_IBERIA));
 
         // ── The east ──────────────────────────────────────────────────────────
@@ -166,6 +172,23 @@ public class ModBiomes {
     }
 
     /**
+     * The Columbian wastes are not empty. Originium Slugs are the whole of the surface
+     * population for now — the rest of the chapter's roster belongs to a dungeon and is
+     * placed by the structure that owns it, because a Frank found wandering the open
+     * wasteland gives away a lab the player has not found yet.
+     *
+     * <p>Weights are read against every other entry in the same {@link MobCategory}, and
+     * Columbia has no others, so this is simply "the monster budget is slugs". The numbers
+     * that actually decide the density are the pack sizes: two to four, which is enough to
+     * be constant pressure on an unfenced camp without being a wall on the way out of the
+     * landing site.
+     */
+    private static void columbiaSpawns(MobSpawnSettings.Builder spawnBuilder) {
+        spawnBuilder.addSpawn(MobCategory.MONSTER,
+                new MobSpawnSettings.SpawnerData(ModEntities.ORIGINIUM_SLUG.get(), 40, 2, 4));
+    }
+
+    /**
      * A biome with no features and no mob spawns — Terra is deliberately bare for now.
      * To populate one, add placed features to {@code generationBuilder} and spawner data
      * to {@code spawnBuilder}.
@@ -177,11 +200,19 @@ public class ModBiomes {
      */
     private static Biome biome(BootstapContext<Biome> context, boolean hasPrecipitation,
                                float temperature, float downfall, Palette palette) {
+        return biome(context, hasPrecipitation, temperature, downfall, palette, spawns -> {});
+    }
+
+    /** As above, with a chance to populate the biome. */
+    private static Biome biome(BootstapContext<Biome> context, boolean hasPrecipitation,
+                               float temperature, float downfall, Palette palette,
+                               Consumer<MobSpawnSettings.Builder> spawns) {
         var placedFeatures = context.lookup(Registries.PLACED_FEATURE);
         var worldCarvers = context.lookup(Registries.CONFIGURED_CARVER);
 
         BiomeGenerationSettings.Builder generationBuilder = new BiomeGenerationSettings.Builder(placedFeatures, worldCarvers);
         MobSpawnSettings.Builder spawnBuilder = new MobSpawnSettings.Builder();
+        spawns.accept(spawnBuilder);
 
         return new Biome.BiomeBuilder()
                 .hasPrecipitation(hasPrecipitation)

@@ -1,0 +1,179 @@
+package com.jyhrie.priestess.entity;
+
+import com.jyhrie.priestess.Priestess;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+
+/**
+ * Every mob the Columbia chapter puts in the world.
+ *
+ * <p>Unlike the dimension and its biomes, entities are <em>runtime</em> registrations — a
+ * mob is code, not data, so there is no {@code runData} step for anything in this package.
+ * What does still go through datagen is the biome spawn list ({@code ModBiomes}), the
+ * language file, and the loot tables, so a new mob here is not finished until those three
+ * know about it.
+ *
+ * <h2>Who belongs to which dungeon</h2>
+ * <table border="1">
+ *   <caption>The Columbia roster</caption>
+ *   <tr><th>Mob</th><th>Where</th><th>What it is for</th></tr>
+ *   <tr><td>Originium Slug</td><td>the open wastes</td><td>attrition, and a tax on leaving
+ *       machines running unguarded</td></tr>
+ *   <tr><td>Imprisoned Shadow</td><td>Mansfield</td><td>Jesselton's phase-two adds</td></tr>
+ *   <tr><td>Jesselton's Shadow</td><td>Mansfield</td><td>boss 1 — drops the Master Key</td></tr>
+ *   <tr><td>Frank</td><td>Dorothy's Vision</td><td>sensory-overload chaff</td></tr>
+ *   <tr><td>The Failed Vision</td><td>Dorothy's Vision</td><td>boss 2 — drops the Neural
+ *       Processor</td></tr>
+ *   <tr><td>Rogue Power Armour</td><td>Rhine Lab</td><td>the wall between you and the lifts</td></tr>
+ *   <tr><td>Rhine Security Drone</td><td>Rhine Lab</td><td>strips the armour that wall demands</td></tr>
+ * </table>
+ *
+ * <h2>Adding a mob</h2>
+ * <ol>
+ *   <li>register the {@link EntityType} here,</li>
+ *   <li>add its attributes to {@link #registerAttributes},</li>
+ *   <li>if it should spawn naturally, add a {@link SpawnPlacements} rule in
+ *       {@link #registerSpawnPlacements} <em>and</em> a spawner entry in {@code ModBiomes},</li>
+ *   <li>bind a renderer in {@code client/PriestessClient},</li>
+ *   <li>name it in {@code ModLanguageProvider} and give it a loot table in
+ *       {@code ModLootTableProvider}.</li>
+ * </ol>
+ */
+@Mod.EventBusSubscriber(modid = Priestess.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+public class ModEntities {
+
+    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
+            DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, Priestess.MOD_ID);
+
+    // ── The wastes ────────────────────────────────────────────────────────────
+
+    /** Low and long, so it reads as vermin rather than as a threat you should stop for. */
+    public static final RegistryObject<EntityType<OriginiumSlug>> ORIGINIUM_SLUG =
+            ENTITY_TYPES.register("originium_slug", () -> EntityType.Builder
+                    .of(OriginiumSlug::new, MobCategory.MONSTER)
+                    .sized(0.9F, 0.5F)
+                    .clientTrackingRange(8)
+                    .build("originium_slug"));
+
+    // ── Mansfield State Prison ────────────────────────────────────────────────
+
+    public static final RegistryObject<EntityType<ImprisonedShadow>> IMPRISONED_SHADOW =
+            ENTITY_TYPES.register("imprisoned_shadow", () -> EntityType.Builder
+                    .of(ImprisonedShadow::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.95F)
+                    .fireImmune()
+                    .clientTrackingRange(8)
+                    .build("imprisoned_shadow"));
+
+    public static final RegistryObject<EntityType<JesseltonsShadow>> JESSELTONS_SHADOW =
+            ENTITY_TYPES.register("jesseltons_shadow", () -> EntityType.Builder
+                    .of(JesseltonsShadow::new, MobCategory.MONSTER)
+                    .sized(0.7F, 2.2F)
+                    .fireImmune()
+                    // A boss the player is meant to kite around a cell block has to stay
+                    // rendered from further away than the mob that shares its arena.
+                    .clientTrackingRange(16)
+                    .build("jesseltons_shadow"));
+
+    // ── Dorothy's Vision ──────────────────────────────────────────────────────
+
+    public static final RegistryObject<EntityType<Frank>> FRANK =
+            ENTITY_TYPES.register("frank", () -> EntityType.Builder
+                    .of(Frank::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.8F)
+                    .clientTrackingRange(8)
+                    .build("frank"));
+
+    /**
+     * Three blocks on a side and rooted to the floor. The hitbox is the arena furniture as
+     * much as it is the boss — you fight around it, never away from it.
+     */
+    public static final RegistryObject<EntityType<FailedVision>> FAILED_VISION =
+            ENTITY_TYPES.register("failed_vision", () -> EntityType.Builder
+                    .of(FailedVision::new, MobCategory.MONSTER)
+                    .sized(3.0F, 3.0F)
+                    .fireImmune()
+                    .clientTrackingRange(16)
+                    .build("failed_vision"));
+
+    // ── Rhine Lab Headquarters ────────────────────────────────────────────────
+
+    public static final RegistryObject<EntityType<RoguePowerArmour>> ROGUE_POWER_ARMOUR =
+            ENTITY_TYPES.register("rogue_power_armour", () -> EntityType.Builder
+                    .of(RoguePowerArmour::new, MobCategory.MONSTER)
+                    .sized(1.0F, 2.4F)
+                    .fireImmune()
+                    .clientTrackingRange(10)
+                    .build("rogue_power_armour"));
+
+    public static final RegistryObject<EntityType<RhineSecurityDrone>> RHINE_SECURITY_DRONE =
+            ENTITY_TYPES.register("rhine_security_drone", () -> EntityType.Builder
+                    .of(RhineSecurityDrone::new, MobCategory.MONSTER)
+                    .sized(0.8F, 0.7F)
+                    .fireImmune()
+                    .clientTrackingRange(12)
+                    .build("rhine_security_drone"));
+
+    // ── Unplaced ──────────────────────────────────────────────────────────────
+
+    /**
+     * "Awaken". A floating cube with no behaviour yet — see {@link Awaken}. It belongs to no
+     * dungeon and no chapter so far; for now the only way to meet one is the spawn egg.
+     */
+    public static final RegistryObject<EntityType<Awaken>> AWAKEN =
+            ENTITY_TYPES.register("awaken", () -> EntityType.Builder
+                    .of(Awaken::new, MobCategory.MONSTER)
+                    .sized(1.5F, 1.5F)
+                    .fireImmune()
+                    .clientTrackingRange(16)
+                    .build("awaken"));
+
+    // ── Attributes ────────────────────────────────────────────────────────────
+
+    @SubscribeEvent
+    public static void registerAttributes(EntityAttributeCreationEvent event) {
+        event.put(ORIGINIUM_SLUG.get(), OriginiumSlug.attributes().build());
+        event.put(IMPRISONED_SHADOW.get(), ImprisonedShadow.attributes().build());
+        event.put(JESSELTONS_SHADOW.get(), JesseltonsShadow.attributes().build());
+        event.put(FRANK.get(), Frank.attributes().build());
+        event.put(FAILED_VISION.get(), FailedVision.attributes().build());
+        event.put(ROGUE_POWER_ARMOUR.get(), RoguePowerArmour.attributes().build());
+        event.put(RHINE_SECURITY_DRONE.get(), RhineSecurityDrone.attributes().build());
+        event.put(AWAKEN.get(), Awaken.attributes().build());
+    }
+
+    /**
+     * Only the slug spawns naturally; everything else is placed by a structure, because a
+     * boss's adds wandering the wastes would give away the dungeon that owns them.
+     *
+     * <p>Deliberately <em>not</em> {@code Monster.checkMonsterSpawnRules} — that gates on
+     * darkness, and Columbia's slugs are a daylight problem. What is kept is the
+     * "not on the ceiling of a cave, not underwater" part.
+     */
+    @SubscribeEvent
+    public static void registerSpawnPlacements(FMLCommonSetupEvent event) {
+        // Spawn placement state is not thread safe and setup runs in parallel.
+        event.enqueueWork(() -> SpawnPlacements.register(ORIGINIUM_SLUG.get(),
+                SpawnPlacements.Type.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                Monster::checkAnyLightMonsterSpawnRules));
+    }
+
+    public static void register(IEventBus eventBus) {
+        ENTITY_TYPES.register(eventBus);
+    }
+
+    private ModEntities() {
+    }
+}

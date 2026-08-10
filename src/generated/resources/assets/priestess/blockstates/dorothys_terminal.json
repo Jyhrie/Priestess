@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "armed=false": {
+      "model": "priestess:block/dorothys_terminal_spent"
+    },
+    "armed=true": {
+      "model": "priestess:block/dorothys_terminal"
+    }
+  }
+}

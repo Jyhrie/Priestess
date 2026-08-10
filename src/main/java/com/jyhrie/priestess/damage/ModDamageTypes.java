@@ -17,14 +17,60 @@ import net.minecraft.world.level.Level;
  */
 public class ModDamageTypes {
 
-    public static final ResourceKey<DamageType> ORIPATHY = ResourceKey.create(Registries.DAMAGE_TYPE,
-            new ResourceLocation(Priestess.MOD_ID, "oripathy"));
+    public static final ResourceKey<DamageType> ORIPATHY = key("oripathy");
+
+    /**
+     * Jesselton's phase one: iron arts thrown across the cell block. Ordinary kinetic
+     * damage — armour is exactly what it is for, and buying that armour in the prison's
+     * riot-gear chests is the point of exploring it.
+     */
+    public static final ResourceKey<DamageType> SPECTRAL_ARTS = key("spectral_arts");
+
+    /**
+     * Jesselton's phase two, and the Failed Vision's lasers. Armour-piercing: it is in the
+     * {@code minecraft:bypasses_armor} tag (see {@code ModDamageTypeTagsProvider}), which is
+     * the whole difference between the two phases — the gear that carried you through the
+     * first half stops helping halfway.
+     */
+    public static final ResourceKey<DamageType> VOID_ARTS = key("void_arts");
+
+    /** A dying Originium Slug bursting. Corrosive, and it infects. */
+    public static final ResourceKey<DamageType> ORIGINIUM_ACID = key("originium_acid");
+
+    /** A Rhine security drone's beam. Eats armour durability rather than piercing it. */
+    public static final ResourceKey<DamageType> RHINE_LASER = key("rhine_laser");
+
+    private static ResourceKey<DamageType> key(String name) {
+        return ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(Priestess.MOD_ID, name));
+    }
 
     public static void bootstrap(BootstapContext<DamageType> context) {
         // NEVER scaling: the infection does not care what difficulty you picked. No
         // exhaustion either — it is lethal in one hit, there is no hunger cost to model.
         // The message id drives the death message key: death.attack.oripathy.
         context.register(ORIPATHY, new DamageType("oripathy", DamageScaling.NEVER, 0.0F, DamageEffects.HURT));
+
+        // The rest scale WHEN_CAUSED_BY_LIVING_NON_PLAYER, like every vanilla mob attack:
+        // these all come off a mob, so Hard should hurt more than Easy.
+        context.register(SPECTRAL_ARTS,
+                new DamageType("spectral_arts", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1F));
+        context.register(VOID_ARTS,
+                new DamageType("void_arts", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1F));
+        context.register(ORIGINIUM_ACID,
+                new DamageType("originium_acid", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1F));
+        context.register(RHINE_LASER,
+                new DamageType("rhine_laser", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1F));
+    }
+
+    /**
+     * A source attributed to the mob that caused it, so kills are credited and death
+     * messages read "…was crystallised by an Originium Slug" rather than naming nobody.
+     */
+    public static DamageSource source(Level level, ResourceKey<DamageType> type,
+                                      net.minecraft.world.entity.Entity attacker) {
+        return new DamageSource(level.registryAccess()
+                .registryOrThrow(Registries.DAMAGE_TYPE)
+                .getHolderOrThrow(type), attacker);
     }
 
     /**

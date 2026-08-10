@@ -160,7 +160,7 @@
                     "argument": {
                       "type": "minecraft:noise",
                       "noise": "priestess:erosion",
-                      "xz_scale": 0.25,
+                      "xz_scale": 0.5,
                       "y_scale": 0.0
                     }
                   },
@@ -192,7 +192,7 @@
                   "argument": {
                     "type": "minecraft:noise",
                     "noise": "priestess:ridges",
-                    "xz_scale": 0.25,
+                    "xz_scale": 0.5,
                     "y_scale": 0.0
                   }
                 },
@@ -234,7 +234,7 @@
       "argument": {
         "type": "minecraft:noise",
         "noise": "priestess:erosion",
-        "xz_scale": 0.25,
+        "xz_scale": 0.5,
         "y_scale": 0.0
       }
     },
@@ -377,7 +377,7 @@
                         "argument": {
                           "type": "minecraft:noise",
                           "noise": "priestess:erosion",
-                          "xz_scale": 0.25,
+                          "xz_scale": 0.5,
                           "y_scale": 0.0
                         }
                       },
@@ -409,7 +409,7 @@
                       "argument": {
                         "type": "minecraft:noise",
                         "noise": "priestess:ridges",
-                        "xz_scale": 0.25,
+                        "xz_scale": 0.5,
                         "y_scale": 0.0
                       }
                     },
@@ -686,7 +686,7 @@
                     "argument": {
                       "type": "minecraft:noise",
                       "noise": "priestess:erosion",
-                      "xz_scale": 0.25,
+                      "xz_scale": 0.5,
                       "y_scale": 0.0
                     }
                   },
@@ -718,7 +718,7 @@
                   "argument": {
                     "type": "minecraft:noise",
                     "noise": "priestess:ridges",
-                    "xz_scale": 0.25,
+                    "xz_scale": 0.5,
                     "y_scale": 0.0
                   }
                 },
@@ -761,7 +761,7 @@
       "argument": {
         "type": "minecraft:noise",
         "noise": "priestess:ridges",
-        "xz_scale": 0.25,
+        "xz_scale": 0.5,
         "y_scale": 0.0
       }
     },

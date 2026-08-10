@@ -70,10 +70,15 @@ public final class TerraMap {
      *   <caption>Examples</caption>
      *   <tr><th>regions.png</th><th>WORLD_WIDTH_BLOCKS</th><th>blocks/px</th><th>World</th></tr>
      *   <tr><td>1024 x 640</td><td>131,072</td><td>128</td><td>131,072 x 81,920</td></tr>
-     *   <tr><td>4096 x 4096</td><td>20,480</td><td>5</td><td>20,480 x 20,480</td></tr>
-     *   <tr><td>4096 x 4096</td><td>40,960</td><td>10</td><td>40,960 x 40,960</td></tr>
+     *   <tr><td>4092 x 4092</td><td>32,768</td><td>8</td><td>32,768 x 32,768 &mdash; today</td></tr>
+     *   <tr><td>4092 x 4092</td><td>65,536</td><td>16</td><td>65,536 x 65,536</td></tr>
      *   <tr><td>2048 x 1280</td><td>131,072</td><td>64</td><td>131,072 x 81,920</td></tr>
      * </table>
+     *
+     * <p><b>Changing this moves {@link #ORIGIN_AT_BLOCK_X}.</b> The origin is written in
+     * unshifted block coordinates, which are a function of this constant — halve the world
+     * and every block coordinate on the map halves with it, so an origin left alone now
+     * points at a different pixel and spawn quietly relocates. Scale the two together.
      *
      * <p>Only the <em>width</em> is given. Height comes from the image's aspect ratio, so
      * a square image gives a square world and Terra can never be accidentally stretched
@@ -85,7 +90,7 @@ public final class TerraMap {
      * 4096x4096 is 33 MiB, with a transient spike of maybe four times that while the
      * images decode.
      */
-    public static final int WORLD_WIDTH_BLOCKS = 65_536;
+    public static final int WORLD_WIDTH_BLOCKS = 32_768;
 
     /**
      * Origin shift: the point on the map that should become block (0, 0), given in the
@@ -105,9 +110,21 @@ public final class TerraMap {
      *
      * <p>The generator knows nothing about this. It writes pixels; the shift is applied
      * when they are read, so you do not need to regenerate the PNGs after changing it.
+     *
+     * <p>Set to Columbia, because that is where the chapter starts: the player's ship comes
+     * down in the Columbian wastes, and block (0, 0) should be the ground they land on. It
+     * was the centre of the map — Kazimierz — until the Columbia chapter existed to arrive
+     * in. These two numbers came out of the region report {@code runData} prints; move them
+     * to another row of that table and the whole world is addressed from there instead.
+     *
+     * <p>They are block coordinates, so they are only meaningful at one
+     * {@link #WORLD_WIDTH_BLOCKS}: these were {@code -10_240, -3_072} at the old
+     * 65,536-block width and were halved with it, which lands on the same map pixel and
+     * therefore the same square yard of Columbia. Rescale the world and rescale these, or
+     * take a fresh pair out of the region report.
      */
-    public static final int ORIGIN_AT_BLOCK_X = 0;
-    public static final int ORIGIN_AT_BLOCK_Z = 0;
+    public static final int ORIGIN_AT_BLOCK_X = -5_120;
+    public static final int ORIGIN_AT_BLOCK_Z = -1_536;
 
     private static final String REGIONS_PATH = "/data/priestess/terra/regions.png";
     private static final String ELEVATION_PATH = "/data/priestess/terra/elevation.png";

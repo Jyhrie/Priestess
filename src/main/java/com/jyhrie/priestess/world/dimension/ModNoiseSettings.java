@@ -155,8 +155,10 @@ public class ModNoiseSettings {
         // all — that is surface texture, and a boulder is a boulder whatever size the
         // continent is.)
         //
-        // At today's 65,536-block world this is exactly 0.25, putting the ridge octaves at
-        // 512 / 256 / 128 blocks. ridgeShape folds that, so spurs land ~128 blocks apart.
+        // At today's 32,768-block world this is 0.5, putting the ridge octaves at
+        // 256 / 128 / 64 blocks. ridgeShape folds that, so spurs land ~64 blocks apart —
+        // half what they were at 65,536, which is the point: the continent halved, so its
+        // mountains did too, and a range still has the same number of spurs across it.
         // This value is baked into settings.json by runData; the game never re-derives it.
         double rangeScale = 0.25 * (TUNED_AT_WORLD_WIDTH_BLOCKS / TerraMap.WORLD_WIDTH_BLOCKS);
         DensityFunction ridges = DensityFunctions.flatCache(

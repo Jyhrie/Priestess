@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "priestess:single_in_region",
+    "index": 1,
+    "region": "COLUMBIA",
+    "total": 3
+  },
+  "structures": [
+    {
+      "structure": "priestess:dorothys_vision",
+      "weight": 1
+    }
+  ]
+}

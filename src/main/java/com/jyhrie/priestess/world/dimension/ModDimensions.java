@@ -82,7 +82,7 @@ public class ModDimensions {
     // made of. Neither is in this file, and that is the point — this file just wires
     // the pieces together.
     //
-    // The trade this makes: Terra is now finite, 131,072 x 81,920 blocks, and identical
+    // The trade this makes: Terra is now finite, 32,768 x 32,768 blocks, and identical
     // in every world. Walk off the north or south edge and you get the Infy Icefield or
     // the Foehn Hotlands forever, which is what canon puts beyond those frontiers; walk
     // off the east or west edge and you get open ocean.
