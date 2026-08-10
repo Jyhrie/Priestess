@@ -1,9 +1,12 @@
 package com.jyhrie.priestess.entity.bosses;
 
-import com.jyhrie.priestess.entity.ArtsBeam;
 import com.jyhrie.priestess.entity.BossMonster;
+import com.jyhrie.priestess.entity.projectiles.ArtsBeam;
+import com.jyhrie.priestess.item.ModItems;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.util.Mth;
@@ -147,6 +150,17 @@ public class Awaken extends BossMonster implements GeoEntity {
         this.setYHeadRot(yaw);
     }
 
+    /**
+     * Dreamland, dropped in code rather than from a loot table — the same reason Jesselton's
+     * Master Key is: exactly one, every time, regardless of Looting, difficulty or whether
+     * the kill rolled anything else.
+     */
+    @Override
+    protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHitByPlayer) {
+        super.dropCustomDeathLoot(source, looting, recentlyHitByPlayer);
+        this.spawnAtLocation(new ItemStack(ModItems.DREAMLAND.get()));
+    }
+
     /** Nothing moves it: not a piston, not water, not the blast that is trying to kill it. */
     @Override
     public void push(double x, double y, double z) {
@@ -154,8 +168,7 @@ public class Awaken extends BossMonster implements GeoEntity {
 
     /** It is already off the ground on purpose; falling is not a thing that happens to it. */
     @Override
-    public boolean causeFallDamage(float distance, float multiplier,
-                                   net.minecraft.world.damagesource.DamageSource source) {
+    public boolean causeFallDamage(float distance, float multiplier, DamageSource source) {
         return false;
     }
 

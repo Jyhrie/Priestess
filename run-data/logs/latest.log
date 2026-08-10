@@ -1,30 +1,30 @@
-[10Aug2026 15:30:33.557] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgedatauserdev, --assetIndex, 5, --assetsDir, C:\Users\Admin\.gradle\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.4.10, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mod, priestess, --all, --output, C:\Users\Admin\apps\TerraFoundation\src\generated\resources, --existing, C:\Users\Admin\apps\TerraFoundation\src\main\resources]
-[10Aug2026 15:30:33.562] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.14 by Amazon.com Inc.; OS Windows 11 arch amd64 version 10.0
-[10Aug2026 15:30:33.680] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgedatauserdev
-[10Aug2026 15:30:33.745] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/C:/Users/Admin/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23128!/ Service=ModLauncher Env=CLIENT
-[10Aug2026 15:30:34.099] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Admin\.gradle\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.4.10\ccc533c7dd67e0983217197d7549c8b49e7ab453\javafmllanguage-1.20.1-47.4.10.jar is missing mods.toml file
-[10Aug2026 15:30:34.103] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Admin\.gradle\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.4.10\e9a2879fe3612ea34b9728ec2633304a1e67d480\lowcodelanguage-1.20.1-47.4.10.jar is missing mods.toml file
-[10Aug2026 15:30:34.105] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Admin\.gradle\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.4.10\ec5cefbbc65c67302b8fac317010faab85fa14b9\mclanguage-1.20.1-47.4.10.jar is missing mods.toml file
-[10Aug2026 15:30:34.110] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Admin\.gradle\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.4.10\94dae566be650566ea9115a1414ab76bfcf5a804\fmlcore-1.20.1-47.4.10.jar is missing mods.toml file
-[10Aug2026 15:30:34.249] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: Found 1 dependencies adding them to mods collection
-[10Aug2026 15:30:40.362] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
-[10Aug2026 15:30:40.368] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgedatauserdev' with arguments [--gameDir, ., --assetsDir, C:\Users\Admin\.gradle\caches\forge_gradle\assets, --assetIndex, 5, --mod, priestess, --all, --output, C:\Users\Admin\apps\TerraFoundation\src\generated\resources, --existing, C:\Users\Admin\apps\TerraFoundation\src\main\resources]
-[10Aug2026 15:30:41.493] [main/INFO] [mixin/]: Remapping refMap geckolib.refmap.json using C:\Users\Admin\apps\TerraFoundation\build\createSrgToMcp\output.srg
-[10Aug2026 15:30:42.554] [main/INFO] [net.minecraftforge.data.loading.DatagenModLoader/]: Initializing Data Gatherer for mods [priestess]
-[10Aug2026 15:30:53.285] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.4.10, for MC 1.20.1 with MCP 20230612.114412
-[10Aug2026 15:30:53.305] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.4.10 Initialized
-[10Aug2026 15:30:53.815] [modloading-worker-0/WARN] [software.bernie.geckolib.GeckoLib/]: Minecraft.getInstance() was null, could not register reload listeners
-[10Aug2026 15:30:54.942] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/C:/Users/Admin/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.10_mapped_official_1.20.1/forge-1.20.1-47.4.10_mapped_official_1.20.1.jar%23191!/assets/.mcassetsroot' uses unexpected schema
-[10Aug2026 15:30:54.942] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/C:/Users/Admin/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.10_mapped_official_1.20.1/forge-1.20.1-47.4.10_mapped_official_1.20.1.jar%23191!/data/.mcassetsroot' uses unexpected schema
-[10Aug2026 15:30:55.844] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Loot Tables
-[10Aug2026 15:30:56.018] [main/INFO] [net.minecraft.data.DataGenerator/]: Loot Tables finished after 173 ms
-[10Aug2026 15:30:56.018] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Registries
-[10Aug2026 15:30:56.224] [main/INFO] [net.minecraft.data.DataGenerator/]: Registries finished after 205 ms
-[10Aug2026 15:30:56.224] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Damage Type Tags: priestess
-[10Aug2026 15:30:56.240] [main/INFO] [net.minecraft.data.DataGenerator/]: Damage Type Tags: priestess finished after 15 ms
-[10Aug2026 15:30:56.240] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Terra map preview
-[10Aug2026 15:30:58.735] [ForkJoinPool.commonPool-worker-1/INFO] [com.jyhrie.priestess.world.terra.TerraMap/]: Loaded Terra: 4092x4092 px at 8.007820136852395 blocks/px = 32768x32768 blocks, 16 colours
-[10Aug2026 15:30:59.108] [ForkJoinPool.commonPool-worker-1/INFO] [com.jyhrie.priestess.datagen.ModTerraPreviewProvider/]: Terra preview -> C:\Users\Admin\apps\TerraFoundation\docs\terra_world_preview.png (1032x512 px, 64 blocks/px)
+[10Aug2026 17:37:01.385] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgedatauserdev, --assetIndex, 5, --assetsDir, C:\Users\Admin\.gradle\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.4.10, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --mod, priestess, --all, --output, C:\Users\Admin\apps\TerraFoundation\src\generated\resources, --existing, C:\Users\Admin\apps\TerraFoundation\src\main\resources]
+[10Aug2026 17:37:01.390] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.14 by Amazon.com Inc.; OS Windows 11 arch amd64 version 10.0
+[10Aug2026 17:37:01.509] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgedatauserdev
+[10Aug2026 17:37:01.558] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/C:/Users/Admin/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23128!/ Service=ModLauncher Env=CLIENT
+[10Aug2026 17:37:01.816] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Admin\.gradle\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.4.10\ccc533c7dd67e0983217197d7549c8b49e7ab453\javafmllanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[10Aug2026 17:37:01.819] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Admin\.gradle\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.4.10\e9a2879fe3612ea34b9728ec2633304a1e67d480\lowcodelanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[10Aug2026 17:37:01.821] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Admin\.gradle\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.4.10\ec5cefbbc65c67302b8fac317010faab85fa14b9\mclanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[10Aug2026 17:37:01.823] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file C:\Users\Admin\.gradle\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.4.10\94dae566be650566ea9115a1414ab76bfcf5a804\fmlcore-1.20.1-47.4.10.jar is missing mods.toml file
+[10Aug2026 17:37:01.926] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: Found 1 dependencies adding them to mods collection
+[10Aug2026 17:37:03.500] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[10Aug2026 17:37:03.504] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgedatauserdev' with arguments [--gameDir, ., --assetsDir, C:\Users\Admin\.gradle\caches\forge_gradle\assets, --assetIndex, 5, --mod, priestess, --all, --output, C:\Users\Admin\apps\TerraFoundation\src\generated\resources, --existing, C:\Users\Admin\apps\TerraFoundation\src\main\resources]
+[10Aug2026 17:37:03.838] [main/INFO] [mixin/]: Remapping refMap geckolib.refmap.json using C:\Users\Admin\apps\TerraFoundation\build\createSrgToMcp\output.srg
+[10Aug2026 17:37:04.130] [main/INFO] [net.minecraftforge.data.loading.DatagenModLoader/]: Initializing Data Gatherer for mods [priestess]
+[10Aug2026 17:37:09.101] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.4.10, for MC 1.20.1 with MCP 20230612.114412
+[10Aug2026 17:37:09.107] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.4.10 Initialized
+[10Aug2026 17:37:09.191] [modloading-worker-0/WARN] [software.bernie.geckolib.GeckoLib/]: Minecraft.getInstance() was null, could not register reload listeners
+[10Aug2026 17:37:10.015] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/C:/Users/Admin/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.10_mapped_official_1.20.1/forge-1.20.1-47.4.10_mapped_official_1.20.1.jar%23191!/assets/.mcassetsroot' uses unexpected schema
+[10Aug2026 17:37:10.016] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/C:/Users/Admin/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.10_mapped_official_1.20.1/forge-1.20.1-47.4.10_mapped_official_1.20.1.jar%23191!/data/.mcassetsroot' uses unexpected schema
+[10Aug2026 17:37:10.550] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Loot Tables
+[10Aug2026 17:37:10.598] [main/INFO] [net.minecraft.data.DataGenerator/]: Loot Tables finished after 46 ms
+[10Aug2026 17:37:10.598] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Registries
+[10Aug2026 17:37:10.649] [main/INFO] [net.minecraft.data.DataGenerator/]: Registries finished after 51 ms
+[10Aug2026 17:37:10.650] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Damage Type Tags: priestess
+[10Aug2026 17:37:10.677] [main/INFO] [net.minecraft.data.DataGenerator/]: Damage Type Tags: priestess finished after 25 ms
+[10Aug2026 17:37:10.677] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Terra map preview
+[10Aug2026 17:37:11.434] [ForkJoinPool.commonPool-worker-1/INFO] [com.jyhrie.priestess.world.terra.TerraMap/]: Loaded Terra: 4092x4092 px at 8.007820136852395 blocks/px = 32768x32768 blocks, 16 colours
+[10Aug2026 17:37:11.606] [ForkJoinPool.commonPool-worker-1/INFO] [com.jyhrie.priestess.datagen.ModTerraPreviewProvider/]: Terra preview -> C:\Users\Admin\apps\TerraFoundation\docs\terra_world_preview.png (1032x512 px, 64 blocks/px)
   terrain slots: DEEP_SEA=68.7% SEA=3.0% SHORE=3.9% LOWLAND=7.0% FLATS=11.8% MIDLAND=3.8% HILLS=1.2% MOUNTAIN=0.5%
   region           share  slot       go here
   OCEAN           71.85%  DEEP_SEA   /execute in priestess:terra run tp @s 9920 ~ 2432
@@ -44,12 +44,12 @@
   KAZDEL           0.03%  HILLS      /execute in priestess:terra run tp @s 9088 ~ 768
   KJERAG           0.03%  MOUNTAIN   /execute in priestess:terra run tp @s 1792 ~ 896
 
-[10Aug2026 15:30:59.110] [main/INFO] [net.minecraft.data.DataGenerator/]: Terra map preview finished after 2868 ms
-[10Aug2026 15:30:59.110] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Block States: priestess
-[10Aug2026 15:30:59.258] [main/INFO] [net.minecraft.data.DataGenerator/]: Block States: priestess finished after 148 ms
-[10Aug2026 15:30:59.259] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Item Models: priestess
-[10Aug2026 15:30:59.262] [main/INFO] [net.minecraft.data.DataGenerator/]: Item Models: priestess finished after 3 ms
-[10Aug2026 15:30:59.262] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Languages: en_us
-[10Aug2026 15:30:59.266] [main/INFO] [net.minecraft.data.DataGenerator/]: Languages: en_us finished after 3 ms
-[10Aug2026 15:30:59.267] [main/INFO] [net.minecraft.data.DataGenerator/]: All providers took: 3424 ms
-[10Aug2026 15:30:59.297] [main/INFO] [net.minecraft.data.HashCache/]: Caching: total files: 94, old count: 94, new count: 92, removed stale: 3, written: 1
+[10Aug2026 17:37:11.607] [main/INFO] [net.minecraft.data.DataGenerator/]: Terra map preview finished after 929 ms
+[10Aug2026 17:37:11.607] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Block States: priestess
+[10Aug2026 17:37:11.677] [main/INFO] [net.minecraft.data.DataGenerator/]: Block States: priestess finished after 70 ms
+[10Aug2026 17:37:11.677] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Item Models: priestess
+[10Aug2026 17:37:11.679] [main/INFO] [net.minecraft.data.DataGenerator/]: Item Models: priestess finished after 1 ms
+[10Aug2026 17:37:11.679] [main/INFO] [net.minecraft.data.DataGenerator/]: Starting provider: Languages: en_us
+[10Aug2026 17:37:11.680] [main/INFO] [net.minecraft.data.DataGenerator/]: Languages: en_us finished after 0 ms
+[10Aug2026 17:37:11.680] [main/INFO] [net.minecraft.data.DataGenerator/]: All providers took: 1130 ms
+[10Aug2026 17:37:11.689] [main/INFO] [net.minecraft.data.HashCache/]: Caching: total files: 96, old count: 96, new count: 97, removed stale: 0, written: 0

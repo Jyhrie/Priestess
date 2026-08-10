@@ -1,12 +1,10 @@
 package com.jyhrie.priestess.world.dimension;
 
 import com.jyhrie.priestess.Priestess;
-import com.jyhrie.priestess.entity.ModEntities;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.AmbientMoodSettings;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
@@ -154,9 +152,12 @@ public class ModBiomes {
 
         // ── The heartland and the west ────────────────────────────────────────
         context.register(KAZIMIERZ,     biome(context, true,  0.6F,  0.4F,  P_KAZIMIERZ));
-        // The one biome with anything living in it. See columbiaSpawns().
-        context.register(COLUMBIA,      biome(context, true,  0.45F, 0.8F,  P_COLUMBIA,
-                                              ModBiomes::columbiaSpawns));
+        // Columbia used to be the one biome with anything living in it — Originium Slugs,
+        // two to four at a time, at weight 40. That went when the slug was stripped back to
+        // a bare mob, so no biome in Terra has a natural spawn any more and this one takes
+        // the same no-spawns overload as every other. The two-argument form is still there
+        // and this is the call to give a Consumer back to when the wastes are repopulated.
+        context.register(COLUMBIA,      biome(context, true,  0.45F, 0.8F,  P_COLUMBIA));
         context.register(IBERIA_LAND,   biome(context, true,  0.25F, 0.5F,  P_IBERIA));
 
         // ── The east ──────────────────────────────────────────────────────────
@@ -172,26 +173,14 @@ public class ModBiomes {
     }
 
     /**
-     * The Columbian wastes are not empty. Originium Slugs are the whole of the surface
-     * population for now — the rest of the chapter's roster belongs to a dungeon and is
-     * placed by the structure that owns it, because a lab's guards found wandering the open
-     * wasteland give away a lab the player has not found yet.
-     *
-     * <p>Weights are read against every other entry in the same {@link MobCategory}, and
-     * Columbia has no others, so this is simply "the monster budget is slugs". The numbers
-     * that actually decide the density are the pack sizes: two to four, which is enough to
-     * be constant pressure on an unfenced camp without being a wall on the way out of the
-     * landing site.
-     */
-    private static void columbiaSpawns(MobSpawnSettings.Builder spawnBuilder) {
-        spawnBuilder.addSpawn(MobCategory.MONSTER,
-                new MobSpawnSettings.SpawnerData(ModEntities.ORIGINIUM_SLUG.get(), 40, 2, 4));
-    }
-
-    /**
      * A biome with no features and no mob spawns — Terra is deliberately bare for now.
      * To populate one, add placed features to {@code generationBuilder} and spawner data
      * to {@code spawnBuilder}.
+     *
+     * <p>For mobs specifically, use the overload below and see {@code docs/SPAWNING.md}: a
+     * spawner entry here is only half of a natural spawn, and the other half is a
+     * {@code SpawnPlacements} rule in {@code ModEntities}. Neither works alone and neither
+     * errors when the other is missing.
      *
      * @param temperature visual/behavioural temperature: below 0.15 water freezes and snow
      *                    falls instead of rain. Nothing places the biome by this any more —

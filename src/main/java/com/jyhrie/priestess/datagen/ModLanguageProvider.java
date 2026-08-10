@@ -35,6 +35,9 @@ public class ModLanguageProvider extends LanguageProvider {
 
         // ── Mobs ──────────────────────────────────────────────────────────────
         add(ModEntities.ORIGINIUM_SLUG.get(), "Originium Slug");
+        add(ModEntities.FAILURE.get(), "Failure");
+        add(ModEntities.REPLICA.get(), "Replica");
+        add(ModEntities.BIONIC.get(), "Bionic");
         add(ModEntities.JESSELTON_WILLIAMS.get(), "Jesselton Williams");
         // The quotes are part of the name, not punctuation around it — it is called
         // "Awaken", quotation marks and all, everywhere it is written.
@@ -46,8 +49,13 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModItems.BLUEPRINT_ORIGINIUM_REFINEMENT.get(), "Blueprint: Originium Refinement");
         add(ModItems.TARNISHED_DOG_TAGS.get(), "Tarnished Dog Tags");
         add(ModItems.CORRUPTED_NEURAL_SHARD.get(), "Corrupted Neural Shard");
+        add(ModItems.MEDIUM.get(), "Medium");
+        add(ModItems.DREAMLAND.get(), "Dreamland");
 
         add(ModItems.ORIGINIUM_SLUG_SPAWN_EGG.get(), "Originium Slug Spawn Egg");
+        add(ModItems.FAILURE_SPAWN_EGG.get(), "Failure Spawn Egg");
+        add(ModItems.REPLICA_SPAWN_EGG.get(), "Replica Spawn Egg");
+        add(ModItems.BIONIC_SPAWN_EGG.get(), "Bionic Spawn Egg");
         add(ModItems.JESSELTON_WILLIAMS_SPAWN_EGG.get(), "Jesselton Williams Spawn Egg");
         add(ModItems.AWAKEN_SPAWN_EGG.get(), "\"Awaken\" Spawn Egg");
 

@@ -1,8 +1,8 @@
 package com.jyhrie.priestess.entity.bosses;
 
 import com.jyhrie.priestess.damage.ModDamageTypes;
-import com.jyhrie.priestess.entity.ArtsBeam;
 import com.jyhrie.priestess.entity.BossMonster;
+import com.jyhrie.priestess.entity.projectiles.ArtsBeam;
 import com.jyhrie.priestess.item.ModItems;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvent;

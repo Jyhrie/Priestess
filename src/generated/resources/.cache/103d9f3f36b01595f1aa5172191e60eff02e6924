@@ -1,4 +1,4 @@
-// 1.20.1	2026-08-10T00:19:46.7432604	Registries
+// 1.20.1	2026-08-10T17:35:52.7191983	Registries
 c61aea45a255a18a1a0b2844142a28b6f13f6378 data/priestess/damage_type/originium_acid.json
 d451d9b21c9647e6d3f06a86ab202189cd57fbe0 data/priestess/damage_type/oripathy.json
 77121c9556e17a60254d4880fe19a23d0f755027 data/priestess/damage_type/rhine_laser.json
@@ -6,7 +6,7 @@ d451d9b21c9647e6d3f06a86ab202189cd57fbe0 data/priestess/damage_type/oripathy.jso
 85275ccd3de498008a31c155d9aa1522ea861a21 data/priestess/damage_type/void_arts.json
 49bc747bb5c9990ce254d450567cd8999e4315fd data/priestess/dimension/terra.json
 6a473d8fbf138c04de6a165880b83dc7b27b79cc data/priestess/dimension_type/terra_type.json
-0585ac1487a70fe746ae04dc67bf2090db7e3a64 data/priestess/worldgen/biome/columbia.json
+bb02404250e7fbd3a3672d36eeffe2c5638fd740 data/priestess/worldgen/biome/columbia.json
 b6d7c54b4b743322cbf6a878f4f9e7c900342b15 data/priestess/worldgen/biome/higashi_cold.json
 fbb23f8dbcb2cb4284038b3569f83a90ea4b3d59 data/priestess/worldgen/biome/higashi_warm.json
 0b3df49e68b4f7e22b6ca1f7a2bd5ddd0d6ebc08 data/priestess/worldgen/biome/iberia_land.json

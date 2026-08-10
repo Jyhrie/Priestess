@@ -2,8 +2,11 @@ package com.jyhrie.priestess.client;
 
 import com.jyhrie.priestess.Priestess;
 import com.jyhrie.priestess.entity.ModEntities;
-import com.jyhrie.priestess.entity.OriginiumSlug;
 import com.jyhrie.priestess.entity.bosses.JesseltonWilliams;
+import com.jyhrie.priestess.entity.mobs.Bionic;
+import com.jyhrie.priestess.entity.mobs.Failure;
+import com.jyhrie.priestess.entity.mobs.OriginiumSlug;
+import com.jyhrie.priestess.entity.mobs.Replica;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.resources.ResourceLocation;
@@ -13,8 +16,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 /**
- * Everything the client needs to draw the Columbia chapter, which is currently three mobs
- * on three different paths — one hand-built mesh, one vanilla mesh, one GeckoLib model.
+ * Everything the client needs to draw the Columbia chapter, which is currently six mobs on
+ * three different paths — one hand-built mesh, one vanilla mesh, four GeckoLib models.
  *
  * <p>Client-only, and enforced by {@code value = Dist.CLIENT} rather than by care — a
  * dedicated server that classloads {@code HumanoidModel} crashes, and the annotation is
@@ -27,8 +30,11 @@ import net.minecraftforge.fml.common.Mod;
  *       {@code HumanoidModel}'s own mesh under a name vanilla happened to register it with.
  *       He walks, swings and turns his head for free, and all this mod supplies is a 64×64
  *       texture in the standard skin layout.</li>
- *   <li><b>"Awaken"</b> — GeckoLib, from a Blockbench model, owning its own renderer; see
- *       {@link AwakenRenderer}.</li>
+ *   <li><b>Failure, Replica, Bionic</b> — GeckoLib, on the shared
+ *       {@link PriestessGeoRenderer}. Their models are placeholder cube humanoids waiting to
+ *       be redrawn in Blockbench; nothing here has to change when they are.</li>
+ *   <li><b>"Awaken"</b> — GeckoLib too, but owning its own renderer; see
+ *       {@link AwakenRenderer} for the two reasons it cannot share.</li>
  * </ul>
  */
 @Mod.EventBusSubscriber(modid = Priestess.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -51,9 +57,18 @@ public class PriestessClient {
                         new HumanoidModel<>(context.bakeLayer(ModelLayers.ZOMBIE)),
                         0.7F, texture("jesselton_williams"), 1.15F));
 
-        // The only mob not on the shared renderer. GeckoLib draws from its own model
-        // hierarchy, which MobRenderer cannot host, so this one owns its renderer and gets
-        // its geometry and texture from resource paths rather than from arguments here.
+        // GeckoLib draws from its own model hierarchy, which MobRenderer cannot host, so
+        // everything below is on the parallel shared renderer instead. Geometry and texture
+        // come from resource paths derived from the name, not from arguments here.
+        event.registerEntityRenderer(ModEntities.FAILURE.get(), context ->
+                new PriestessGeoRenderer<Failure>(context, "failure", 0.4F));
+        event.registerEntityRenderer(ModEntities.REPLICA.get(), context ->
+                new PriestessGeoRenderer<Replica>(context, "replica", 0.4F));
+        event.registerEntityRenderer(ModEntities.BIONIC.get(), context ->
+                new PriestessGeoRenderer<Bionic>(context, "bionic", 0.6F));
+
+        // "Awaken" is the exception even among those: its scale is tied to a hitbox constant
+        // that has to be documented beside it, and its model has no bone named "head".
         event.registerEntityRenderer(ModEntities.AWAKEN.get(), AwakenRenderer::new);
     }
 

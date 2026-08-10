@@ -142,6 +142,14 @@ ENTITIES = [
     # name,                    w,   h,  base colour, accent colour, seed, stripe
     ("originium_slug",         64,  32, (0x4A, 0x5A, 0x66), (0x5F, 0xC8, 0xE8), 101, 6),
     ("jesselton_williams",     64,  64, (0x3A, 0x30, 0x4E), (0xB8, 0x26, 0x2E), 103, 8),
+    # The three Medium-bearers, one palette per rung so they read as a set at a glance:
+    # Failure is going-off green, Replica is clean bone and cold blue, Bionic is gunmetal
+    # and hazard orange. These are box-UV placeholders for the geo models in
+    # geo/entity/{failure,replica,bionic}.geo.json — a real Blockbench export replaces both
+    # the .geo.json and the texture together, and the entry here goes with them.
+    ("failure",                64,  64, (0x3A, 0x4A, 0x3E), (0xA8, 0xC0, 0x60), 105, 7),
+    ("replica",                64,  64, (0xC8, 0xC4, 0xBC), (0x5F, 0x8C, 0xE8), 106, 9),
+    ("bionic",                 64,  64, (0x3E, 0x46, 0x52), (0xE8, 0x7A, 0x2E), 107, 5),
     # NOT "awaken". Its texture is a real 128x128 export that belongs to the Blockbench
     # model in geo/entity/awaken.geo.json, and the UVs only line up with that file. This
     # script overwrites by name, so putting it back here would destroy hand-made art the
@@ -245,6 +253,44 @@ SHARD = [
     "                ",
 ]
 
+MEDIUM = [
+    "                ",
+    "       ##       ",
+    "      #..#      ",
+    "     #.##.#     ",
+    "    #.#..#.#    ",
+    "   #.#.##.#.#   ",
+    "   #.#.##.#.#   ",
+    "   #.#.##.#.#   ",
+    "   #.#.##.#.#   ",
+    "   #.#.##.#.#   ",
+    "    #.#..#.#    ",
+    "     #.##.#     ",
+    "      #..#      ",
+    "       ##       ",
+    "                ",
+    "                ",
+]
+
+DREAMLAND = [
+    "                ",
+    "   #        #   ",
+    "  #.#  ##  #.#  ",
+    "   #  #..#  #   ",
+    "      #..#      ",
+    "   ####..####   ",
+    "  #..........#  ",
+    " #............# ",
+    " #............# ",
+    "  #..........#  ",
+    "   #........#   ",
+    "    #......#    ",
+    "     #....#     ",
+    "      #..#      ",
+    "       ##       ",
+    "                ",
+]
+
 ITEMS = [
     # name,                            base,               accent,              seed, glyph
     ("mansfield_master_key",           (0x4A, 0x42, 0x38), (0xD8, 0xC0, 0x78), 201, KEY),
@@ -252,6 +298,8 @@ ITEMS = [
     ("blueprint_originium_refinement", (0x14, 0x2E, 0x54), (0x8C, 0xC8, 0xF0), 203, BLUEPRINT),
     ("tarnished_dog_tags",             (0x3A, 0x38, 0x30), (0x9A, 0x8E, 0x6A), 204, DOG_TAGS),
     ("corrupted_neural_shard",         (0x24, 0x18, 0x2E), (0xC8, 0x5F, 0xA8), 205, SHARD),
+    ("medium",                         (0x24, 0x30, 0x3A), (0x8C, 0xD8, 0xE8), 206, MEDIUM),
+    ("dreamland",                      (0x2A, 0x24, 0x40), (0xC8, 0xA8, 0xF0), 207, DREAMLAND),
 ]
 
 # ── Boss altars ───────────────────────────────────────────────────────────────

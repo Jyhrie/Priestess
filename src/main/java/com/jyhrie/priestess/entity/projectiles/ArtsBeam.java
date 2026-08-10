@@ -1,4 +1,4 @@
-package com.jyhrie.priestess.entity;
+package com.jyhrie.priestess.entity.projectiles;
 
 import com.jyhrie.priestess.damage.ModDamageTypes;
 import net.minecraft.core.particles.ParticleOptions;

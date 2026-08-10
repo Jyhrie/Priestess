@@ -8,13 +8,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Mob;
 
 /**
- * One renderer for every mob in the mod.
+ * One renderer for every mob drawn from a vanilla {@code EntityModel}.
  *
  * <p>A renderer per mob is the usual shape, and it is the right shape once mobs have
- * particle trails, glowing eyes, held items and death animations. None of these do. All
- * seven differ in exactly three values — which model, which texture, how big — so they get
- * one class taking those three as arguments rather than seven files that differ by a
- * string.
+ * particle trails, glowing eyes, held items and death animations. None of these do. They
+ * differ in exactly three values — which model, which texture, how big — so they get one
+ * class taking those three as arguments rather than a file each that differs by a string.
+ *
+ * <p>The GeckoLib mobs cannot come here, because {@code MobRenderer} cannot host a
+ * {@code GeoModel}; they get the same treatment one hierarchy over, in
+ * {@link PriestessGeoRenderer}.
  *
  * <p>When a mob grows something a renderer has to know about, give <em>that</em> mob its own
  * subclass and leave the rest here.

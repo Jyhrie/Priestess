@@ -41,6 +41,25 @@ public class ModItems {
             ITEMS.register("blueprint_originium_refinement",
                     () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
 
+    // ── Medium and Dreamland ──────────────────────────────────────────────────
+    // The pair the next stretch of progression is built out of, and the first two items in
+    // the mod that are not one-offs by fiat. Neither does anything yet — nothing consumes
+    // them, the same as the chapter keys above — but both are obtainable, which is the bar.
+
+    /**
+     * Drops from Failure, Replica and Bionic. Stackable, because it is a material rather
+     * than a token: three mobs pay it out and there is no story in holding exactly one.
+     */
+    public static final RegistryObject<Item> MEDIUM = ITEMS.register("medium",
+            () -> new Item(new Item.Properties().rarity(Rarity.UNCOMMON)));
+
+    /**
+     * Drops from "Awaken". A one-off like the chapter keys — stack size 1, dropped in code
+     * so the roll can never come up empty (see {@code Awaken.dropCustomDeathLoot}).
+     */
+    public static final RegistryObject<Item> DREAMLAND = ITEMS.register("dreamland",
+            () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+
     // ── Summoning catalysts ───────────────────────────────────────────────────
     // The things a boss altar wants. One is consumed per summon, which is what stops an
     // altar being an infinite boss farm: the altar re-arms itself when the boss dies, so
@@ -70,6 +89,20 @@ public class ModItems {
     public static final RegistryObject<Item> ORIGINIUM_SLUG_SPAWN_EGG =
             ITEMS.register("originium_slug_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.ORIGINIUM_SLUG, 0x4A5A66, 0x5FC8E8, new Item.Properties()));
+
+    // The three Medium-bearers have no home in the world yet, so for them the egg is not a
+    // test tool — it is the only way to meet one at all.
+    public static final RegistryObject<Item> FAILURE_SPAWN_EGG =
+            ITEMS.register("failure_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntities.FAILURE, 0x3A4A3E, 0xA8C060, new Item.Properties()));
+
+    public static final RegistryObject<Item> REPLICA_SPAWN_EGG =
+            ITEMS.register("replica_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntities.REPLICA, 0xC8C4BC, 0x5F8CE8, new Item.Properties()));
+
+    public static final RegistryObject<Item> BIONIC_SPAWN_EGG =
+            ITEMS.register("bionic_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntities.BIONIC, 0x3E4652, 0xE87A2E, new Item.Properties()));
 
     public static final RegistryObject<Item> JESSELTON_WILLIAMS_SPAWN_EGG =
             ITEMS.register("jesselton_williams_spawn_egg",

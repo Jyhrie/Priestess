@@ -24,10 +24,15 @@ public class ModItemModelProvider extends ItemModelProvider {
         basicItem(ModItems.BLUEPRINT_ORIGINIUM_REFINEMENT.get());
         basicItem(ModItems.TARNISHED_DOG_TAGS.get());
         basicItem(ModItems.CORRUPTED_NEURAL_SHARD.get());
+        basicItem(ModItems.MEDIUM.get());
+        basicItem(ModItems.DREAMLAND.get());
 
         // Spawn eggs are the one item that needs no texture: the vanilla template tints two
         // greyscale layers from the colours passed to ForgeSpawnEggItem.
         spawnEgg(ModItems.ORIGINIUM_SLUG_SPAWN_EGG);
+        spawnEgg(ModItems.FAILURE_SPAWN_EGG);
+        spawnEgg(ModItems.REPLICA_SPAWN_EGG);
+        spawnEgg(ModItems.BIONIC_SPAWN_EGG);
         spawnEgg(ModItems.JESSELTON_WILLIAMS_SPAWN_EGG);
         spawnEgg(ModItems.AWAKEN_SPAWN_EGG);
     }

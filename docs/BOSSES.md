@@ -196,8 +196,8 @@ protected void dropCustomDeathLoot(DamageSource source, int looting, boolean rec
 
 Hardcoded, not a loot table. The Master Key gates the rest of the chapter, so it has to be
 exactly one, every time — regardless of Looting, difficulty, or whether the kill rolled
-anything else. The Failed Vision drops Dorothy's Neural Processor the same way and for the
-same reason.
+anything else. "Awaken" drops **Dreamland** the same way and for the same reason, and so do
+the three Medium-bearers — there are no entity loot tables in the mod at all.
 
 ---
 
