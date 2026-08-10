@@ -113,7 +113,7 @@ public final class TerraMap {
      *
      * <p>Set to Columbia, because that is where the chapter starts: the player's ship comes
      * down in the Columbian wastes, and block (0, 0) should be the ground they land on. It
-     * was the centre of the map — Kazimierz — until the Columbia chapter existed to arrive
+     * was the centre of the map — Kazimierz — until Movement I existed to arrive
      * in. These two numbers came out of the region report {@code runData} prints; move them
      * to another row of that table and the whole world is addressed from there instead.
      *

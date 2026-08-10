@@ -38,7 +38,7 @@ public class DorothysTerminalBlock extends BossSummonerBlock {
 
     @Override
     protected EntityType<? extends Mob> boss() {
-        return ModEntities.AWAKEN.get();
+        return ModEntities.DV_AWAKEN.get();
     }
 
     @Override

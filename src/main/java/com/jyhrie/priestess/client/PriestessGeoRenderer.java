@@ -16,17 +16,17 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
  * but within GeckoLib the mobs still differ in only three values, which name, how big and
  * how large a shadow, and those are arguments rather than files.
  *
- * <p>{@code AwakenRenderer} stays its own class and does not use this one: its scale is tied
+ * <p>{@code DvAwakenRenderer} stays its own class and does not use this one: its scale is tied
  * to a hitbox constant that has to be documented next to it, and its model has no bone named
  * {@code head}, so it cannot take the head tracking this switches on.
  *
  * <h2>Where the files have to live</h2>
  * {@link DefaultedEntityGeoModel} derives all three resource paths from {@code name}, so
- * passing {@code "replica"} means exactly:
+ * passing {@code "dv_replica"} means exactly:
  * <ul>
- *   <li>{@code assets/priestess/geo/entity/replica.geo.json}</li>
- *   <li>{@code assets/priestess/textures/entity/replica.png}</li>
- *   <li>{@code assets/priestess/animations/entity/replica.animation.json}</li>
+ *   <li>{@code assets/priestess/geo/entity/dv_replica.geo.json}</li>
+ *   <li>{@code assets/priestess/textures/entity/dv_replica.png}</li>
+ *   <li>{@code assets/priestess/animations/entity/dv_replica.animation.json}</li>
  * </ul>
  * The last does not exist for any of them yet and does not need to — GeckoLib resolves it
  * lazily, only when a controller asks for a clip by name, and {@code GeoMonster} registers

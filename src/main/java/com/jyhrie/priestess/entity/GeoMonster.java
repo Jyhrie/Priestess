@@ -25,7 +25,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * Everything a subclass actually is — how much health, how hard it hits, what it leaves
  * behind, what it sounds like — stays in the subclass.
  *
- * <p>Three mobs share it today ({@code Failure}, {@code Replica}, {@code Bionic}) and they
+ * <p>Three mobs share it today ({@code DvFailure}, {@code DvReplica}, {@code DvBionic}) and they
  * differ in nothing but numbers, which is exactly the case a base class is for. A fourth that
  * needs a goal these do not have should override {@link #registerGoals} rather than growing a
  * flag here.
@@ -42,7 +42,7 @@ public abstract class GeoMonster extends Monster implements GeoEntity {
 
     /**
      * Per-entity animation state. {@code createInstanceCache} rather than the singleton
-     * variant for the same reason as {@code Awaken}: every mob in the world needs its own
+     * variant for the same reason as {@code DvAwaken}: every mob in the world needs its own
      * playhead, and the singleton cache is for items and blocks where one shared state is
      * the point.
      */
@@ -74,7 +74,7 @@ public abstract class GeoMonster extends Monster implements GeoEntity {
 
     /**
      * No controllers, because none of the models have animations yet — they render as a
-     * static pose, exactly as {@code Awaken} does.
+     * static pose, exactly as {@code DvAwaken} does.
      *
      * <p>Safe to leave empty: GeckoLib only reads
      * {@code animations/entity/<name>.animation.json} when a controller asks for a clip by

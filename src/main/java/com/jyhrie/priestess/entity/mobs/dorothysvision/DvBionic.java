@@ -1,4 +1,4 @@
-package com.jyhrie.priestess.entity.mobs;
+package com.jyhrie.priestess.entity.mobs.dorothysvision;
 
 import com.jyhrie.priestess.entity.GeoMonster;
 import com.jyhrie.priestess.item.ModItems;
@@ -21,11 +21,11 @@ import net.minecraft.world.level.Level;
  *
  * <p>Bulkier than the other two and asymmetric with it — one oversized arm carrying most of
  * the mass. That silhouette is the warning: it is the only one of the three that reads as
- * "do not stand in front of this" before it has hit you. See {@code geo/entity/bionic.geo.json}.
+ * "do not stand in front of this" before it has hit you. See {@code geo/entity/dv_bionic.geo.json}.
  */
-public class Bionic extends GeoMonster {
+public class DvBionic extends GeoMonster {
 
-    public Bionic(EntityType<? extends Bionic> type, Level level) {
+    public DvBionic(EntityType<? extends DvBionic> type, Level level) {
         super(type, level);
     }
 
@@ -45,7 +45,7 @@ public class Bionic extends GeoMonster {
 
     /**
      * Two Mediums, plus Looting — the only one of the three worth killing for the drop rather
-     * than because it is in the way. See {@link Failure#dropCustomDeathLoot} for why the drop
+     * than because it is in the way. See {@link DvFailure#dropCustomDeathLoot} for why the drop
      * is in code.
      */
     @Override

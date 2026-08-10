@@ -35,13 +35,25 @@ public class ModLanguageProvider extends LanguageProvider {
 
         // ── Mobs ──────────────────────────────────────────────────────────────
         add(ModEntities.ORIGINIUM_SLUG.get(), "Originium Slug");
-        add(ModEntities.FAILURE.get(), "Failure");
-        add(ModEntities.REPLICA.get(), "Replica");
-        add(ModEntities.BIONIC.get(), "Bionic");
-        add(ModEntities.JESSELTON_WILLIAMS.get(), "Jesselton Williams");
+        add(ModEntities.DV_FAILURE.get(), "Failure");
+        add(ModEntities.DV_REPLICA.get(), "Replica");
+        add(ModEntities.DV_BIONIC.get(), "Bionic");
+        add(ModEntities.MB_IMPRISONED_PUGILIST.get(), "Imprisoned Pugilist");
+        add(ModEntities.MB_IMPRISONED_RECIDIVIST.get(), "Imprisoned Recidivist");
+        add(ModEntities.MB_IMPRISONED_SNIPER.get(), "Imprisoned Sniper");
+        add(ModEntities.SV_RUNNER.get(), "Runner");
+        add(ModEntities.SV_SPITTER.get(), "Spitter");
+        add(ModEntities.SV_REAPER.get(), "Reaper");
+        add(ModEntities.SV_CRAWLER.get(), "Crawler");
+        add(ModEntities.SV_PIERCER.get(), "Piercer");
+        add(ModEntities.SV_THE_FIRST_TO_TALK.get(), "The First to Talk");
+        // The prefix already carries "Sal Viento" in the id; the display name spells it out,
+        // because a player reading a boss bar has never seen the id.
+        add(ModEntities.SV_BISHOP_QUINTUS.get(), "Sal Viento Bishop Quintus");
+        add(ModEntities.MB_JESSELTON_WILLIAMS.get(), "Jesselton Williams");
         // The quotes are part of the name, not punctuation around it — it is called
         // "Awaken", quotation marks and all, everywhere it is written.
-        add(ModEntities.AWAKEN.get(), "\"Awaken\"");
+        add(ModEntities.DV_AWAKEN.get(), "\"Awaken\"");
 
         // ── Items ─────────────────────────────────────────────────────────────
         add(ModItems.MANSFIELD_MASTER_KEY.get(), "Mansfield Master Key");
@@ -53,11 +65,21 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModItems.DREAMLAND.get(), "Dreamland");
 
         add(ModItems.ORIGINIUM_SLUG_SPAWN_EGG.get(), "Originium Slug Spawn Egg");
-        add(ModItems.FAILURE_SPAWN_EGG.get(), "Failure Spawn Egg");
-        add(ModItems.REPLICA_SPAWN_EGG.get(), "Replica Spawn Egg");
-        add(ModItems.BIONIC_SPAWN_EGG.get(), "Bionic Spawn Egg");
-        add(ModItems.JESSELTON_WILLIAMS_SPAWN_EGG.get(), "Jesselton Williams Spawn Egg");
-        add(ModItems.AWAKEN_SPAWN_EGG.get(), "\"Awaken\" Spawn Egg");
+        add(ModItems.DV_FAILURE_SPAWN_EGG.get(), "Failure Spawn Egg");
+        add(ModItems.DV_REPLICA_SPAWN_EGG.get(), "Replica Spawn Egg");
+        add(ModItems.DV_BIONIC_SPAWN_EGG.get(), "Bionic Spawn Egg");
+        add(ModItems.MB_IMPRISONED_PUGILIST_SPAWN_EGG.get(), "Imprisoned Pugilist Spawn Egg");
+        add(ModItems.MB_IMPRISONED_RECIDIVIST_SPAWN_EGG.get(), "Imprisoned Recidivist Spawn Egg");
+        add(ModItems.MB_IMPRISONED_SNIPER_SPAWN_EGG.get(), "Imprisoned Sniper Spawn Egg");
+        add(ModItems.MB_JESSELTON_WILLIAMS_SPAWN_EGG.get(), "Jesselton Williams Spawn Egg");
+        add(ModItems.SV_RUNNER_SPAWN_EGG.get(), "Runner Spawn Egg");
+        add(ModItems.SV_SPITTER_SPAWN_EGG.get(), "Spitter Spawn Egg");
+        add(ModItems.SV_REAPER_SPAWN_EGG.get(), "Reaper Spawn Egg");
+        add(ModItems.SV_CRAWLER_SPAWN_EGG.get(), "Crawler Spawn Egg");
+        add(ModItems.SV_PIERCER_SPAWN_EGG.get(), "Piercer Spawn Egg");
+        add(ModItems.SV_THE_FIRST_TO_TALK_SPAWN_EGG.get(), "The First to Talk Spawn Egg");
+        add(ModItems.SV_BISHOP_QUINTUS_SPAWN_EGG.get(), "Sal Viento Bishop Quintus Spawn Egg");
+        add(ModItems.DV_AWAKEN_SPAWN_EGG.get(), "\"Awaken\" Spawn Egg");
 
         // ── Blocks ────────────────────────────────────────────────────────────
         add(ModBlocks.IBERIAN_SAND.get(), "Iberian Sand");
@@ -69,6 +91,19 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModBlocks.PERMAFROST.get(), "Permafrost");
         add(ModBlocks.JESSELTON_PROJECTOR.get(), "Jesselton's Projector");
         add(ModBlocks.DOROTHYS_TERMINAL.get(), "Dorothy's Terminal");
+
+        // ── Dungeons ──────────────────────────────────────────────────────────
+        // Names for the dungeons themselves, used by the lockdown and clear messages. The
+        // key is Dungeon.getSerializedName(), so these must track that enum.
+        add("dungeon.priestess.mansfield_break", "Mansfield State Prison");
+        add("dungeon.priestess.dorothys_vision", "Dorothy's Vision");
+        add("dungeon.priestess.rhine_lab", "Rhine Lab HQ");
+        add("dungeon.priestess.under_tides", "Under Tides");
+
+        // Action-bar lines. %s is the dungeon.
+        add("message.priestess.dungeon.sealed", "%s will not let you dig.");
+        add("message.priestess.dungeon.cleared", "%s is open.");
+        add("message.priestess.flight.grounded", "Something here will not let you leave the ground.");
 
         // ── Boss summoners ────────────────────────────────────────────────────
         // Action-bar lines, so a refused summon says why without opening the chat log.

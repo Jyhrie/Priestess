@@ -52,7 +52,7 @@ import java.util.function.Function;
  *       region, and {@link TerraAnchors} picks a spot in it from the world seed when the
  *       world is created. So every save puts the dungeon somewhere different, and every
  *       save puts it in the right biome.
- *       <p>This is what the Columbia chapter's three dungeons use. A progression gate that
+ *       <p>This is what Movement I's three Columbia dungeons use. A progression gate that
  *       generated twice would hand out two Mansfield Master Keys and two Neural Processors,
  *       which is not a rarer version of the chapter — it is a different one.</dd>
  * </dl>
@@ -105,7 +105,7 @@ public class ModStructures {
                 true                                   // project onto the heightmap
         );
 
-        // ── The Columbia chapter ──────────────────────────────────────────────
+        // ── Movement I — Columbia: Those who Take the Future ──────────────────
         // Three dungeons, one of each, somewhere in Columbia and at least a kilometre apart
         // — TerraAnchors handles both. Where in Columbia is the world seed's business, so
         // the order below is only the order they are dealt positions, not a route.

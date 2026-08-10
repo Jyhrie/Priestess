@@ -90,7 +90,7 @@ more than Easy. Declared in `ModDamageTypes`, written out as datapack JSON by `r
 
 ## Jesselton Williams
 
-`src/main/java/com/jyhrie/priestess/entity/JesseltonWilliams.java`
+`src/main/java/com/jyhrie/priestess/entity/bosses/MbJesseltonWilliams.java`
 
 The mercenary who tried to take Mansfield and got locked in it instead. He lives in the
 prison and gates the rest of the chapter behind the Mansfield Master Key.

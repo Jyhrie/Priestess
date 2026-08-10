@@ -3,7 +3,7 @@
 	"minecraft:geometry": [
 		{
 			"description": {
-				"identifier": "geometry.failure",
+				"identifier": "geometry.dv_failure",
 				"texture_width": 64,
 				"texture_height": 64,
 				"visible_bounds_width": 2,

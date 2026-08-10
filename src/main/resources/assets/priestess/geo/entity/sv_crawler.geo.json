@@ -1,0 +1,198 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.sv_crawler",
+				"texture_width": 64,
+				"texture_height": 64,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 1,
+				"visible_bounds_offset": [
+					0,
+					0.4,
+					0
+				]
+			},
+			"bones": [
+				{
+					"name": "body",
+					"pivot": [
+						0,
+						2,
+						0
+					],
+					"cubes": [
+						{
+							"origin": [
+								-5,
+								2,
+								-8
+							],
+							"size": [
+								10,
+								5,
+								16
+							],
+							"uv": [
+								0,
+								0
+							]
+						}
+					]
+				},
+				{
+					"name": "head",
+					"parent": "body",
+					"pivot": [
+						0,
+						2,
+						-8
+					],
+					"cubes": [
+						{
+							"origin": [
+								-4,
+								1,
+								-13
+							],
+							"size": [
+								8,
+								6,
+								5
+							],
+							"uv": [
+								0,
+								23
+							]
+						}
+					]
+				},
+				{
+					"name": "leg_right",
+					"pivot": [
+						-5,
+						2,
+						-4
+					],
+					"rotation": [
+						0,
+						0,
+						35
+					],
+					"cubes": [
+						{
+							"origin": [
+								-9,
+								0,
+								-5
+							],
+							"size": [
+								4,
+								3,
+								3
+							],
+							"uv": [
+								28,
+								23
+							]
+						}
+					]
+				},
+				{
+					"name": "leg_left",
+					"pivot": [
+						5,
+						2,
+						-4
+					],
+					"rotation": [
+						0,
+						0,
+						-35
+					],
+					"cubes": [
+						{
+							"origin": [
+								5,
+								0,
+								-5
+							],
+							"size": [
+								4,
+								3,
+								3
+							],
+							"uv": [
+								44,
+								23
+							]
+						}
+					]
+				},
+				{
+					"name": "leg_right_back",
+					"pivot": [
+						-5,
+						2,
+						4
+					],
+					"rotation": [
+						0,
+						0,
+						35
+					],
+					"cubes": [
+						{
+							"origin": [
+								-9,
+								0,
+								3
+							],
+							"size": [
+								4,
+								3,
+								3
+							],
+							"uv": [
+								0,
+								36
+							]
+						}
+					]
+				},
+				{
+					"name": "leg_left_back",
+					"pivot": [
+						5,
+						2,
+						4
+					],
+					"rotation": [
+						0,
+						0,
+						-35
+					],
+					"cubes": [
+						{
+							"origin": [
+								5,
+								0,
+								3
+							],
+							"size": [
+								4,
+								3,
+								3
+							],
+							"uv": [
+								16,
+								36
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}

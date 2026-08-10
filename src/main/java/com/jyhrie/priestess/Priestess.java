@@ -18,7 +18,9 @@ import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 
@@ -71,6 +73,12 @@ public class Priestess {
 
         // Reports where this world put its one-per-world dungeons, to operators on login.
         MinecraftForge.EVENT_BUS.register(AnchorReport.class);
+
+        // Progression. Both mechanics read the config, so it has to exist before either can
+        // run; the handlers themselves are @Mod.EventBusSubscriber and register themselves.
+        // SERVER type, so it lives in the world save rather than the installation — see
+        // PriestessConfig.
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, PriestessConfig.SPEC);
     }
 
 }

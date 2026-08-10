@@ -1,4 +1,4 @@
-package com.jyhrie.priestess.entity.mobs;
+package com.jyhrie.priestess.entity.mobs.dorothysvision;
 
 import com.jyhrie.priestess.entity.GeoMonster;
 import com.jyhrie.priestess.item.ModItems;
@@ -17,16 +17,16 @@ import net.minecraft.world.level.Level;
  *
  * <p>The middle of the three Medium-bearers and the baseline the other two are read against:
  * a plain melee mob with plain numbers, roughly a zombie that hits harder. Nothing about it
- * is interesting on purpose — {@link Failure} is the swarm and {@link Bionic} is the wall,
+ * is interesting on purpose — {@link DvFailure} is the swarm and {@link DvBionic} is the wall,
  * and neither of those means anything without something ordinary standing between them.
  *
  * <p>The model is the clean, symmetric, entirely unremarkable humanoid of the set, which is
  * the whole of the character it has: it is the one that looks like it worked. See
- * {@code geo/entity/replica.geo.json}.
+ * {@code geo/entity/dv_replica.geo.json}.
  */
-public class Replica extends GeoMonster {
+public class DvReplica extends GeoMonster {
 
-    public Replica(EntityType<? extends Replica> type, Level level) {
+    public DvReplica(EntityType<? extends DvReplica> type, Level level) {
         super(type, level);
     }
 
@@ -42,7 +42,7 @@ public class Replica extends GeoMonster {
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.0);
     }
 
-    /** One Medium, plus Looting. See {@link Failure#dropCustomDeathLoot} for why it is here. */
+    /** One Medium, plus Looting. See {@link DvFailure#dropCustomDeathLoot} for why it is here. */
     @Override
     protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHitByPlayer) {
         super.dropCustomDeathLoot(source, looting, recentlyHitByPlayer);

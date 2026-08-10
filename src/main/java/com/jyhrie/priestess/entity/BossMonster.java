@@ -1,6 +1,6 @@
 package com.jyhrie.priestess.entity;
 
-import com.jyhrie.priestess.entity.bosses.Awaken;
+import com.jyhrie.priestess.entity.bosses.DvAwaken;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,7 +20,7 @@ import net.minecraft.world.level.Level;
  * <p>What is not here is the fight. There is no {@code tickBoss()} template method and no
  * phase machinery, because the bosses' tick loops share only a silhouette: Jesselton moves
  * and phases off his health, the Failed Vision cannot move at all and gates damage inside
- * {@code hurt}, and {@link Awaken} does nothing whatsoever. A shared shape forced over those
+ * {@code hurt}, and {@link DvAwaken} does nothing whatsoever. A shared shape forced over those
  * three would immediately grow flags to opt out of itself, which costs more than the
  * duplication it removes. Subclasses override {@link #customServerAiStep} and call
  * {@code super} — that is the whole contract.

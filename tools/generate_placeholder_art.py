@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate the placeholder textures for the Columbia chapter.
+"""Generate the placeholder mob, item and block textures.
 
-Everything this writes is a stand-in. The mobs and the three dungeons exist so the
-chapter can be walked end to end; none of them are drawn yet. Rather than ship a pile
+Everything this writes is a stand-in. The mobs and the dungeons exist so a score movement
+can be walked end to end; none of them are drawn yet. Rather than ship a pile
 of missing-texture magenta, this paints each one a flat identifying colour with a
 little grain and a few accent bands, so that in-game you can tell a shadow from a drone
 at a glance and still be in no doubt that neither is finished.
@@ -134,24 +134,43 @@ def item_texture(name, base, accent, seed, glyph):
 
 
 # ── The roster ────────────────────────────────────────────────────────────────
-# Colours are chosen so the three dungeons read as three palettes: Mansfield is
-# spectral violet, Dorothy's Vision is diseased pink-green, Rhine Lab is clean white
-# and blue. The slug is Originium cyan against wasteland grey.
+# One palette per dungeon, so a screenshot says where you are: Mansfield is prison denim,
+# Dorothy's Vision is diseased green, Under Tides is abyssal blue-green, Rhine Lab is clean
+# white and blue. The slug belongs to none of them — Originium cyan on wasteland grey.
 
 ENTITIES = [
     # name,                    w,   h,  base colour, accent colour, seed, stripe
     ("originium_slug",         64,  32, (0x4A, 0x5A, 0x66), (0x5F, 0xC8, 0xE8), 101, 6),
-    ("jesselton_williams",     64,  64, (0x3A, 0x30, 0x4E), (0xB8, 0x26, 0x2E), 103, 8),
+    ("mb_jesselton_williams",  64,  64, (0x3A, 0x30, 0x4E), (0xB8, 0x26, 0x2E), 103, 8),
     # The three Medium-bearers, one palette per rung so they read as a set at a glance:
     # Failure is going-off green, Replica is clean bone and cold blue, Bionic is gunmetal
     # and hazard orange. These are box-UV placeholders for the geo models in
-    # geo/entity/{failure,replica,bionic}.geo.json — a real Blockbench export replaces both
+    # geo/entity/dv_{failure,replica,bionic}.geo.json — a real Blockbench export replaces both
     # the .geo.json and the texture together, and the entry here goes with them.
-    ("failure",                64,  64, (0x3A, 0x4A, 0x3E), (0xA8, 0xC0, 0x60), 105, 7),
-    ("replica",                64,  64, (0xC8, 0xC4, 0xBC), (0x5F, 0x8C, 0xE8), 106, 9),
-    ("bionic",                 64,  64, (0x3E, 0x46, 0x52), (0xE8, 0x7A, 0x2E), 107, 5),
-    # NOT "awaken". Its texture is a real 128x128 export that belongs to the Blockbench
-    # model in geo/entity/awaken.geo.json, and the UVs only line up with that file. This
+    ("dv_failure",             64,  64, (0x3A, 0x4A, 0x3E), (0xA8, 0xC0, 0x60), 105, 7),
+    ("dv_replica",             64,  64, (0xC8, 0xC4, 0xBC), (0x5F, 0x8C, 0xE8), 106, 9),
+    ("dv_bionic",              64,  64, (0x3E, 0x46, 0x52), (0xE8, 0x7A, 0x2E), 107, 5),
+    # Mansfield's inmates. One prison-denim base across all three so they read as a block,
+    # with the accent doing the telling apart: grey for the plain one, rust for the big one,
+    # bowstring pale for the one that shoots. Box-UV placeholders for the geo models in
+    # geo/entity/mb_imprisoned_*.geo.json — real art replaces both files and this entry.
+    ("mb_imprisoned_pugilist", 64,  64, (0x3E, 0x4A, 0x5C), (0x8C, 0x9A, 0xA8), 108, 8),
+    ("mb_imprisoned_recidivist", 64,  64, (0x2E, 0x38, 0x46), (0xB8, 0x56, 0x2E), 109, 6),
+    ("mb_imprisoned_sniper",   64,  64, (0x4A, 0x56, 0x68), (0xD8, 0xCF, 0xA8), 110, 10),
+    # Under Tides (sv_ is for Sal Viento, the town). Abyssal blue-green throughout with bioluminescent accents, so the whole
+    # dungeon reads cold and wet against Mansfield's denim and Dorothy's sickly greens.
+    # Sizes must match the texture_width/height in the matching geo file, which
+    # generate_placeholder_models.py picks by packing — 64 for the five trash mobs, 128 for
+    # the miniboss, 256 for Quintus.
+    ("sv_runner",              64,  64, (0x1E, 0x4A, 0x50), (0x4A, 0xD8, 0xC8), 111, 6),
+    ("sv_spitter",             64,  64, (0x2E, 0x4A, 0x36), (0xA8, 0xE8, 0x50), 112, 7),
+    ("sv_reaper",              64,  64, (0x18, 0x22, 0x38), (0xD8, 0xD0, 0xB8), 113, 9),
+    ("sv_crawler",             64,  64, (0x3A, 0x3E, 0x2E), (0xC8, 0x7A, 0x3A), 114, 5),
+    ("sv_piercer",             64,  64, (0x36, 0x44, 0x52), (0xBC, 0xE0, 0xF0), 115, 8),
+    ("sv_the_first_to_talk",  128, 128, (0xB8, 0xAE, 0xA0), (0x5A, 0x2E, 0x78), 116, 14),
+    ("sv_bishop_quintus",     256, 256, (0x14, 0x28, 0x44), (0xE0, 0xC8, 0x70), 117, 24),
+    # NOT "dv_awaken". Its texture is a real 128x128 export that belongs to the Blockbench
+    # model in geo/entity/dv_awaken.geo.json, and the UVs only line up with that file. This
     # script overwrites by name, so putting it back here would destroy hand-made art the
     # next time anyone regenerates placeholders.
     #

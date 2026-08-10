@@ -29,8 +29,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * it dies. Attacks come later. Everything needed to hold one is already here, so adding them
  * is a matter of filling in {@link #customServerAiStep} and nothing else.
  *
- * <p>It draws through GeckoLib rather than a hand-built mesh — see {@code AwakenRenderer} —
- * so the silhouette lives in {@code geo/entity/awaken.geo.json} and is edited in Blockbench
+ * <p>It draws through GeckoLib rather than a hand-built mesh — see {@code DvAwakenRenderer} —
+ * so the silhouette lives in {@code geo/entity/dv_awaken.geo.json} and is edited in Blockbench
  * instead of in Java. The animation side is wired but empty; see {@link #registerControllers}.
  *
  * <h2>What is already wired up for those attacks</h2>
@@ -53,7 +53,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * hangs dead still: the old placeholder's bob came from the hand-built model that GeckoLib
  * replaced, and the natural home for it now is an idle animation, not the renderer.
  */
-public class Awaken extends BossMonster implements GeoEntity {
+public class DvAwaken extends BossMonster implements GeoEntity {
 
     /**
      * Degrees of yaw per tick, so 20x this is degrees per second. At 2.5 a half-turn takes
@@ -70,7 +70,7 @@ public class Awaken extends BossMonster implements GeoEntity {
      */
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
-    public Awaken(EntityType<? extends Awaken> type, Level level) {
+    public DvAwaken(EntityType<? extends DvAwaken> type, Level level) {
         super(type, level, BossEvent.BossBarColor.BLUE, BossEvent.BossBarOverlay.PROGRESS);
         this.xpReward = 300;
         // Set here rather than in a tick: it is a property of what this is, not something
@@ -176,7 +176,7 @@ public class Awaken extends BossMonster implements GeoEntity {
      * No controllers, because the model has no animations yet — it renders as a static pose.
      *
      * <p>Leaving this empty is deliberate and safe: GeckoLib only reads
-     * {@code animations/entity/awaken.animation.json} when a controller asks for a clip by
+     * {@code animations/entity/dv_awaken.animation.json} when a controller asks for a clip by
      * name, so the missing file costs nothing until there is something in it. Add the file
      * and a {@code controllers.add(new AnimationController<>(...))} here together.
      */

@@ -57,14 +57,28 @@ src/main/java/com/jyhrie/priestess/
 │   ├── ModEntities.java            entity types, attributes, spawn placements
 │   ├── BossMonster.java            base: boss bar + "the world cannot take it away"
 │   ├── GeoMonster.java             base: melee goals + GeckoLib plumbing, nothing else
-│   ├── mobs/                       ← the trash mobs
-│   │   ├── OriginiumSlug.java      weak and fast; no mechanics left on it
-│   │   ├── Failure.java            melee, drops Medium — the swarm
-│   │   ├── Replica.java            melee, drops Medium — the baseline
-│   │   └── Bionic.java             melee, drops Medium — the wall
+│   ├── mobs/                       ← the trash mobs, one package per dungeon
+│   │   ├── OriginiumSlug.java      belongs to no dungeon; no mechanics left on it
+│   │   ├── dorothysvision/
+│   │   │   ├── DvFailure.java      melee, drops Medium — the swarm
+│   │   │   ├── DvReplica.java      melee, drops Medium — the baseline
+│   │   │   └── DvBionic.java       melee, drops Medium — the wall
+│   │   ├── mansfieldbreak/
+│   │   │   ├── MbImprisonedPugilist.java    melee — a zombie by another name
+│   │   │   ├── MbImprisonedRecidivist.java  melee — bigger, heavier, unkiteable
+│   │   │   └── MbImprisonedSniper.java      ranged — real arrows, strafes like a skeleton
+│   │   └── undertides/
+│   │       ├── SvRunner.java       melee — faster than a sprinting player
+│   │       ├── SvSpitter.java      ranged — hitscan spit on a vanilla ranged goal
+│   │       ├── SvReaper.java       melee — hardest non-boss hit, and slow
+│   │       ├── SvCrawler.java      melee — knee-high, comes in numbers
+│   │       └── SvPiercer.java      melee — glass cannon
+│   ├── minibosses/                 ← boss bar, but a fight *inside* a dungeon
+│   │   └── SvTheFirstToTalk.java   melee, enrages at half health
 │   ├── bosses/
-│   │   ├── JesseltonWilliams.java  Mansfield boss — two phases, drops the Master Key
-│   │   └── Awaken.java             Dorothy's boss — GeckoLib model, drops Dreamland
+│   │   ├── MbJesseltonWilliams.java  Mansfield boss — two phases, drops the Master Key
+│   │   ├── DvAwaken.java           Dorothy's boss — GeckoLib model, drops Dreamland
+│   │   └── SvBishopQuintus.java    Sal Viento boss — fully immobile, hitscan beam
 │   └── projectiles/
 │       └── ArtsBeam.java           the shared hitscan attack (a helper, not an entity)
 ├── client/                         ← client only; models and renderers
@@ -73,7 +87,7 @@ src/main/java/com/jyhrie/priestess/
 │   ├── PriestessEntityModel.java   the shared placeholder model
 │   ├── PriestessMobRenderer.java   one renderer for the two non-GeckoLib mobs
 │   ├── PriestessGeoRenderer.java   its opposite number for the shared GeckoLib mobs
-│   └── AwakenRenderer.java         GeckoLib renderer for "Awaken", which cannot share
+│   └── DvAwakenRenderer.java       GeckoLib renderer for "Awaken", which cannot share
 ├── oripathy/                       ← the infection
 │   ├── Oripathy.java               the value, its thresholds, the capability
 │   ├── OripathyProvider.java       attaches it to a Player, saves it to NBT
@@ -114,7 +128,9 @@ src/main/resources/                 ← hand-authored assets (safe to edit)
 tools/generate_terra_map.py         regenerates regions + elevation from a layout
 tools/generate_relief_map.py        first draft of relief.png, from regions.png
 tools/generate_placeholder_art.py   placeholder mob + item textures
+tools/generate_placeholder_models.py  placeholder .geo.json, with UVs packed automatically
 tools/generate_placeholder_dungeons.py  the three dungeon .nbt files
+docs/COMMANDS.md                    every command, mod and vanilla, and test recipes
 docs/terra_map_preview.png          shaded political map, for humans
 docs/terra_world_preview.png        what the generator will actually produce
 
@@ -373,61 +389,62 @@ Two notes:
 
 ---
 
-## The Columbia chapter
+## Content and storyline
 
-The first chapter of progression: land in Columbia, survive the wastes, clear three
-dungeons, come away with the blueprint that unlocks Originium refining. Spawn is in Columbia
-because `ORIGIN_AT_BLOCK` puts it there.
+The mod's content is organised into **score movements** — one per chapter, each a region of
+Terra, the dungeons in it, the things living in them, and the item that unlocks the next.
 
-**Everything below is a placeholder.** The mobs are cubes and flat-coloured zombies, and the
-dungeons are generated from a Python script rather than built. They exist so the chapter can
-be walked end to end and the pacing judged, which is the only question a placeholder answers.
-Both generators are idempotent and seeded — re-run them and nothing changes; overwrite an
-output with real art or a real build and delete its entry from the script.
+| Movement | Code | Region | Ends with |
+|---|---|---|---|
+| I — Columbia: Those who Take the Future | `dv_`, `mb_` | Columbia | Blueprint: Originium Refinement |
+| II — Ægir: Glimpse of the Depths | `sv_` | Ægir / the Iberian coast | *not decided* |
 
-| Mob | Where | What it does |
-|---|---|---|
-| **Originium Slug** | nowhere yet — spawn egg only | Weak, fast, and does nothing else. 8 HP, 2 damage. It used to eat the charge out of any Forge-Energy block *and* burst corrosively on death; both were cut, along with the `Machines` helper and its natural spawn. It is a blank mob waiting for mechanics. |
-| **Failure** | nowhere yet — spawn egg only | Melee. 24 HP, no armour, fast and brittle: the swarm. Drops 1 **Medium** (+ Looting). |
-| **Replica** | nowhere yet — spawn egg only | Melee. 34 HP, 2 armour: the plain one the other two are read against. Drops 1 **Medium** (+ Looting). |
-| **Bionic** | nowhere yet — spawn egg only | Melee. 60 HP, 8 armour, 0.6 knockback resistance, slow and heavy: the wall. Drops 2 **Medium** (+ Looting). |
-| **Jesselton Williams** | Mansfield State Prison | Boss. Phase one is heavy kinetic Arts that armour answers; below half health he switches to `priestess:void_arts`, which is in `bypasses_armor`, and starts summoning adds. Drops the **Mansfield Master Key**. |
-| **Awaken** | Dorothy's Vision | Boss. Summoned by Dorothy's Terminal. Cannot move, cannot be pushed, and has **no attacks yet** — a 6.75-block GeckoLib silhouette with a health bar and nothing behind it. Drops **Dreamland**. |
+**Everything in them is scaffolding.** The mobs are placeholder cube models, the dungeons are
+Python-generated rather than built, and **nothing in the mod spawns naturally** — every mob is
+reached through its spawn egg or placed by a structure.
 
-**The three Medium-bearers have no home in the world.** They are registered, rendered,
-killable and drop what they should; nothing spawns them naturally and no dungeon places them,
-because which dungeon they belong to has not been decided. Until it is, `/give` yourself the
-egg. Settling it is a `SpawnPlacements` rule plus a `ModBiomes` spawner entry (natural
-spawns), or entities baked into a dungeon's `.nbt` (placed) — see
-[Adding a mob](#the-columbia-chapter) on `ModEntities`.
-
-Their GeckoLib models are placeholders too, but of a different kind from the cubes above:
-`geo/entity/{failure,replica,bionic}.geo.json` are hand-written box-UV humanoids, correct
-enough to render and to animate against, and meant to be opened in Blockbench and replaced.
-Each has a bone named `head` — `PriestessGeoRenderer` turns on head tracking, which looks that
-bone up by name, so keep it when you redraw. None of the three has an animation file yet;
-`GeoMonster.registerControllers` asks for no clips, so they render as a static pose and the
-missing file costs nothing.
-
-**→ How to make a biome spawn a mob: [docs/SPAWNING.md](docs/SPAWNING.md)** — the two halves a
-natural spawn needs, weight vs pack size, the mob-category caps, and how to put Columbia's
-slugs back.
-
-**→ How a boss is built: [docs/BOSSES.md](docs/BOSSES.md)** — the shared skeleton, the
-hitscan Arts beam, and a full walkthrough of Jesselton Williams.
-
-The three dungeons are `registerUnique`, so there is exactly one of each per world, somewhere
-in Columbia. Rhine Lab's Director's Office holds **Blueprint: Originium Refinement** in a
-chest; that is a stand-in for rebooting the Archival Mainframe, and the pool to delete when
-the mainframe exists.
+**→ Full storyline, rosters and per-mob design:
+[docs/SCORE_MOVEMENTS.md](docs/SCORE_MOVEMENTS.md)**
 
 Test with the spawn eggs — every mob has one, in the Priestess tab:
 
 ```
-/give @s priestess:jesselton_williams_spawn_egg
-/give @s priestess:failure_spawn_egg                  also replica_, bionic_
+/give @s priestess:mb_jesselton_williams_spawn_egg
+/give @s priestess:sv_bishop_quintus_spawn_egg
 /locate structure priestess:mansfield_state_prison    only if you are already near it
 ```
+
+
+### The dungeon code
+
+Every mob belonging to a dungeon is prefixed with that dungeon's code, in whichever case the
+thing being named calls for:
+
+| | Dorothy's Vision | Mansfield Break | Under Tides | belongs to none |
+|---|---|---|---|---|
+| Registry id, assets | `dv_failure` | `mb_imprisoned_sniper` | `sv_runner` | `originium_slug` |
+| Spawn egg | `dv_failure_spawn_egg` | `mb_imprisoned_sniper_spawn_egg` | `sv_runner_spawn_egg` | `originium_slug_spawn_egg` |
+| Constant | `DV_FAILURE` | `MB_IMPRISONED_SNIPER` | `SV_RUNNER` | `ORIGINIUM_SLUG` |
+| Class / file | `DvFailure.java` | `MbImprisonedSniper.java` | `SvRunner.java` | `OriginiumSlug.java` |
+| **Display name** | **Failure** | **Imprisoned Sniper** | **Runner** | **Originium Slug** |
+
+Dorothy's Vision is Failure, Replica, Bionic and "Awaken"; Mansfield Break is the three
+Imprisoned and Jesselton Williams; Under Tides is the five trash mobs, The First to Talk and
+Bishop Quintus. The Originium Slug has no code because it belongs to no dungeon. Renderers
+follow the boss they draw — `DvAwakenRenderer`.
+
+**The code is not always the package's initials.** It was for the first two — `dv_` ↔
+`dorothysvision/`, `mb_` ↔ `mansfieldbreak/` — but Under Tides is coded `sv_`, for **Sal
+Viento**, the town it happens in. The code is a stable two-letter handle chosen once; the
+folder is named for the dungeon. When they disagree, this table is the authority.
+
+Bishop Quintus's id is likewise `sv_bishop_quintus`, not `sv_sal_viento_bishop_quintus` — the
+code already carries "Sal Viento", and only the display name spells it out.
+
+**The display names are the one place the prefix never appears.** A player sees "Failure" and
+"Jesselton Williams"; they never see `dv_` or `Mb`. Each mob's class javadoc also still opens
+with its in-game name, so when editing these files rename identifiers freely and leave the
+prose alone.
 
 ---
 
@@ -551,12 +568,13 @@ Acute Oripathy is completely invisible and there is no way to tell it is working
 ./gradlew runClient    # launch the game
 ```
 
-Useful in-game commands (creative + cheats):
+Useful in-game commands (creative + cheats) — **full reference:
+[docs/COMMANDS.md](docs/COMMANDS.md)**, including `/dungeon` and per-mechanic test recipes:
 
 ```
 /execute in priestess:terra run tp @s ~ ~ ~     enter the dimension
 /execute in minecraft:overworld run tp @s ~ ~ ~ leave it
-/locate biome priestess:infy_icefields          find a biome
+/locate biome priestess:infy_icefield           find a biome
 /place structure priestess:infy_ice_spike       force-place a structure here
 ```
 

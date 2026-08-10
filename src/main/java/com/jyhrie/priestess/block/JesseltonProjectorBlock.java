@@ -13,7 +13,7 @@ import net.minecraft.world.item.Item;
 /**
  * The effigy the inmates built of the mercenary who was locked in with them, which turned
  * out to be aimable. Right-click it holding {@link ModItems#TARNISHED_DOG_TAGS} and it
- * projects {@link com.jyhrie.priestess.entity.bosses.JesseltonWilliams} — the Jesselton of
+ * projects {@link com.jyhrie.priestess.entity.bosses.MbJesseltonWilliams} — the Jesselton of
  * the assimilated universe, the one who took Mansfield — into the cell block with you.
  *
  * <p>The tags are this world's Jesselton, and they are what the effigy aims along: a likeness
@@ -31,7 +31,7 @@ public class JesseltonProjectorBlock extends BossSummonerBlock {
 
     @Override
     protected EntityType<? extends Mob> boss() {
-        return ModEntities.JESSELTON_WILLIAMS.get();
+        return ModEntities.MB_JESSELTON_WILLIAMS.get();
     }
 
     @Override

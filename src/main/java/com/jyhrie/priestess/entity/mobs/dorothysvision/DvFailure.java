@@ -1,4 +1,4 @@
-package com.jyhrie.priestess.entity.mobs;
+package com.jyhrie.priestess.entity.mobs.dorothysvision;
 
 import com.jyhrie.priestess.entity.GeoMonster;
 import com.jyhrie.priestess.item.ModItems;
@@ -20,12 +20,12 @@ import net.minecraft.world.level.Level;
  * it has to do for the other two to feel like anything.
  *
  * <p>Hunched and lopsided in the model — one arm dragging, one stunted — so that at a glance
- * across a room you can tell it from the {@link Replica} standing next to it without reading
- * a health bar. See {@code geo/entity/failure.geo.json}.
+ * across a room you can tell it from the {@link DvReplica} standing next to it without reading
+ * a health bar. See {@code geo/entity/dv_failure.geo.json}.
  */
-public class Failure extends GeoMonster {
+public class DvFailure extends GeoMonster {
 
-    public Failure(EntityType<? extends Failure> type, Level level) {
+    public DvFailure(EntityType<? extends DvFailure> type, Level level) {
         super(type, level);
     }
 

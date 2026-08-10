@@ -27,7 +27,7 @@ import net.minecraft.world.level.Level;
 /**
  * Jesselton Williams — not a ghost, and not this world's Jesselton. He is the mercenary who
  * took Mansfield in the assimilated universe, projected into this one by the effigy standing
- * in his cell block. The first boss of the Columbia chapter.
+ * in his cell block. The first boss of Movement I, Columbia: Those who Take the Future.
  *
  * <p>The distinction matters for how the fight reads. Nothing here died in Mansfield: the
  * projector reaches sideways rather than backwards, and what it pulls through is a living
@@ -51,7 +51,7 @@ import net.minecraft.world.level.Level;
  * what stands in the room is a projection with no mass to shove, and the difference the
  * player notices is that a shield bash moves everything in the cell block except him.
  */
-public class JesseltonWilliams extends BossMonster {
+public class MbJesseltonWilliams extends BossMonster {
 
     /** Below this fraction of max health he is in phase two, and never goes back. */
     private static final float PHASE_TWO_AT = 0.5F;
@@ -67,7 +67,7 @@ public class JesseltonWilliams extends BossMonster {
     private int rangedCooldown;
     private boolean announcedPhaseTwo;
 
-    public JesseltonWilliams(EntityType<? extends JesseltonWilliams> type, Level level) {
+    public MbJesseltonWilliams(EntityType<? extends MbJesseltonWilliams> type, Level level) {
         super(type, level, BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS);
         this.xpReward = 250;
     }

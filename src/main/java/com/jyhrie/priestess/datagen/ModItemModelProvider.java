@@ -30,11 +30,21 @@ public class ModItemModelProvider extends ItemModelProvider {
         // Spawn eggs are the one item that needs no texture: the vanilla template tints two
         // greyscale layers from the colours passed to ForgeSpawnEggItem.
         spawnEgg(ModItems.ORIGINIUM_SLUG_SPAWN_EGG);
-        spawnEgg(ModItems.FAILURE_SPAWN_EGG);
-        spawnEgg(ModItems.REPLICA_SPAWN_EGG);
-        spawnEgg(ModItems.BIONIC_SPAWN_EGG);
-        spawnEgg(ModItems.JESSELTON_WILLIAMS_SPAWN_EGG);
-        spawnEgg(ModItems.AWAKEN_SPAWN_EGG);
+        spawnEgg(ModItems.DV_FAILURE_SPAWN_EGG);
+        spawnEgg(ModItems.DV_REPLICA_SPAWN_EGG);
+        spawnEgg(ModItems.DV_BIONIC_SPAWN_EGG);
+        spawnEgg(ModItems.MB_IMPRISONED_PUGILIST_SPAWN_EGG);
+        spawnEgg(ModItems.MB_IMPRISONED_RECIDIVIST_SPAWN_EGG);
+        spawnEgg(ModItems.MB_IMPRISONED_SNIPER_SPAWN_EGG);
+        spawnEgg(ModItems.MB_JESSELTON_WILLIAMS_SPAWN_EGG);
+        spawnEgg(ModItems.SV_RUNNER_SPAWN_EGG);
+        spawnEgg(ModItems.SV_SPITTER_SPAWN_EGG);
+        spawnEgg(ModItems.SV_REAPER_SPAWN_EGG);
+        spawnEgg(ModItems.SV_CRAWLER_SPAWN_EGG);
+        spawnEgg(ModItems.SV_PIERCER_SPAWN_EGG);
+        spawnEgg(ModItems.SV_THE_FIRST_TO_TALK_SPAWN_EGG);
+        spawnEgg(ModItems.SV_BISHOP_QUINTUS_SPAWN_EGG);
+        spawnEgg(ModItems.DV_AWAKEN_SPAWN_EGG);
     }
 
     private void spawnEgg(RegistryObject<? extends net.minecraft.world.item.Item> egg) {

@@ -1,0 +1,190 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.sv_spitter",
+				"texture_width": 64,
+				"texture_height": 64,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 2,
+				"visible_bounds_offset": [
+					0,
+					0.75,
+					0
+				]
+			},
+			"bones": [
+				{
+					"name": "body",
+					"pivot": [
+						0,
+						5,
+						0
+					],
+					"cubes": [
+						{
+							"origin": [
+								-4.5,
+								5,
+								-3.5
+							],
+							"size": [
+								9,
+								7,
+								7
+							],
+							"uv": [
+								0,
+								22
+							]
+						}
+					]
+				},
+				{
+					"name": "head",
+					"parent": "body",
+					"pivot": [
+						0,
+						12,
+						0
+					],
+					"cubes": [
+						{
+							"origin": [
+								-5.5,
+								12,
+								-5.5
+							],
+							"size": [
+								11,
+								9,
+								11
+							],
+							"uv": [
+								0,
+								0
+							]
+						}
+					]
+				},
+				{
+					"name": "arm_right",
+					"parent": "body",
+					"pivot": [
+						-4.5,
+						11,
+						0
+					],
+					"rotation": [
+						-15,
+						0,
+						0
+					],
+					"cubes": [
+						{
+							"origin": [
+								-7.5,
+								5,
+								-1.5
+							],
+							"size": [
+								3,
+								6,
+								3
+							],
+							"uv": [
+								34,
+								22
+							]
+						}
+					]
+				},
+				{
+					"name": "arm_left",
+					"parent": "body",
+					"pivot": [
+						4.5,
+						11,
+						0
+					],
+					"rotation": [
+						-15,
+						0,
+						0
+					],
+					"cubes": [
+						{
+							"origin": [
+								4.5,
+								5,
+								-1.5
+							],
+							"size": [
+								3,
+								6,
+								3
+							],
+							"uv": [
+								48,
+								22
+							]
+						}
+					]
+				},
+				{
+					"name": "leg_right",
+					"pivot": [
+						-2.0,
+						5,
+						0
+					],
+					"cubes": [
+						{
+							"origin": [
+								-4,
+								0,
+								-2.0
+							],
+							"size": [
+								4,
+								5,
+								4
+							],
+							"uv": [
+								0,
+								38
+							]
+						}
+					]
+				},
+				{
+					"name": "leg_left",
+					"pivot": [
+						2.0,
+						5,
+						0
+					],
+					"cubes": [
+						{
+							"origin": [
+								0,
+								0,
+								-2.0
+							],
+							"size": [
+								4,
+								5,
+								4
+							],
+							"uv": [
+								18,
+								38
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}
