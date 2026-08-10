@@ -1,6 +1,8 @@
 package com.jyhrie.priestess.entity;
 
 import com.jyhrie.priestess.Priestess;
+import com.jyhrie.priestess.entity.bosses.Awaken;
+import com.jyhrie.priestess.entity.bosses.JesseltonWilliams;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacements;
@@ -31,10 +33,9 @@ import net.minecraftforge.registries.RegistryObject;
  *   <tr><td>Originium Slug</td><td>the open wastes</td><td>attrition, and a tax on leaving
  *       machines running unguarded</td></tr>
  *   <tr><td>Imprisoned Shadow</td><td>Mansfield</td><td>Jesselton's phase-two adds</td></tr>
- *   <tr><td>Jesselton's Shadow</td><td>Mansfield</td><td>boss 1 — drops the Master Key</td></tr>
- *   <tr><td>Frank</td><td>Dorothy's Vision</td><td>sensory-overload chaff</td></tr>
- *   <tr><td>The Failed Vision</td><td>Dorothy's Vision</td><td>boss 2 — drops the Neural
- *       Processor</td></tr>
+ *   <tr><td>Jesselton Williams</td><td>Mansfield</td><td>boss 1 — drops the Master Key</td></tr>
+ *   <tr><td>Awaken</td><td>Dorothy's Vision</td><td>boss 2 — summoned by the terminal, no
+ *       behaviour yet</td></tr>
  *   <tr><td>Rogue Power Armour</td><td>Rhine Lab</td><td>the wall between you and the lifts</td></tr>
  *   <tr><td>Rhine Security Drone</td><td>Rhine Lab</td><td>strips the armour that wall demands</td></tr>
  * </table>
@@ -76,36 +77,15 @@ public class ModEntities {
                     .clientTrackingRange(8)
                     .build("imprisoned_shadow"));
 
-    public static final RegistryObject<EntityType<JesseltonsShadow>> JESSELTONS_SHADOW =
-            ENTITY_TYPES.register("jesseltons_shadow", () -> EntityType.Builder
-                    .of(JesseltonsShadow::new, MobCategory.MONSTER)
+    public static final RegistryObject<EntityType<JesseltonWilliams>> JESSELTON_WILLIAMS =
+            ENTITY_TYPES.register("jesselton_williams", () -> EntityType.Builder
+                    .of(JesseltonWilliams::new, MobCategory.MONSTER)
                     .sized(0.7F, 2.2F)
                     .fireImmune()
                     // A boss the player is meant to kite around a cell block has to stay
                     // rendered from further away than the mob that shares its arena.
                     .clientTrackingRange(16)
-                    .build("jesseltons_shadow"));
-
-    // ── Dorothy's Vision ──────────────────────────────────────────────────────
-
-    public static final RegistryObject<EntityType<Frank>> FRANK =
-            ENTITY_TYPES.register("frank", () -> EntityType.Builder
-                    .of(Frank::new, MobCategory.MONSTER)
-                    .sized(0.6F, 1.8F)
-                    .clientTrackingRange(8)
-                    .build("frank"));
-
-    /**
-     * Three blocks on a side and rooted to the floor. The hitbox is the arena furniture as
-     * much as it is the boss — you fight around it, never away from it.
-     */
-    public static final RegistryObject<EntityType<FailedVision>> FAILED_VISION =
-            ENTITY_TYPES.register("failed_vision", () -> EntityType.Builder
-                    .of(FailedVision::new, MobCategory.MONSTER)
-                    .sized(3.0F, 3.0F)
-                    .fireImmune()
-                    .clientTrackingRange(16)
-                    .build("failed_vision"));
+                    .build("jesselton_williams"));
 
     // ── Rhine Lab Headquarters ────────────────────────────────────────────────
 
@@ -125,16 +105,26 @@ public class ModEntities {
                     .clientTrackingRange(12)
                     .build("rhine_security_drone"));
 
-    // ── Unplaced ──────────────────────────────────────────────────────────────
+    // ── Dorothy's Vision ──────────────────────────────────────────────────────
 
     /**
-     * "Awaken". A floating cube with no behaviour yet — see {@link Awaken}. It belongs to no
-     * dungeon and no chapter so far; for now the only way to meet one is the spawn egg.
+     * "Awaken". A floating boss with no behaviour yet — see {@link Awaken}. It inherited
+     * Dorothy's Vision when the Failed Vision was removed, so
+     * {@code DorothysTerminalBlock} is what summons it; the spawn egg still works.
+     *
+     * <p>6.75 is the model's own width at the 3x {@code AwakenRenderer.SCALE} draws it at,
+     * rather than the placeholder box scaled up: the box is sized to the geometry so that
+     * what you can see and what you can hit are the same shape. The two constants have to
+     * move together — rescale the renderer and this stops being true.
+     *
+     * <p>Wide enough to matter for placement. It cannot be pushed out of a wall it overlaps
+     * ({@code setNoGravity} plus a no-op {@code push}), so it wants an open arena rather
+     * than a corridor.
      */
     public static final RegistryObject<EntityType<Awaken>> AWAKEN =
             ENTITY_TYPES.register("awaken", () -> EntityType.Builder
                     .of(Awaken::new, MobCategory.MONSTER)
-                    .sized(1.5F, 1.5F)
+                    .sized(6.75F, 6.75F)
                     .fireImmune()
                     .clientTrackingRange(16)
                     .build("awaken"));
@@ -145,9 +135,7 @@ public class ModEntities {
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(ORIGINIUM_SLUG.get(), OriginiumSlug.attributes().build());
         event.put(IMPRISONED_SHADOW.get(), ImprisonedShadow.attributes().build());
-        event.put(JESSELTONS_SHADOW.get(), JesseltonsShadow.attributes().build());
-        event.put(FRANK.get(), Frank.attributes().build());
-        event.put(FAILED_VISION.get(), FailedVision.attributes().build());
+        event.put(JESSELTON_WILLIAMS.get(), JesseltonWilliams.attributes().build());
         event.put(ROGUE_POWER_ARMOUR.get(), RoguePowerArmour.attributes().build());
         event.put(RHINE_SECURITY_DRONE.get(), RhineSecurityDrone.attributes().build());
         event.put(AWAKEN.get(), Awaken.attributes().build());

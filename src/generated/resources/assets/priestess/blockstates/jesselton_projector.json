@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "armed=false": {
+      "model": "priestess:block/jesselton_projector_spent"
+    },
+    "armed=true": {
+      "model": "priestess:block/jesselton_projector"
+    }
+  }
+}

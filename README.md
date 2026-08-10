@@ -55,19 +55,20 @@ src/main/java/com/jyhrie/priestess/
 ├── entity/                         ← the Columbia roster
 │   ├── ModEntities.java            entity types, attributes, spawn placements
 │   ├── OriginiumSlug.java          the wastes: eats machine power, bursts when killed
-│   ├── JesseltonsShadow.java       Mansfield boss — two phases, drops the Master Key
 │   ├── ImprisonedShadow.java       Jesselton's phase-two adds
-│   ├── Frank.java                  Dorothy's Vision: Mining Fatigue + Nausea on hit
-│   ├── FailedVision.java           Dorothy's boss — neural nodes, immobile
+│   ├── bosses/
+│   │   ├── JesseltonWilliams.java  Mansfield boss — two phases, drops the Master Key
+│   │   └── Awaken.java             Dorothy's boss — GeckoLib model, no behaviour yet
 │   ├── RoguePowerArmour.java       Rhine Lab: halves kinetic damage
 │   ├── RhineSecurityDrone.java     Rhine Lab: flying, strips armour durability
 │   ├── ArtsBeam.java               the shared hitscan attack
 │   └── Machines.java               finds/drains Forge-Energy blocks, mod-agnostically
 ├── client/                         ← client only; models and renderers
 │   ├── PriestessClient.java        renderer + layer bindings
-│   ├── PriestessModelLayers.java   geometry for the three non-humanoid mobs
+│   ├── PriestessModelLayers.java   geometry for the two hand-built non-humanoid mobs
 │   ├── PriestessEntityModel.java   the shared placeholder model
-│   └── PriestessMobRenderer.java   one renderer for all seven
+│   ├── PriestessMobRenderer.java   one renderer for the five non-GeckoLib mobs
+│   └── AwakenRenderer.java         GeckoLib renderer for "Awaken"
 ├── oripathy/                       ← the infection
 │   ├── Oripathy.java               the value, its thresholds, the capability
 │   ├── OripathyProvider.java       attaches it to a Player, saves it to NBT
@@ -382,15 +383,14 @@ output with real art or a real build and delete its entry from the script.
 | Mob | Where | What it does |
 |---|---|---|
 | **Originium Slug** | the open wastes (the only natural spawn) | Drains stored energy out of any block exposing Forge's energy capability, so it works against any tech mod and none. Bursts on death: corrodes anything nearby, drains machines, and infects you with Oripathy. |
-| **Jesselton's Shadow** | Mansfield State Prison | Boss. Phase one is heavy kinetic Arts that armour answers; below half health he switches to `priestess:void_arts`, which is in `bypasses_armor`, and starts summoning adds. Drops the **Mansfield Master Key**. |
+| **Jesselton Williams** | Mansfield State Prison | Boss. Phase one is heavy kinetic Arts that armour answers; below half health he switches to `priestess:void_arts`, which is in `bypasses_armor`, and starts summoning adds. Drops the **Mansfield Master Key**. |
 | **Imprisoned Shadow** | Mansfield | Jesselton's adds. Fast, frail, knockback-immune, and every one fades after a minute so a long fight cannot silt up. |
-| **Frank** | Dorothy's Vision | Fast and frail. Every landed hit is Mining Fatigue II + Nausea — you keep your health and lose your ability to use the room. |
-| **The Failed Vision** | Dorothy's Vision | Boss. Cannot move. While it has neural nodes, ordinary damage is **refused outright** — only explosions and fire take a node off it. Spawns Franks, fires armour-piercing lasers. Drops **Dorothy's Neural Processor**. |
+| **Awaken** | Dorothy's Vision | Boss. Summoned by Dorothy's Terminal. Cannot move, cannot be pushed, and has **no attacks yet** — a 6.75-block GeckoLib silhouette with a health bar and nothing behind it. |
 | **Rogue Columbian Power Armour** | Rhine Lab HQ | Halves kinetic damage on top of heavy armour; anything that bypasses armour comes through whole. |
 | **Rhine Security Drone** | Rhine Lab HQ | Flies. Its beam does almost no damage and a great deal of armour durability — it exists to take the gear the power armour demands. |
 
 **→ How a boss is built: [docs/BOSSES.md](docs/BOSSES.md)** — the shared skeleton, the
-hitscan Arts beam, and a full walkthrough of Jesselton's Shadow.
+hitscan Arts beam, and a full walkthrough of Jesselton Williams.
 
 The three dungeons are `registerUnique`, so there is exactly one of each per world, somewhere
 in Columbia. Rhine Lab's Director's Office holds **Blueprint: Originium Refinement** in a
@@ -400,7 +400,7 @@ the mainframe exists.
 Test with the spawn eggs — every mob has one, in the Priestess tab:
 
 ```
-/give @s priestess:jesseltons_shadow_spawn_egg
+/give @s priestess:jesselton_williams_spawn_egg
 /locate structure priestess:mansfield_state_prison    only if you are already near it
 ```
 

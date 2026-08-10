@@ -53,7 +53,7 @@ public class ModLootTableProvider {
             // block entity's boss goes with the block, so a spent altar picked up and put
             // back down is a fresh one. That is the forgiving reading, and the alternative
             // is an item that silently remembers a fight you already won.
-            this.dropSelf(ModBlocks.JESSELTONS_EFFIGY.get());
+            this.dropSelf(ModBlocks.JESSELTON_PROJECTOR.get());
             this.dropSelf(ModBlocks.DOROTHYS_TERMINAL.get());
         }
 

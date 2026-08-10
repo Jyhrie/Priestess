@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "priestess:block/jesseltons_effigy_spent"
+    "all": "priestess:block/jesselton_projector_spent"
   }
 }

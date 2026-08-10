@@ -59,8 +59,8 @@ public class ModBlocks {
     // creeper cannot delete a fight you were about to have. They light while armed, which is
     // the only way to see the state from more than a few blocks away.
 
-    public static final RegistryObject<Block> JESSELTONS_EFFIGY = registerBlock("jesseltons_effigy",
-            () -> new JesseltonsEffigyBlock(BlockBehaviour.Properties.copy(Blocks.LODESTONE)
+    public static final RegistryObject<Block> JESSELTON_PROJECTOR = registerBlock("jesselton_projector",
+            () -> new JesseltonProjectorBlock(BlockBehaviour.Properties.copy(Blocks.LODESTONE)
                     .lightLevel(BossSummonerBlock::glow)));
 
     public static final RegistryObject<Block> DOROTHYS_TERMINAL = registerBlock("dorothys_terminal",

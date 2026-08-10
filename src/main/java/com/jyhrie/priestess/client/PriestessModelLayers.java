@@ -10,7 +10,7 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Geometry for the three mobs that are not humanoid shapes.
+ * Geometry for the two mobs that are neither humanoid shapes nor GeckoLib models.
  *
  * <p>Each is a handful of cubes chosen to give a readable silhouette and nothing more —
  * see {@link PriestessEntityModel} for why placeholders stop there. The numbers are model
@@ -29,12 +29,6 @@ public final class PriestessModelLayers {
 
     /** Texture 32x32. A body and a lens; the hover is in the model, not the geometry. */
     public static final ModelLayerLocation RHINE_SECURITY_DRONE = layer("rhine_security_drone");
-
-    /** Texture 128x64. A mass with four nodes growing off it. */
-    public static final ModelLayerLocation FAILED_VISION = layer("failed_vision");
-
-    /** Texture 128x64. One cube, filling the hitbox exactly. */
-    public static final ModelLayerLocation AWAKEN = layer("awaken");
 
     private static ModelLayerLocation layer(String name) {
         return new ModelLayerLocation(new ResourceLocation(Priestess.MOD_ID, name), "main");
@@ -80,52 +74,6 @@ public final class PriestessModelLayers {
                 PartPose.offset(0.0F, 0.0F, -4.0F));
 
         return LayerDefinition.create(mesh, 32, 32);
-    }
-
-    public static LayerDefinition failedVision() {
-        MeshDefinition mesh = new MeshDefinition();
-        PartDefinition root = mesh.getRoot();
-
-        PartDefinition core = root.addOrReplaceChild("core", CubeListBuilder.create()
-                        .texOffs(0, 0)
-                        .addBox(-12.0F, -24.0F, -12.0F, 24.0F, 24.0F, 24.0F),
-                // Grown out of the floor: the top of the cube is 24 units up, which fills
-                // the 3-block hitbox with a little air above it.
-                PartPose.offset(0.0F, 24.0F, 0.0F));
-
-        // Four nodes on the corners. They do not disappear as they are destroyed — that
-        // would need a per-node synched flag, which is more state than a placeholder should
-        // carry; the boss bar counts them instead.
-        node(core, "node_ne", 10.0F, -20.0F, -10.0F);
-        node(core, "node_nw", -10.0F, -20.0F, -10.0F);
-        node(core, "node_se", 10.0F, -20.0F, 10.0F);
-        node(core, "node_sw", -10.0F, -20.0F, 10.0F);
-
-        return LayerDefinition.create(mesh, 128, 64);
-    }
-
-    /**
-     * A single 24-unit cube — 1.5 blocks, which is exactly the hitbox.
-     *
-     * <p>{@code PartPose.offset(0, 24, 0)} puts the part origin at the entity's feet (model
-     * Y runs downward from an origin the renderer has already lifted 1.5 blocks), and the
-     * box then runs from -24 to 0, i.e. straight up from there. So the cube occupies the
-     * hitbox and nothing else, which is what makes it obvious where you can hit it.
-     */
-    public static LayerDefinition awaken() {
-        MeshDefinition mesh = new MeshDefinition();
-        mesh.getRoot().addOrReplaceChild("cube", CubeListBuilder.create()
-                        .texOffs(0, 0)
-                        .addBox(-12.0F, -24.0F, -12.0F, 24.0F, 24.0F, 24.0F),
-                PartPose.offset(0.0F, 24.0F, 0.0F));
-        return LayerDefinition.create(mesh, 128, 64);
-    }
-
-    private static void node(PartDefinition parent, String name, float x, float y, float z) {
-        parent.addOrReplaceChild(name, CubeListBuilder.create()
-                        .texOffs(96, 0)
-                        .addBox(-3.0F, -3.0F, -3.0F, 6.0F, 6.0F, 6.0F),
-                PartPose.offset(x, y, z));
     }
 
     private PriestessModelLayers() {

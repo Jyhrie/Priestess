@@ -4,7 +4,7 @@
 Everything this writes is a stand-in. The mobs and the three dungeons exist so the
 chapter can be walked end to end; none of them are drawn yet. Rather than ship a pile
 of missing-texture magenta, this paints each one a flat identifying colour with a
-little grain and a few accent bands, so that in-game you can tell a Frank from a drone
+little grain and a few accent bands, so that in-game you can tell a shadow from a drone
 at a glance and still be in no doubt that neither is finished.
 
     python tools/generate_placeholder_art.py
@@ -142,14 +142,15 @@ ENTITIES = [
     # name,                    w,   h,  base colour, accent colour, seed, stripe
     ("originium_slug",         64,  32, (0x4A, 0x5A, 0x66), (0x5F, 0xC8, 0xE8), 101, 6),
     ("imprisoned_shadow",      64,  64, (0x2A, 0x25, 0x3A), (0x6B, 0x5F, 0xA8), 102, 0),
-    ("jesseltons_shadow",      64,  64, (0x3A, 0x30, 0x4E), (0xB8, 0x26, 0x2E), 103, 8),
-    ("frank",                  64,  64, (0x7A, 0x8C, 0x5E), (0xC8, 0x5F, 0xA8), 104, 8),
-    ("failed_vision",         128,  64, (0x8C, 0x3A, 0x52), (0x5F, 0xC8, 0xE8), 105, 10),
+    ("jesselton_williams",     64,  64, (0x3A, 0x30, 0x4E), (0xB8, 0x26, 0x2E), 103, 8),
     ("rogue_power_armour",     64,  64, (0x5A, 0x60, 0x68), (0xE8, 0xB8, 0x4A), 106, 8),
     ("rhine_security_drone",   32,  32, (0xD8, 0xDC, 0xE0), (0x2E, 0x86, 0xC8), 107, 4),
-    # "Awaken" belongs to no dungeon palette yet — pale and blue so it does not read as
-    # part of Mansfield, Dorothy's Vision or Rhine Lab while it has no home.
-    ("awaken",                128,  64, (0xE0, 0xE4, 0xEC), (0x3A, 0x6F, 0xD8), 108, 8),
+    # NOT "awaken". Its texture is a real 128x128 export that belongs to the Blockbench
+    # model in geo/entity/awaken.geo.json, and the UVs only line up with that file. This
+    # script overwrites by name, so putting it back here would destroy hand-made art the
+    # next time anyone regenerates placeholders.
+    #
+    # "frank" and "failed_vision" were removed with their entities.
 ]
 
 KEY = [
@@ -262,8 +263,8 @@ ITEMS = [
 
 BLOCKS = [
     # name,                     base,               accent,              seed, frame
-    ("jesseltons_effigy",       (0x2A, 0x24, 0x38), (0xB8, 0x26, 0x2E), 301, True),
-    ("jesseltons_effigy_spent", (0x1A, 0x16, 0x22), (0x1A, 0x16, 0x22), 302, False),
+    ("jesselton_projector",       (0x2A, 0x24, 0x38), (0xB8, 0x26, 0x2E), 301, True),
+    ("jesselton_projector_spent", (0x1A, 0x16, 0x22), (0x1A, 0x16, 0x22), 302, False),
     ("dorothys_terminal",       (0x1E, 0x30, 0x2A), (0x5F, 0xE8, 0xA8), 303, True),
     ("dorothys_terminal_spent", (0x13, 0x1E, 0x1A), (0x13, 0x1E, 0x1A), 304, False),
 ]

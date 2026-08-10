@@ -262,7 +262,7 @@ def mansfield():
     s.fill(1, 0, office_z + 1, width - 2, 0, depth - 2, "minecraft:polished_deepslate")
     s.chest(2, 1, depth - 3, "south", DUNGEON_LOOT)
     s.chest(width - 3, 1, depth - 3, "south", DUNGEON_LOOT)
-    s.mob(width // 2, 1, depth - 4, "priestess:jesseltons_shadow")
+    s.mob(width // 2, 1, depth - 4, "priestess:jesselton_williams")
 
     # A way in at the near end, at ground level.
     s.fill(6, 1, 0, 8, 3, 0, "minecraft:air")
@@ -273,8 +273,11 @@ def mansfield():
 # ── Dorothy's Vision (Pioneer Labs) ───────────────────────────────────────────
 
 def dorothys_vision():
-    """A buried lab: a ring of glass test chambers around a central pit with the Failed
-    Vision rooted in the floor of it.
+    """A buried lab: a ring of glass test chambers around a central pit for the boss.
+
+    The pit is left empty. Dorothy's Terminal summons what fills it, so the .nbt carries
+    the architecture and none of the occupants — the Franks and the Failed Vision that
+    used to be written in here were removed with those entities.
 
     Lit, unlike Mansfield — flickering neon is the brief, and a lab you cannot see the
     walls of is just Mansfield again.
@@ -312,14 +315,13 @@ def dorothys_vision():
         s.set(corner_x + 3, 1, corner_z, "minecraft:air")
         s.set(corner_x + 3, 2, corner_z, "minecraft:air")
         s.set(corner_x + 3, 5, corner_z + 3, "minecraft:glowstone")
-        # Two per chamber; the boss adds more once the fight starts.
-        s.mob(corner_x + 3, 1, corner_z + 3, "priestess:frank")
 
-    # The boss pit, dropped two blocks so the mass reads as grown into the floor.
+    # The boss pit, dropped two blocks so whatever is summoned reads as grown into the
+    # floor. Nine blocks of clear floor, which is what Dorothy's Terminal needs to find
+    # room for a 6.75-block boss plus its elbow room.
     centre = width // 2
     s.fill(centre - 4, 0, centre - 4, centre + 4, 1, centre + 4, "minecraft:air")
     s.fill(centre - 5, 0, centre - 5, centre + 5, 0, centre + 5, "minecraft:sculk")
-    s.mob(centre, 1, centre, "priestess:failed_vision")
 
     # Neon strip down the middle of the ceiling.
     for z in range(2, depth - 2, 2):

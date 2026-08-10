@@ -20,12 +20,12 @@ public class ModItems {
     // ── Columbia chapter keys ─────────────────────────────────────────────────
     // The three things the chapter is actually about. Each is a one-off: stack size 1, and
     // dropped by code rather than by a loot table so the roll can never come up empty (see
-    // JesseltonsShadow.dropCustomDeathLoot). They do nothing on their own yet — nothing
+    // JesseltonWilliams.dropCustomDeathLoot). They do nothing on their own yet — nothing
     // consumes them, because the machinery that would is a later chapter's problem — but
     // they exist, they are named, and they are obtainable, which is what makes the
     // progression something you can walk through rather than something written down.
 
-    /** Drops from Jesselton's Shadow. Chapter 2's proof of completion. */
+    /** Drops from Jesselton Williams. Chapter 2's proof of completion. */
     public static final RegistryObject<Item> MANSFIELD_MASTER_KEY = ITEMS.register("mansfield_master_key",
             () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
 
@@ -52,7 +52,7 @@ public class ModItems {
     // Python-generated placeholders — so for now they are a creative-tab item and a
     // /give, which is exactly what the spawn eggs above are for too.
 
-    /** Jesselton's, taken off him when they locked him in. Wakes his effigy. */
+    /** This world's Jesselton's, taken off him when they locked him in. Aims the projector. */
     public static final RegistryObject<Item> TARNISHED_DOG_TAGS = ITEMS.register("tarnished_dog_tags",
             () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
 
@@ -75,17 +75,9 @@ public class ModItems {
             ITEMS.register("imprisoned_shadow_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.IMPRISONED_SHADOW, 0x1E1B29, 0x6B5FA8, new Item.Properties()));
 
-    public static final RegistryObject<Item> JESSELTONS_SHADOW_SPAWN_EGG =
-            ITEMS.register("jesseltons_shadow_spawn_egg",
-                    () -> new ForgeSpawnEggItem(ModEntities.JESSELTONS_SHADOW, 0x2A2438, 0xB8262E, new Item.Properties()));
-
-    public static final RegistryObject<Item> FRANK_SPAWN_EGG =
-            ITEMS.register("frank_spawn_egg",
-                    () -> new ForgeSpawnEggItem(ModEntities.FRANK, 0x7A8C5E, 0xC85FA8, new Item.Properties()));
-
-    public static final RegistryObject<Item> FAILED_VISION_SPAWN_EGG =
-            ITEMS.register("failed_vision_spawn_egg",
-                    () -> new ForgeSpawnEggItem(ModEntities.FAILED_VISION, 0x8C3A52, 0x5FC8E8, new Item.Properties()));
+    public static final RegistryObject<Item> JESSELTON_WILLIAMS_SPAWN_EGG =
+            ITEMS.register("jesselton_williams_spawn_egg",
+                    () -> new ForgeSpawnEggItem(ModEntities.JESSELTON_WILLIAMS, 0x2A2438, 0xB8262E, new Item.Properties()));
 
     public static final RegistryObject<Item> ROGUE_POWER_ARMOUR_SPAWN_EGG =
             ITEMS.register("rogue_power_armour_spawn_egg",
@@ -95,7 +87,7 @@ public class ModItems {
             ITEMS.register("rhine_security_drone_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.RHINE_SECURITY_DRONE, 0xD8DCE0, 0x2E86C8, new Item.Properties()));
 
-    /** "Awaken" has no dungeon and no summoner yet, so this is the only way to meet one. */
+    /** Dorothy's Terminal summons "Awaken" in place; this is the way to meet one anywhere else. */
     public static final RegistryObject<Item> AWAKEN_SPAWN_EGG =
             ITEMS.register("awaken_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.AWAKEN, 0xE0E4EC, 0x3A6FD8, new Item.Properties()));

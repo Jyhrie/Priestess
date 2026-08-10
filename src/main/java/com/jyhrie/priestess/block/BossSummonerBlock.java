@@ -35,14 +35,14 @@ import net.minecraft.world.phys.BlockHitResult;
  * A one-boss summoning altar: right-click it holding the right item and the boss stands up
  * out of it, and the altar stays spent until that boss is dead.
  *
- * <p>Concrete blocks are one subclass per boss — {@link JesseltonsEffigyBlock},
+ * <p>Concrete blocks are one subclass per boss — {@link JesseltonProjectorBlock},
  * {@link DorothysTerminalBlock} — and each supplies four things: which boss, which item, and
  * the particle and sound it comes up with. Everything else, which is all of the fiddly
  * parts, lives here.
  *
  * <h2>Why subclasses rather than one parameterised block</h2>
- * The two bosses do not spawn the same way. Jesselton is 0.7 x 2.2 and walks; the Failed
- * Vision is 3 x 3 x 3 and is rooted where it lands, so it needs a great deal more clear
+ * The two bosses do not spawn the same way. Jesselton is 0.7 x 2.2 and walks; "Awaken" is
+ * 6.75 on a side and cannot move at all once placed, so it needs a great deal more clear
  * space and it needs that space checked before the item is taken off the player rather than
  * after. {@link #clearanceFor} is the hook, and having a class per boss means the answer to
  * "how much room does this one need" sits next to the boss it is about instead of in a

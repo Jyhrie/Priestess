@@ -66,6 +66,16 @@ description='''${mod_description}'''
     ordering="NONE"
     side="BOTH"
 
+# GeckoLib drives the boss animations. Mandatory and BOTH sides: the animation state
+# is decided server-side and synced, so a client without it desyncs rather than just
+# rendering a still model. AFTER so its registries exist before ours touch them.
+[[dependencies.${mod_id}]]
+    modId="geckolib"
+    mandatory=true
+    versionRange="${geckolib_version_range}"
+    ordering="AFTER"
+    side="BOTH"
+
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
 # stop your mod loading on the server for example.

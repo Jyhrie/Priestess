@@ -1,10 +1,10 @@
-// 1.20.1	2026-08-10T00:45:41.0623632	Loot Tables
+// 1.20.1	2026-08-10T14:20:00.6504181	Loot Tables
 e25008b5eb2960f09a2f2e364b4e98490e0d76fc data/priestess/loot_tables/blocks/black_ice.json
 4d28eda8c4c1b0eeaf9db40dfd23f4c7868d9ca5 data/priestess/loot_tables/blocks/dead_seabed.json
 ea7aa1f7b78ec0d3665ee37df711d1b06dcbade4 data/priestess/loot_tables/blocks/dorothys_terminal.json
 7d3016791e73ca6e3d2a26c62cd78320e874d41b data/priestess/loot_tables/blocks/iberian_sand.json
 ccbd8c4bb4ea8eb20a08c544cf53cfceb1c5a3f8 data/priestess/loot_tables/blocks/iberian_sandstone.json
-5867330a34a629bd0ec2fca0206a50f6f1d49746 data/priestess/loot_tables/blocks/jesseltons_effigy.json
+a9cce82a1107c2679dbca5f3f63071386d86e194 data/priestess/loot_tables/blocks/jesselton_projector.json
 3655da9c19908b7b0b896446e4ee9e2ebd6ec375 data/priestess/loot_tables/blocks/pale_beach_sand.json
 39b36cf244ea9ab7e061dd22f491c096d2a3b401 data/priestess/loot_tables/blocks/permafrost.json
 7c1cc09aee6258655c1c71f75594e91561976a5c data/priestess/loot_tables/blocks/siesta_sand.json

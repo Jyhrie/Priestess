@@ -74,6 +74,20 @@ minecraft {
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
             property 'forge.logging.console.level', 'debug'
 
+            // Translate SRG names in dependency refmaps into the mappings this workspace
+            // actually runs on. GeckoLib ships mixins whose refmap points at SRG
+            // ("m_118506_"), and fg.deobf() remaps a dependency's *classes* but leaves its
+            // refmap byte-for-byte untouched. Because mapping_channel is "official", that
+            // method is named "getTexture" at runtime, the @Inject matches nothing, and a
+            // failed injection takes the whole client down before the main menu.
+            //
+            // These two properties hand Mixin the SRG -> official table ForgeGradle already
+            // generates, which is the supported fix and costs nothing in production: the
+            // shipped jar runs on SRG, where the refmap is correct as written.
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile',
+                    project.layout.buildDirectory.file('createSrgToMcp/output.srg').get().asFile.absolutePath
+
             mods {
                 "${mod_id}" {
                     source sourceSets.main
@@ -115,6 +129,14 @@ repositories {
     // Put repositories for dependencies here
     // ForgeGradle automatically adds the Forge maven and Maven Central for you
 
+    // GeckoLib is not on Maven Central. The content{} filter keeps every other
+    // dependency from paying a failed lookup against this host first.
+    maven {
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content { includeGroup 'software.bernie.geckolib' }
+    }
+
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:flat_dir_resolver
     // flatDir {
@@ -135,6 +157,13 @@ dependencies {
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}-common-api:${jei_version}")
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}-forge-api:${jei_version}")
     // runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}-forge:${jei_version}")
+
+    // GeckoLib. fg.deobf() remaps the published jar into our dev mappings; without it
+    // every GeckoLib call into vanilla resolves against SRG names and the game crashes
+    // in dev while working fine in production, which is a miserable thing to debug.
+    // implementation (not compileOnly) because players need the real jar at runtime —
+    // the mods.toml entry below makes Forge say so up front instead of NoClassDefFoundError.
+    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
 
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
@@ -157,6 +186,7 @@ tasks.named('processResources', ProcessResources).configure {
             loader_version_range: loader_version_range,
             mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_authors: mod_authors, mod_description: mod_description,
+            geckolib_version_range: geckolib_version_range,
     ]
     inputs.properties replaceProperties
 

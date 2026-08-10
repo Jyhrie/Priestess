@@ -1,5 +1,7 @@
-package com.jyhrie.priestess.entity;
+package com.jyhrie.priestess.entity.bosses;
 
+import com.jyhrie.priestess.entity.ArtsBeam;
+import com.jyhrie.priestess.entity.BossMonster;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -10,14 +12,22 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * "Awaken" — a cube that hangs in the air and does nothing at all.
+ * "Awaken" — a shape that hangs in the air and does nothing at all.
  *
  * <p><b>This is a skeleton on purpose.</b> It has a health bar, a hitbox, a shape and no
  * behaviour: it hovers where it is put, watches whoever is nearest, and takes damage until
  * it dies. Attacks come later. Everything needed to hold one is already here, so adding them
  * is a matter of filling in {@link #customServerAiStep} and nothing else.
+ *
+ * <p>It draws through GeckoLib rather than a hand-built mesh — see {@code AwakenRenderer} —
+ * so the silhouette lives in {@code geo/entity/awaken.geo.json} and is edited in Blockbench
+ * instead of in Java. The animation side is wired but empty; see {@link #registerControllers}.
  *
  * <h2>What is already wired up for those attacks</h2>
  * <ul>
@@ -35,10 +45,18 @@ import net.minecraft.world.level.Level;
  * {@code setNoGravity(true)} in the constructor rather than a hover goal or a movement
  * control. It has {@code MOVEMENT_SPEED 0} and no navigation, so there is nothing to fight
  * with gravity in the first place — turning gravity off is the whole of the behaviour, and
- * it means the cube stays exactly where it was summoned instead of settling onto the floor.
- * The visible bob is the renderer's, not the entity's; see {@code PriestessClient}.
+ * it means it stays exactly where it was summoned instead of settling onto the floor. It
+ * hangs dead still: the old placeholder's bob came from the hand-built model that GeckoLib
+ * replaced, and the natural home for it now is an idle animation, not the renderer.
  */
-public class Awaken extends BossMonster {
+public class Awaken extends BossMonster implements GeoEntity {
+
+    /**
+     * Per-entity animation state. {@code createInstanceCache} rather than the singleton
+     * variant because every Awaken in the world needs its own playhead — the singleton cache
+     * is for items and blocks, where one shared state is the point.
+     */
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     public Awaken(EntityType<? extends Awaken> type, Level level) {
         super(type, level, BossEvent.BossBarColor.BLUE, BossEvent.BossBarOverlay.PROGRESS);
@@ -92,5 +110,22 @@ public class Awaken extends BossMonster {
     public boolean causeFallDamage(float distance, float multiplier,
                                    net.minecraft.world.damagesource.DamageSource source) {
         return false;
+    }
+
+    /**
+     * No controllers, because the model has no animations yet — it renders as a static pose.
+     *
+     * <p>Leaving this empty is deliberate and safe: GeckoLib only reads
+     * {@code animations/entity/awaken.animation.json} when a controller asks for a clip by
+     * name, so the missing file costs nothing until there is something in it. Add the file
+     * and a {@code controllers.add(new AnimationController<>(...))} here together.
+     */
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return geoCache;
     }
 }

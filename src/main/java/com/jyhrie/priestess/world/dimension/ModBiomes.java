@@ -174,8 +174,8 @@ public class ModBiomes {
     /**
      * The Columbian wastes are not empty. Originium Slugs are the whole of the surface
      * population for now — the rest of the chapter's roster belongs to a dungeon and is
-     * placed by the structure that owns it, because a Frank found wandering the open
-     * wasteland gives away a lab the player has not found yet.
+     * placed by the structure that owns it, because a lab's guards found wandering the open
+     * wasteland give away a lab the player has not found yet.
      *
      * <p>Weights are read against every other entry in the same {@link MobCategory}, and
      * Columbia has no others, so this is simply "the monster budget is slugs". The numbers

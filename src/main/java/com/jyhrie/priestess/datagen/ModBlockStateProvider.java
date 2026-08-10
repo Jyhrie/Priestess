@@ -25,7 +25,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
         simpleBlockWithItem(ModBlocks.DEAD_SEABED.get(), cubeAll(ModBlocks.DEAD_SEABED.get()));
         simpleBlockWithItem(ModBlocks.PERMAFROST.get(), cubeAll(ModBlocks.PERMAFROST.get()));
 
-        summoner(ModBlocks.JESSELTONS_EFFIGY);
+        summoner(ModBlocks.JESSELTON_PROJECTOR);
         summoner(ModBlocks.DOROTHYS_TERMINAL);
     }
 

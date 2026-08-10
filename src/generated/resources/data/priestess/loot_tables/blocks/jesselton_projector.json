@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "priestess:jesseltons_effigy"
+          "name": "priestess:jesselton_projector"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "priestess:blocks/jesseltons_effigy"
+  "random_sequence": "priestess:blocks/jesselton_projector"
 }

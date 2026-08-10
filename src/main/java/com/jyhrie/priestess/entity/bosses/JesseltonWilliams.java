@@ -1,6 +1,10 @@
-package com.jyhrie.priestess.entity;
+package com.jyhrie.priestess.entity.bosses;
 
 import com.jyhrie.priestess.damage.ModDamageTypes;
+import com.jyhrie.priestess.entity.ArtsBeam;
+import com.jyhrie.priestess.entity.BossMonster;
+import com.jyhrie.priestess.entity.ImprisonedShadow;
+import com.jyhrie.priestess.entity.ModEntities;
 import com.jyhrie.priestess.item.ModItems;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -25,13 +29,21 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 /**
- * Jesselton's Shadow — what is left of the mercenary who tried to take Mansfield and got
- * locked in it instead. The first boss of the Columbia chapter.
+ * Jesselton Williams — not a ghost, and not this world's Jesselton. He is the mercenary who
+ * took Mansfield in the assimilated universe, projected into this one by the effigy standing
+ * in his cell block. The first boss of the Columbia chapter.
+ *
+ * <p>The distinction matters for how the fight reads. Nothing here died in Mansfield: the
+ * projector reaches sideways rather than backwards, and what it pulls through is a living
+ * man who won, wearing the confidence of a version of events the player never got. The
+ * dog tags that wake the effigy are this world's Jesselton, and they are the anchor it
+ * aims with.
  *
  * <h2>Two phases, and why they are different in kind</h2>
  * The prison hands out riot gear on the way in, so the fight has to answer the question
- * "was that armour worth carrying". Phase one says yes: spectral iron arts, heavy but
- * ordinary kinetic damage, and every point of armour you looted subtracts from it.
+ * "was that armour worth carrying". Phase one says yes: iron arts thrown across the cell
+ * block, heavy but ordinary kinetic damage, and every point of armour you looted subtracts
+ * from it.
  *
  * <p>At half health he stops caring. Phase two is {@code priestess:void_arts}, which sits in
  * the {@code minecraft:bypasses_armor} tag, and he starts pulling the dead inmates out of
@@ -39,10 +51,10 @@ import net.minecraft.world.level.Level;
  * nothing for the second, and the answer has to be movement instead.
  *
  * <p>He is knockback-immune by attribute rather than by a special case in {@code hurt} —
- * he is a ghost, not a heavy, and the difference the player notices is that a shield bash
- * moves everything in the cell block except him.
+ * what stands in the room is a projection with no mass to shove, and the difference the
+ * player notices is that a shield bash moves everything in the cell block except him.
  */
-public class JesseltonsShadow extends BossMonster {
+public class JesseltonWilliams extends BossMonster {
 
     /** Below this fraction of max health he is in phase two, and never goes back. */
     private static final float PHASE_TWO_AT = 0.5F;
@@ -65,7 +77,7 @@ public class JesseltonsShadow extends BossMonster {
     private int summonCooldown = SUMMON_COOLDOWN_TICKS;
     private boolean announcedPhaseTwo;
 
-    public JesseltonsShadow(EntityType<? extends JesseltonsShadow> type, Level level) {
+    public JesseltonWilliams(EntityType<? extends JesseltonWilliams> type, Level level) {
         super(type, level, BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS);
         this.xpReward = 250;
     }

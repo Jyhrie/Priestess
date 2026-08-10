@@ -23,7 +23,7 @@ public class ModBlockEntities {
     public static final RegistryObject<BlockEntityType<BossSummonerBlockEntity>> BOSS_SUMMONER =
             BLOCK_ENTITIES.register("boss_summoner", () -> BlockEntityType.Builder
                     .of(BossSummonerBlockEntity::new,
-                            ModBlocks.JESSELTONS_EFFIGY.get(),
+                            ModBlocks.JESSELTON_PROJECTOR.get(),
                             ModBlocks.DOROTHYS_TERMINAL.get())
                     // The datafixer type. Null is what every mod passes and what vanilla
                     // tolerates; there is no schema to migrate against outside Mojang's own.

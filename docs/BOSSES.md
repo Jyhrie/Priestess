@@ -1,6 +1,6 @@
 # Bosses
 
-How a Columbia boss is put together, walked through with **Jesselton's Shadow** — the first
+How a Columbia boss is put together, walked through with **Jesselton Williams** — the first
 one, and the one every other boss in the chapter is a variation on.
 
 For the chapter as a whole see the main [README](../README.md#the-columbia-chapter).
@@ -11,7 +11,7 @@ For the chapter as a whole see the main [README](../README.md#the-columbia-chapt
 
 - [The shared skeleton](#the-shared-skeleton) — what every boss inherits
 - [Arts beams](#arts-beams) — the ranged attack all of them use
-- [Jesselton's Shadow](#jesseltons-shadow)
+- [Jesselton Williams](#jesselton-williams)
   - [Numbers](#numbers)
   - [The two phases](#the-two-phases)
   - [The tick](#the-tick)
@@ -88,9 +88,9 @@ more than Easy. Declared in `ModDamageTypes`, written out as datapack JSON by `r
 
 ---
 
-## Jesselton's Shadow
+## Jesselton Williams
 
-`src/main/java/com/jyhrie/priestess/entity/JesseltonsShadow.java`
+`src/main/java/com/jyhrie/priestess/entity/JesseltonWilliams.java`
 
 The mercenary who tried to take Mansfield and got locked in it instead. He lives in the
 prison and gates the rest of the chapter behind the Mansfield Master Key.

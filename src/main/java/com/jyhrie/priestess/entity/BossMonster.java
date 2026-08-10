@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.entity;
 
+import com.jyhrie.priestess.entity.bosses.Awaken;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,9 +27,9 @@ import net.minecraft.world.level.Level;
  *
  * <h2>The bar</h2>
  * Named from the entity type, so the bar follows the language file with nothing to keep in
- * sync. Progress is health by default; a boss whose bar counts something else first —
- * {@link FailedVision} counts neural nodes — overrides {@link #barProgress()} rather than
- * writing to {@code bossEvent} from its own tick.
+ * sync. Progress is health by default; a boss whose bar should count something else first —
+ * a phase gauge, a tally of parts still standing — overrides {@link #barProgress()} rather
+ * than writing to {@code bossEvent} from its own tick.
  *
  * <h2>Adding a boss</h2>
  * <ol>

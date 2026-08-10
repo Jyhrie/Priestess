@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.entity;
 
+import com.jyhrie.priestess.entity.bosses.JesseltonWilliams;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -19,7 +20,7 @@ import net.minecraft.world.level.Level;
 
 /**
  * The inmates who died locked in their cells, summoned back out of them by
- * {@link JesseltonsShadow} once he drops into his second phase.
+ * {@link JesseltonWilliams} once he drops into his second phase.
  *
  * <p>They exist to take the player's attention off the boss, so they are built to be
  * annoying rather than dangerous: fast, fragile, and there are always more. What keeps

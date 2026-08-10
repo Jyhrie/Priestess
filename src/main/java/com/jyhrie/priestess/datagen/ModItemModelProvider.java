@@ -29,9 +29,7 @@ public class ModItemModelProvider extends ItemModelProvider {
         // greyscale layers from the colours passed to ForgeSpawnEggItem.
         spawnEgg(ModItems.ORIGINIUM_SLUG_SPAWN_EGG);
         spawnEgg(ModItems.IMPRISONED_SHADOW_SPAWN_EGG);
-        spawnEgg(ModItems.JESSELTONS_SHADOW_SPAWN_EGG);
-        spawnEgg(ModItems.FRANK_SPAWN_EGG);
-        spawnEgg(ModItems.FAILED_VISION_SPAWN_EGG);
+        spawnEgg(ModItems.JESSELTON_WILLIAMS_SPAWN_EGG);
         spawnEgg(ModItems.ROGUE_POWER_ARMOUR_SPAWN_EGG);
         spawnEgg(ModItems.RHINE_SECURITY_DRONE_SPAWN_EGG);
         spawnEgg(ModItems.AWAKEN_SPAWN_EGG);
