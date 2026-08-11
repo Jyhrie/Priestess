@@ -40,6 +40,12 @@ public class ModBlockStateProvider extends BlockStateProvider {
         simpleBlockWithItem(ModBlocks.RHINE_LAB_ARTS_LAB_TILE.get(),
                 cubeAll(ModBlocks.RHINE_LAB_ARTS_LAB_TILE.get()));
         pillar(ModBlocks.RHINE_LAB_ARTS_LAB_PILLAR);
+
+        // The Sal Viento catacombs set. Plain cubes; nothing here knows they are gated.
+        simpleBlockWithItem(ModBlocks.SAL_VIENTO_CATACOMBS_STONE.get(),
+                cubeAll(ModBlocks.SAL_VIENTO_CATACOMBS_STONE.get()));
+        simpleBlockWithItem(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get(),
+                cubeAll(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get()));
     }
 
     /** A {@code RotatedPillarBlock}: one model, three axes, plus the upright inventory model. */

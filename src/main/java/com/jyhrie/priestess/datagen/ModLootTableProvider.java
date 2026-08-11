@@ -55,15 +55,17 @@ public class ModLootTableProvider {
             // is an item that silently remembers a fight you already won.
             this.dropSelf(ModBlocks.JESSELTON_PROJECTOR.get());
             this.dropSelf(ModBlocks.DOROTHYS_TERMINAL.get());
-            // The Arts Lab set drops itself like any other decorative block. The gate is not
-            // in the loot table — a sealed block's break is cancelled outright, so there is
-            // no drop to suppress, and once Dorothy's Vision is cleared the blocks are
-            // ordinary building material a player is meant to be able to keep.
+            // Gated blocks drop themselves like any other decorative block. The gate is not in
+            // the loot table — a sealed block's break is cancelled outright, so there is no
+            // drop to suppress, and once the dungeon is cleared the blocks are ordinary
+            // building material a player is meant to be able to keep.
             this.dropSelf(ModBlocks.RHINE_LAB_ARTS_LAB_CHISELED_WALL.get());
             this.dropSelf(ModBlocks.RHINE_LAB_ARTS_LAB_PLATED_WALL.get());
             this.dropSelf(ModBlocks.RHINE_LAB_ARTS_LAB_CONCRETE_WALL.get());
             this.dropSelf(ModBlocks.RHINE_LAB_ARTS_LAB_TILE.get());
             this.dropSelf(ModBlocks.RHINE_LAB_ARTS_LAB_PILLAR.get());
+            this.dropSelf(ModBlocks.SAL_VIENTO_CATACOMBS_STONE.get());
+            this.dropSelf(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get());
         }
 
         // Every block registered by the mod must get a table in generate(), or datagen fails.

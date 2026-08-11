@@ -1,4 +1,4 @@
-// 1.20.1	2026-08-11T00:31:11.1452259	Loot Tables
+// 1.20.1	2026-08-11T22:32:45.4823788	Loot Tables
 e25008b5eb2960f09a2f2e364b4e98490e0d76fc data/priestess/loot_tables/blocks/black_ice.json
 4d28eda8c4c1b0eeaf9db40dfd23f4c7868d9ca5 data/priestess/loot_tables/blocks/dead_seabed.json
 ea7aa1f7b78ec0d3665ee37df711d1b06dcbade4 data/priestess/loot_tables/blocks/dorothys_terminal.json
@@ -12,5 +12,7 @@ a9cce82a1107c2679dbca5f3f63071386d86e194 data/priestess/loot_tables/blocks/jesse
 48be6d20a947e2e62b9155e47268d3bce143e05d data/priestess/loot_tables/blocks/rhine_lab_arts_lab_pillar.json
 7a89a6fdd49a8715b3b6fc34769ceb89bb193077 data/priestess/loot_tables/blocks/rhine_lab_arts_lab_plated_wall.json
 95ec3b8b60ec0be080efaff097a2ba804f321b1c data/priestess/loot_tables/blocks/rhine_lab_arts_lab_tile.json
+e38e03242eece11f82af3daf36e1190f8cb0d3e6 data/priestess/loot_tables/blocks/sal_viento_catacombs_overgrown_stone.json
+4a3568d68a7fe61ca7039c837ced4b2dbff8ea41 data/priestess/loot_tables/blocks/sal_viento_catacombs_stone.json
 7c1cc09aee6258655c1c71f75594e91561976a5c data/priestess/loot_tables/blocks/siesta_sand.json
 c98a0148c0d414d95c33114de1fb211c9cefe977 data/priestess/loot_tables/chests/rhine_directors_office.json

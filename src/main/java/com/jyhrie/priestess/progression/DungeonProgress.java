@@ -52,10 +52,8 @@ public final class DungeonProgress extends SavedData {
      * Whether {@code player} may treat {@code dungeon} as done.
      *
      * <p>A dungeon that <em>nothing clears</em> always reads as cleared, so a half-declared
-     * dungeon fails open rather than sealing something with no way out of it. Note that this
-     * turns on the clear condition alone and not on {@link Dungeon#canBeSealed()}: a dungeon
-     * with no structure still seals its {@linkplain Dungeon#sealedBlocks() blocks}, so
-     * "has no extent" must not be read as "is finished".
+     * dungeon fails open rather than sealing its {@linkplain Dungeon#sealedBlocks() blocks}
+     * with no way to ever unseal them.
      */
     public static boolean isCleared(Player player, Dungeon dungeon) {
         if (!dungeon.hasClearCondition()) {

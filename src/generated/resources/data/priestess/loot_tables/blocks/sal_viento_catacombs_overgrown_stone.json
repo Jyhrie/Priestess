@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "priestess:sal_viento_catacombs_overgrown_stone"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "priestess:blocks/sal_viento_catacombs_overgrown_stone"
+}

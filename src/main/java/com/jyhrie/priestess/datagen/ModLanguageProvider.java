@@ -98,6 +98,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModBlocks.RHINE_LAB_ARTS_LAB_TILE.get(), "Rhine Lab Arts Lab Tile");
         add(ModBlocks.RHINE_LAB_ARTS_LAB_PILLAR.get(), "Rhine Lab Arts Lab Pillar");
 
+        add(ModBlocks.SAL_VIENTO_CATACOMBS_STONE.get(), "Sal Viento Catacombs Stone");
+        add(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get(), "Sal Viento Catacombs Overgrown Stone");
+
         // ── Dungeons ──────────────────────────────────────────────────────────
         // Names for the dungeons themselves, used by the lockdown and clear messages. The
         // key is Dungeon.getSerializedName(), so these must track that enum.
@@ -106,11 +109,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("dungeon.priestess.rhine_lab", "Rhine Lab HQ");
         add("dungeon.priestess.under_tides", "Under Tides");
 
-        // Action-bar lines. %s is the dungeon.
-        add("message.priestess.dungeon.sealed", "%s will not let you dig.");
-        // The block rule's line. Separate from the one above because a gated block can be
-        // standing anywhere — "Dorothy's Vision will not let you dig" is a lie when the block
-        // is in your own basement.
+        // Action-bar lines. %s is the dungeon. Phrased about the block rather than the place,
+        // because a gated block can be standing anywhere — including a player's own basement.
         add("message.priestess.dungeon.sealed_block", "This will not give until %s is cleared.");
         add("message.priestess.dungeon.cleared", "%s is open.");
         add("message.priestess.flight.grounded", "Something here will not let you leave the ground.");

@@ -29,12 +29,12 @@ public final class PriestessConfig {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
         builder.comment(
-                "Dungeon lockdown: while a dungeon is uncleared, its rooms cannot be mined,",
-                "and nor can any block in that dungeon's priestess:sealed_by/<dungeon> tag,",
-                "wherever it stands. Placing is untouched — the rule is 'you cannot dig",
-                "through the dungeon', not 'you cannot build in it'. It does not ask who put",
-                "a block there, so a block you place inside a sealed dungeon is one you",
-                "cannot take back until you clear it.")
+                "Dungeon lockdown: while a dungeon is uncleared, no block in its",
+                "priestess:sealed_by/<dungeon> tag can be mined, wherever in the world it",
+                "stands. It gates a declared set of blocks and not an area, so the rest of a",
+                "dungeon's fittings stay mineable. Placing is untouched, and the rule does not",
+                "ask who put a block there — so a gated block you place is one you cannot take",
+                "back until you clear that dungeon.")
                .push("lockdown");
 
         LOCKDOWN_ENABLED = builder

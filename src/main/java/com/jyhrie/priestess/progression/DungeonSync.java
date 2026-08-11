@@ -29,13 +29,12 @@ import java.util.function.Supplier;
  * {@link DungeonLockdown} therefore showed the block cracking, shattering and reappearing.
  * Refusing on the server makes the rule true; refusing on the client makes it look true.
  *
- * <p>One packet per player: the lockdown switch, and a bit per dungeon. That covers the
- * <b>block</b> rule, since the tags themselves already ship to the client with the datapack.
- * It cannot cover the <b>area</b> rule — "is this inside a dungeon" is a structure lookup, and
- * structure starts live in server chunk data that is never sent. So an uncleared dungeon's
- * plain stone floor still cracks and pops back; its tagged blocks do not. Closing that means
- * streaming the piece bounding boxes of whichever dungeon the player is in, which is a feature
- * rather than a fix.
+ * <p>One packet per player: the lockdown switch, and a bit per dungeon. Together with the
+ * block tags, which already ship to the client with the datapack, that is everything the rule
+ * needs — so the client can answer it in full and a sealed block never moves. This is why the
+ * lockdown gates blocks rather than an area: structure starts live in server chunk data that
+ * is never sent, so "is this position inside a dungeon" is a question the client could not
+ * have answered at any price.
  *
  * <p>Sent on login, respawn and dimension change, and on every write in
  * {@link DungeonProgress} — which is what makes {@code /dungeon seal} land on a player who is

@@ -133,6 +133,21 @@ def arts_lab_pattern(kind, x, y):
     if kind == "pillar_top":
         ring = max(abs(x - 7.5), abs(y - 7.5))
         return edge or 3.5 < ring < 5.5
+    if kind == "catacombs":
+        # Running bond masonry: a course every four rows, with the head joints of one course
+        # offset half a brick from the next. Reads as stacked blockwork rather than as tiles,
+        # which is what tells the catacombs apart from the Arts Lab at a glance.
+        course = y % 4 == 0
+        head = x % 8 == (0 if (y // 4) % 2 == 0 else 4)
+        return course or head
+    if kind == "catacombs_overgrown":
+        # The same bond with growth on it. The moss is deterministic per pixel rather than
+        # random so the two tiles line up as the same stone, and it hangs from the courses
+        # because that is where water sits.
+        course = y % 4 == 0
+        head = x % 8 == (0 if (y // 4) % 2 == 0 else 4)
+        moss = (x * 5 + y * 11) % 17 < 6 and (y % 4) < 2
+        return course or head or moss
     raise ValueError("unknown pattern %r" % kind)
 
 
@@ -404,6 +419,22 @@ ARTS_LAB_BLOCKS = [
     ("rhine_lab_arts_lab_pillar_top",     ARTS_LAB_PANEL,    ARTS_LAB_BLUE,      316, "pillar_top"),
 ]
 
+# ── Sal Viento, the catacombs ─────────────────────────────────────────────────
+# Under Tides' build set, gated behind Bishop Quintus. Drowned grey-green masonry against
+# Rhine's clean white — a corridor screenshot should say which movement you are in. The
+# overgrown variant is the same stone and the same bond with growth on it, so the two read
+# as one wall in two states rather than as two different stones.
+
+CATACOMBS_STONE = (0x6E, 0x74, 0x70)
+CATACOMBS_JOINT = (0x44, 0x4B, 0x49)
+CATACOMBS_MOSS = (0x4E, 0x6B, 0x45)
+
+SAL_VIENTO_BLOCKS = [
+    # name,                                    base,             accent,           seed, pattern
+    ("sal_viento_catacombs_stone",           CATACOMBS_STONE, CATACOMBS_JOINT,   321, "catacombs"),
+    ("sal_viento_catacombs_overgrown_stone", CATACOMBS_STONE, CATACOMBS_MOSS,    322, "catacombs_overgrown"),
+]
+
 
 def main():
     print("entity textures ->")
@@ -415,7 +446,7 @@ def main():
     print("block textures ->")
     for name, base, accent, seed, frame in BLOCKS:
         block_texture(name, base, accent, seed, frame)
-    for name, base, accent, seed, kind in ARTS_LAB_BLOCKS:
+    for name, base, accent, seed, kind in ARTS_LAB_BLOCKS + SAL_VIENTO_BLOCKS:
         patterned_block(name, base, accent, seed, kind)
 
 

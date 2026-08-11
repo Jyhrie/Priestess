@@ -2,7 +2,6 @@ package com.jyhrie.priestess.progression;
 
 import com.jyhrie.priestess.Priestess;
 import com.jyhrie.priestess.PriestessConfig;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,25 +17,22 @@ import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * You cannot dig your way through a dungeon you have not finished.
+ * You cannot mine a block that belongs to a dungeon you have not finished.
  *
- * <h2>Two rules, either of which refuses a break</h2>
- * <ol>
- *   <li><b>By place</b> — every block inside the structure of an uncleared dungeon.</li>
- *   <li><b>By block</b> — every block in an uncleared dungeon's
- *       {@linkplain Dungeon#sealedBlocks() tag}, wherever in the world it stands.</li>
- * </ol>
+ * <h2>One rule</h2>
+ * A break is refused if the block is in an uncleared dungeon's
+ * {@linkplain Dungeon#sealedBlocks() tag}, wherever in the world it stands. That is the whole
+ * of it — <b>a dungeon has no sealed area</b>. Sealing the structure instead was tried and
+ * removed: it gates a <em>region</em>, so it catches the generator's backfill and every pipe,
+ * door and fitting inside the build along with the walls that are actually the gate. Tagging
+ * the build set gates exactly the blocks meant to be a wall, leaves the rest of a dungeon's
+ * furniture mineable, follows the blocks wherever a later build puts them, and is a datapack
+ * file — so growing a gate is JSON, not code.
  *
- * The second exists because the first cannot express "this wall is the gate": a structure
- * seals an <em>area</em>, so it catches the generator's backfill too and stops dead at the
- * structure's edge. Tagging the build set gates exactly the dungeon's own blocks, follows them
- * wherever a later build puts them, and is a datapack file — so growing a gate is JSON, not
- * code. The tag check runs first because it is a lookup on a blockstate already in hand.
- *
- * <p>Placing is untouched, and neither rule asks who put a block there. That costs something:
- * a block placed inside a sealed dungeon cannot be taken back until the dungeon is cleared.
- * The alternative is tracking every position a player has built on, which is persistent state
- * to keep correct against creepers, pistons and water.
+ * <p>Placing is untouched, and the rule does not ask who put a block there. That costs
+ * something: a gated block a player places is one they cannot take back until the dungeon is
+ * cleared. The alternative is tracking every position a player has built on, which is
+ * persistent state to keep correct against creepers, pistons and water.
  *
  * <h2>Three events</h2>
  * <ul>
@@ -50,8 +46,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>All three run on <b>both sides</b>. Mining is client-predicted, so a server-only refusal
  * looks like the block breaking and then being put back; the client has to refuse too. It can
- * only recognise the block rule — block tags it has, the cleared set arrives on
- * {@link DungeonSync}. The area rule stays server-only; see {@code DungeonSync} for why.
+ * answer the rule in full — block tags ship with the datapack, and the cleared set arrives on
+ * {@link DungeonSync}.
  */
 @Mod.EventBusSubscriber(modid = Priestess.MOD_ID)
 public final class DungeonLockdown {
@@ -80,21 +76,13 @@ public final class DungeonLockdown {
             return;
         }
         Player player = event.getEntity();
-
-        if (player.level() instanceof ServerLevel level) {
-            Seal sealed = sealAt(player, level, event.getPos());
-            if (sealed == null) {
-                return;
-            }
-            event.setCanceled(true);
-            if (player instanceof ServerPlayer serverPlayer) {
-                refuse(serverPlayer, sealed);
-            }
+        Dungeon sealed = sealing(player, event.getLevel().getBlockState(event.getPos()));
+        if (sealed == null) {
             return;
         }
-
-        if (clientSealsBlock(player, event.getLevel().getBlockState(event.getPos()))) {
-            event.setCanceled(true);
+        event.setCanceled(true);
+        if (player instanceof ServerPlayer serverPlayer) {
+            refuse(serverPlayer, sealed);
         }
     }
 
@@ -103,32 +91,17 @@ public final class DungeonLockdown {
         if (!(event.getPlayer() instanceof ServerPlayer player)) {
             return;
         }
-        if (!(event.getLevel() instanceof ServerLevel level)) {
-            return;
-        }
-
-        Seal sealed = sealAt(player, level, event.getPos());
+        Dungeon sealed = sealing(player, event.getState());
         if (sealed == null) {
             return;
         }
-
         event.setCanceled(true);
         refuse(player, sealed);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onBreakSpeed(PlayerEvent.BreakSpeed event) {
-        Player player = event.getEntity();
-
-        if (player.level() instanceof ServerLevel level) {
-            BlockPos pos = event.getPosition().orElse(null);
-            if (pos != null && sealAt(player, level, pos) != null) {
-                event.setNewSpeed(0.0F);
-            }
-            return;
-        }
-
-        if (clientSealsBlock(player, event.getState())) {
+        if (sealing(event.getEntity(), event.getState()) != null) {
             event.setNewSpeed(0.0F);
         }
     }
@@ -172,79 +145,45 @@ public final class DungeonLockdown {
 
     // ── Internals ─────────────────────────────────────────────────────────────
 
-    /** Which dungeon refused a break, and under which of the two rules — the message differs. */
-    private record Seal(Dungeon dungeon, boolean byBlockType) {
-    }
-
-    /** The seal that forbids breaking at {@code pos}, or null if the break is allowed. */
+    /**
+     * The uncleared dungeon whose tag {@code state} is in, or null if the break is allowed.
+     *
+     * <p>Runs on both sides and differs only in where the two server-owned answers come from:
+     * the save on the server, {@link DungeonSync} on the client. A client not yet told anything
+     * starts from "nothing cleared" and so errs towards refusing; the server decides anyway.
+     */
     @Nullable
-    private static Seal sealAt(Player player, ServerLevel level, BlockPos pos) {
-        if (!PriestessConfig.LOCKDOWN_ENABLED.get()) {
-            return null;
-        }
+    private static Dungeon sealing(Player player, BlockState state) {
         // Creative is the build mode; a lockdown that stops an operator fixing a dungeon is
         // a lockdown that gets turned off entirely.
         if (player.isCreative()) {
             return null;
         }
-
-        Dungeon byBlock = sealingBlock(player, level.getBlockState(pos));
-        if (byBlock != null) {
-            return new Seal(byBlock, true);
-        }
-
-        for (Dungeon dungeon : Dungeon.sealable()) {
-            if (dungeon.contains(level, pos) && !DungeonProgress.isCleared(player, dungeon)) {
-                return new Seal(dungeon, false);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * The block rule, from synced state rather than the save. A client not yet told anything
-     * starts from "nothing cleared" and so errs towards refusing; the server decides anyway.
-     */
-    private static boolean clientSealsBlock(Player player, BlockState state) {
-        if (!DungeonSync.clientLockdownEnabled() || player.isCreative()) {
-            return false;
+        boolean server = !player.level().isClientSide();
+        if (!(server ? PriestessConfig.LOCKDOWN_ENABLED.get() : DungeonSync.clientLockdownEnabled())) {
+            return null;
         }
         for (Dungeon dungeon : Dungeon.values()) {
-            if (dungeon.seals(state) && !DungeonSync.clientHasCleared(dungeon)) {
-                return true;
+            if (!dungeon.seals(state)) {
+                continue;
             }
-        }
-        return false;
-    }
-
-    /**
-     * The uncleared dungeon whose tag {@code state} is in, or null.
-     *
-     * <p>Every dungeon rather than {@link Dungeon#sealable()}: this rule needs no structure,
-     * so a dungeon that has not been given one yet still gates its blocks.
-     */
-    @Nullable
-    private static Dungeon sealingBlock(Player player, BlockState state) {
-        for (Dungeon dungeon : Dungeon.values()) {
-            if (dungeon.seals(state) && !DungeonProgress.isCleared(player, dungeon)) {
+            boolean cleared = server
+                    ? DungeonProgress.isCleared(player, dungeon)
+                    : DungeonSync.clientHasCleared(dungeon);
+            if (!cleared) {
                 return dungeon;
             }
         }
         return null;
     }
 
-    private static void refuse(ServerPlayer player, Seal seal) {
+    private static void refuse(ServerPlayer player, Dungeon dungeon) {
         if (player.tickCount - lastMessageTick(player) < MESSAGE_COOLDOWN_TICKS) {
             return;
         }
         player.getPersistentData().putInt(LAST_MESSAGE_KEY, player.tickCount);
-        // "will not let you dig" is about a place. A gated block can be anywhere — including
-        // one a player carried home — so it gets a line that is about the block instead.
-        String key = seal.byBlockType()
-                ? "message.priestess.dungeon.sealed_block"
-                : "message.priestess.dungeon.sealed";
-        player.displayClientMessage(Component.translatable(key,
-                Component.translatable("dungeon.priestess." + seal.dungeon().getSerializedName())), true);
+        player.displayClientMessage(Component.translatable("message.priestess.dungeon.sealed_block",
+                Component.translatable("dungeon.priestess." + dungeon.getSerializedName())), true);
     }
 
     private static int lastMessageTick(ServerPlayer player) {

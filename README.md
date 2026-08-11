@@ -51,6 +51,9 @@ src/main/java/com/jyhrie/priestess/
 ├── PriestessConfig.java            serverconfig/priestess-server.toml — lockdown + flight
 ├── block/
 │   ├── ModBlocks.java              block registry (auto-registers BlockItems too)
+│   ├── DungeonSealed.java          marks a block as gated; carries the immunities
+│   ├── SealedBlock.java            base: a cube you cannot mine until its dungeon is done
+│   ├── SealedPillarBlock.java      the same, for anything with an axis
 │   ├── BossSummonerBlock.java      base: hold the catalyst, right-click, boss stands up
 │   ├── JesseltonProjectorBlock.java  its Mansfield instance
 │   ├── DorothysTerminalBlock.java    its Dorothy's Vision instance
@@ -155,6 +158,7 @@ tools/generate_placeholder_models.py  placeholder .geo.json, with UVs packed aut
 tools/generate_placeholder_dungeons.py  the three dungeon .nbt files
 docs/WORLDGEN.md                    the map, terrain, biomes and surface rules
 docs/COMMANDS.md                    every command, mod and vanilla, and test recipes
+docs/DUNGEON_BLOCKS.md              adding a block gated behind a dungeon, and adding a dungeon
 docs/SCORE_MOVEMENTS.md             the storyline, chapter by chapter
 docs/BOSSES.md                      per-boss design and fight notes
 docs/SPAWNING.md                    why nothing spawns naturally, and how to change that
@@ -499,28 +503,33 @@ flipping the config back restores exactly what was there — nothing migrates, b
 
 ### The lockdown
 
-You cannot mine your way through a dungeon you have not cleared. Two rules, and a break is
-refused if either applies:
+**One rule: a block in `priestess:sealed_by/<dungeon>` cannot be mined by a player who has not
+cleared that dungeon**, wherever in the world it stands. A block joins that tag by extending
+`SealedBlock` and naming its dungeon — `ModBlockTagsProvider` derives the tag from the block
+class, so the constructor argument is the only place the gate is declared. The tag name comes
+from the enum constant, so a dungeon cannot point at another's blocks.
 
-| Rule | Covers | Declared in |
-|---|---|---|
-| **By place** | every block inside the dungeon's structure | the structure id in `Dungeon.java` |
-| **By block** | every block in `priestess:sealed_by/<dungeon>`, **wherever it stands** | `ModBlockTagsProvider` |
+Two sets are gated today: the five Rhine Lab Arts Lab blocks behind `dorothys_vision`, and the
+two Sal Viento Catacombs blocks behind `under_tides`.
 
-The block rule is the one to reach for when gating a build set — it needs no structure and is
-a datapack file, so growing a gate is JSON rather than code. The tag name is derived from the
-constant, so a dungeon cannot point at another's blocks. Today the five Rhine Lab Arts Lab
-blocks sit behind `dorothys_vision`.
+**→ How to add one: [docs/DUNGEON_BLOCKS.md](docs/DUNGEON_BLOCKS.md)**
 
-Placing is untouched, and neither rule asks who put a block there — so a block you place inside
-a sealed dungeon is one you cannot take back until you clear it.
+**A dungeon seals no area.** Gating the structure was tried and removed: it covers a *region*,
+so it catches the generator's backfill and every pipe, door and fitting inside the build along
+with the walls that are actually meant to be the gate. Tagging the build set gates exactly the
+blocks that are the wall, leaves the furniture mineable, follows those blocks wherever a later
+build puts them, and is a datapack file — so growing a gate is JSON rather than code.
+
+Placing is untouched, and the rule does not ask who put a block there — so a gated block you
+place is one you cannot take back until you clear that dungeon.
 
 **Three events do the refusing**, all on both sides. `LeftClickBlock` cancels the dig before it
 starts and carries the message; `BreakSpeed` pinned to zero holds a dig already in flight;
 `BreakEvent` is the authority and backstop. Both sides matter because mining is
 client-predicted — a server-only refusal shows the block cracking, shattering and reappearing.
-`DungeonSync` sends each player their cleared set so the client can refuse a *tagged* block
-outright. It cannot do the same for the area rule: structure positions never reach the client.
+`DungeonSync` sends each player their cleared set, and since block tags already ship with the
+datapack the client can answer the whole rule. That is the other reason to gate blocks rather
+than an area: structure positions never reach the client at all.
 
 Those five blocks are also blast-proof, piston-proof and wither-proof — `explosionResistance`
 and `PushReaction.BLOCK` in `ModBlocks.artsLab()`, plus the `wither_immune` tag. Unlike the

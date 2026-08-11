@@ -2,14 +2,13 @@ package com.jyhrie.priestess.block;
 
 import com.jyhrie.priestess.Priestess;
 import com.jyhrie.priestess.item.ModItems;
+import com.jyhrie.priestess.progression.Dungeon;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SandBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.PushReaction;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -69,49 +68,67 @@ public class ModBlocks {
             () -> new DorothysTerminalBlock(BlockBehaviour.Properties.copy(Blocks.LODESTONE)
                     .lightLevel(BossSummonerBlock::glow)));
 
-    // ── Rhine Lab: the Arts Lab build set ─────────────────────────────────────
-    // The five blocks the Arts Lab is made of, and the first set to be gated by block type
-    // rather than by position: every one of them is in the priestess:sealed_by/dorothys_vision
-    // tag, so none of them can be broken by a player who has not finished Dorothy's Vision.
-    // See DungeonLockdown and ModBlockTagsProvider.
-    //
-    // DEEPSLATE_TILES is the base: pickaxe-only and hard enough that digging one out is a
-    // decision, without being so slow that a cleared lab is tedious to renovate.
+    // ── Dungeon-gated build sets ──────────────────────────────────────────────
+    // Blocks that cannot be mined until their dungeon is cleared. Everything about the gate
+    // comes from SealedBlock/SealedPillarBlock and the Dungeon passed to them — the tag, the
+    // blast and piston immunity, and the wither tag are all derived from that one argument.
+    // The properties below describe only the material. See docs/DUNGEON_BLOCKS.md.
 
     /**
-     * Shared by all five, so the gate cannot be undercut by one of them being softer.
+     * Rhine Lab's Arts Lab wing, gated behind <b>Dorothy's Vision</b> — chapter order decides
+     * that, not the building the blocks are named after. A dungeon gating its own build set
+     * would be a locked door with the key behind it.
      *
-     * <p>A gate is only as strong as the cheapest way around it, and mining is not the only
-     * way a block leaves the world. Bedrock's blast resistance and {@link PushReaction#BLOCK}
-     * close two of the other three; {@code BlockTags.WITHER_IMMUNE} in
-     * {@code ModBlockTagsProvider} closes the wither, because that is where vanilla looks.
-     *
-     * <p>All three are unconditional and do not lift when the dungeon is cleared, unlike the
-     * mining gate — an explosion, a piston and a wither skull all arrive without a player, so
-     * there is nobody whose progress to consult.
+     * <p>DEEPSLATE_TILES is the base: pickaxe-only and hard enough that digging one out is a
+     * decision, without being so slow that a cleared lab is tedious to renovate. Shared by all
+     * five, so the gate cannot be undercut by one of them being softer.
      */
     private static BlockBehaviour.Properties artsLab() {
-        return BlockBehaviour.Properties.copy(Blocks.DEEPSLATE_TILES)
-                .explosionResistance(3600000.0F)
-                .pushReaction(PushReaction.BLOCK);
+        return BlockBehaviour.Properties.copy(Blocks.DEEPSLATE_TILES);
     }
 
     public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_CHISELED_WALL =
-            registerBlock("rhine_lab_arts_lab_chiseled_wall", () -> new Block(artsLab()));
+            registerBlock("rhine_lab_arts_lab_chiseled_wall",
+                    () -> new SealedBlock(Dungeon.DOROTHYS_VISION, artsLab()));
 
     public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_PLATED_WALL =
-            registerBlock("rhine_lab_arts_lab_plated_wall", () -> new Block(artsLab()));
+            registerBlock("rhine_lab_arts_lab_plated_wall",
+                    () -> new SealedBlock(Dungeon.DOROTHYS_VISION, artsLab()));
 
     public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_CONCRETE_WALL =
-            registerBlock("rhine_lab_arts_lab_concrete_wall", () -> new Block(artsLab()));
+            registerBlock("rhine_lab_arts_lab_concrete_wall",
+                    () -> new SealedBlock(Dungeon.DOROTHYS_VISION, artsLab()));
 
     public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_TILE =
-            registerBlock("rhine_lab_arts_lab_tile", () -> new Block(artsLab()));
+            registerBlock("rhine_lab_arts_lab_tile",
+                    () -> new SealedBlock(Dungeon.DOROTHYS_VISION, artsLab()));
 
-    // A RotatedPillarBlock rather than a plain one: a pillar that cannot be laid on its side
-    // is a pillar you have to build the room around, and the axis state costs nothing.
+    // A pillar rather than a plain block: one that cannot be laid on its side is a pillar you
+    // have to build the room around, and the axis state costs nothing.
     public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_PILLAR =
-            registerBlock("rhine_lab_arts_lab_pillar", () -> new RotatedPillarBlock(artsLab()));
+            registerBlock("rhine_lab_arts_lab_pillar",
+                    () -> new SealedPillarBlock(Dungeon.DOROTHYS_VISION, artsLab()));
+
+    /**
+     * The Sal Viento catacombs, gated behind <b>Under Tides</b> — the dungeon Bishop Quintus
+     * ends, which is the only thing down there that clears anything.
+     *
+     * <p>DEEPSLATE_BRICKS rather than the Arts Lab's tiles: same tier, so neither build set is
+     * the cheap way into the other, but a masonry sound and a coarser look. Both catacombs
+     * blocks share it — the overgrown one is the same stone with something living on it, not
+     * a softer stone.
+     */
+    private static BlockBehaviour.Properties catacombs() {
+        return BlockBehaviour.Properties.copy(Blocks.DEEPSLATE_BRICKS);
+    }
+
+    public static final RegistryObject<Block> SAL_VIENTO_CATACOMBS_STONE =
+            registerBlock("sal_viento_catacombs_stone",
+                    () -> new SealedBlock(Dungeon.UNDER_TIDES, catacombs()));
+
+    public static final RegistryObject<Block> SAL_VIENTO_CATACOMBS_OVERGROWN_STONE =
+            registerBlock("sal_viento_catacombs_overgrown_stone",
+                    () -> new SealedBlock(Dungeon.UNDER_TIDES, catacombs()));
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block) {
         RegistryObject<T> toReturn = BLOCKS.register(name, block);

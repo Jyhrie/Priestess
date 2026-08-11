@@ -127,28 +127,22 @@ public final class DungeonCommand {
     }
 
     /**
-     * What this dungeon's flag actually holds shut, in the two ways it can hold anything:
-     * its rooms, and its blocks.
+     * How many block types this dungeon's flag actually holds shut.
      *
-     * <p>Printed per line because "SEALED" on its own is not an answer — a dungeon can be
-     * uncleared and gate nothing at all, which looks exactly like a broken lockdown from the
+     * <p>Printed per line because "SEALED" on its own is not an answer — a dungeon with nothing
+     * tagged to it gates nothing at all, which looks exactly like a broken lockdown from the
      * inside and is the report this is meant to pre-empt.
      */
     private static String gates(Dungeon dungeon) {
         if (!dungeon.hasClearCondition()) {
             return "nothing clears it, so it always reads cleared (see Dungeon.java)";
         }
-        List<String> what = new java.util.ArrayList<>(2);
-        if (dungeon.canBeSealed()) {
-            what.add("its rooms");
-        }
         int blocks = BuiltInRegistries.BLOCK.getTag(dungeon.sealedBlocks())
                 .map(HolderSet::size)
                 .orElse(0);
-        if (blocks > 0) {
-            what.add(blocks + " block type" + (blocks == 1 ? "" : "s"));
-        }
-        return what.isEmpty() ? "nothing yet (no structure, no sealed blocks)" : String.join(" and ", what);
+        return blocks == 0
+                ? "nothing yet (no blocks tagged sealed_by/" + dungeon.getSerializedName() + ")"
+                : blocks + " block type" + (blocks == 1 ? "" : "s");
     }
 
     private static String describe(Collection<ServerPlayer> targets) {
