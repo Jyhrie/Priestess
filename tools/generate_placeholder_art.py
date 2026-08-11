@@ -106,6 +106,54 @@ def block_texture(name, base, accent, seed, frame=True):
     write_png(os.path.join(ASSETS, "block", "%s.png" % name), width, height, pixels)
 
 
+def arts_lab_pattern(kind, x, y):
+    """True where the accent colour goes, for the Rhine Lab Arts Lab build set.
+
+    Predicates rather than ASCII masks like the items use: these five are variations on one
+    another, and a set that has to stay a set is easier to keep coherent as six lines of
+    arithmetic than as six hand-drawn grids that drift apart the moment one is edited.
+    """
+    edge = x in (0, 15) or y in (0, 15)
+    if kind == "chiseled":
+        frame = (x in (3, 12) and 3 <= y <= 12) or (y in (3, 12) and 3 <= x <= 12)
+        core = 6 <= x <= 9 and 6 <= y <= 9 and (x + y) % 2 == 0
+        return edge or frame or core
+    if kind == "plated":
+        seam = y in (7, 8)
+        rivets = x in (2, 13) and y in (2, 5, 10, 13)
+        return edge or seam or rivets
+    if kind == "concrete":
+        # The plain one of the set — no structure at all, just a scatter of aggregate, so it
+        # is the block you can put a hundred of in a wall without it reading as a pattern.
+        return (x * 7 + y * 13) % 37 == 0
+    if kind == "tile":
+        return x in (0, 7, 8, 15) or y in (0, 7, 8, 15)
+    if kind == "pillar_side":
+        return x in (0, 1, 7, 8, 14, 15)
+    if kind == "pillar_top":
+        ring = max(abs(x - 7.5), abs(y - 7.5))
+        return edge or 3.5 < ring < 5.5
+    raise ValueError("unknown pattern %r" % kind)
+
+
+def patterned_block(name, base, accent, seed, kind):
+    """A 16x16 tile whose accent pixels come from `kind`. Same grain as the other blocks."""
+    width = height = 16
+    rng = random.Random(seed)
+    pixels = bytearray(width * height * 4)
+    for y in range(height):
+        for x in range(width):
+            colour = accent if arts_lab_pattern(kind, x, y) else base
+            jitter = rng.randint(-10, 10)
+            r, g, b = shade(colour, 1.0 + jitter / 255.0)
+            i = (y * width + x) * 4
+            pixels[i] = r
+            pixels[i + 1] = g
+            pixels[i + 2] = b
+            pixels[i + 3] = 255
+    write_png(os.path.join(ASSETS, "block", "%s.png" % name), width, height, pixels)
+
+
 def item_texture(name, base, accent, seed, glyph):
     """A 16x16 item: a rounded slab of `base` with `glyph` stamped on in `accent`.
 
@@ -333,6 +381,29 @@ BLOCKS = [
     ("dorothys_terminal_spent", (0x13, 0x1E, 0x1A), (0x13, 0x1E, 0x1A), 304, False),
 ]
 
+# ── Rhine Lab, Arts Lab wing ──────────────────────────────────────────────────
+# Rhine's palette is clean white and cold blue, against Mansfield's denim and Dorothy's
+# sickly greens — a screenshot of a corridor should say which building it is. One base
+# across all five so they read as one build set, with the pattern doing the telling apart;
+# the pillar is two tiles because a RotatedPillarBlock needs a top as well as a side.
+#
+# These are the blocks the lockdown gates behind Dorothy's Vision, which is worth knowing
+# while looking at them: they are load-bearing for progression, not only decoration.
+
+ARTS_LAB_PANEL = (0xC6, 0xCD, 0xD4)
+ARTS_LAB_BLUE = (0x3E, 0x7A, 0xB8)
+ARTS_LAB_CONCRETE = (0x9A, 0xA2, 0xA8)
+
+ARTS_LAB_BLOCKS = [
+    # name,                                 base,               accent,             seed, pattern
+    ("rhine_lab_arts_lab_chiseled_wall",  ARTS_LAB_PANEL,    ARTS_LAB_BLUE,      311, "chiseled"),
+    ("rhine_lab_arts_lab_plated_wall",    (0xAE, 0xB6, 0xBE), (0x5A, 0x6A, 0x78), 312, "plated"),
+    ("rhine_lab_arts_lab_concrete_wall",  ARTS_LAB_CONCRETE, (0x7A, 0x82, 0x88),  313, "concrete"),
+    ("rhine_lab_arts_lab_tile",           (0xD8, 0xDE, 0xE4), (0x8C, 0xA8, 0xC0), 314, "tile"),
+    ("rhine_lab_arts_lab_pillar_side",    ARTS_LAB_PANEL,    ARTS_LAB_BLUE,      315, "pillar_side"),
+    ("rhine_lab_arts_lab_pillar_top",     ARTS_LAB_PANEL,    ARTS_LAB_BLUE,      316, "pillar_top"),
+]
+
 
 def main():
     print("entity textures ->")
@@ -344,6 +415,8 @@ def main():
     print("block textures ->")
     for name, base, accent, seed, frame in BLOCKS:
         block_texture(name, base, accent, seed, frame)
+    for name, base, accent, seed, kind in ARTS_LAB_BLOCKS:
+        patterned_block(name, base, accent, seed, kind)
 
 
 if __name__ == "__main__":

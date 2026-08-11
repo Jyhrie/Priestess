@@ -9,9 +9,12 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +42,18 @@ import java.util.function.Supplier;
  * Most are cleared by killing a boss. Rhine Lab has none — it ends in a chest rather than a
  * fight — so it is cleared by <em>picking up</em> the item that chest holds. Both are
  * declared here and handled in {@link DungeonProgress}; a dungeon may use either, and one
- * with neither can never be sealed at all (see {@link #canBeSealed()}).
+ * with neither can never be sealed at all (see {@link #hasClearCondition()}).
+ *
+ * <h2>The two ways a dungeon seals</h2>
+ * <ul>
+ *   <li><b>By place</b> — everything inside {@link #contains}, which needs a structure.</li>
+ *   <li><b>By block</b> — every block in {@link #sealedBlocks()}, wherever it stands, which
+ *       needs nothing but the tag. This is the one that scales: a dungeon's build set is
+ *       gated by adding block ids to a JSON file, not by touching any of this code.</li>
+ * </ul>
+ * The tag is derived from the constant's own name rather than declared, so a new dungeon has
+ * one the moment it exists and there is no way to declare a dungeon whose tag points at
+ * another dungeon's blocks.
  */
 public enum Dungeon {
 
@@ -81,6 +95,7 @@ public enum Dungeon {
     @Nullable
     private final Supplier<Item> clearedByPickingUp;
     private final Set<ResourceKey<Biome>> unlocksFlightIn;
+    private final TagKey<Block> sealedBlocks;
 
     Dungeon(@Nullable String structureId,
             @Nullable Supplier<EntityType<?>> boss,
@@ -91,6 +106,8 @@ public enum Dungeon {
         this.boss = boss;
         this.clearedByPickingUp = clearedByPickingUp;
         this.unlocksFlightIn = unlocksFlightIn;
+        this.sealedBlocks = TagKey.create(Registries.BLOCK,
+                new ResourceLocation(Priestess.MOD_ID, "sealed_by/" + getSerializedName()));
     }
 
     /** Stable across renames of the constant — this is what ends up in save data. */
@@ -98,9 +115,35 @@ public enum Dungeon {
         return name().toLowerCase(java.util.Locale.ROOT);
     }
 
-    /** Whether this dungeon has any way of being cleared. One that has none is never sealed. */
+    /**
+     * Whether anything in the game can clear this dungeon. One that nothing clears must never
+     * seal anything, in either of the two ways — that is a locked door with no key, and it is
+     * the one failure mode of this whole system that a player cannot recover from.
+     * {@link DungeonProgress#isCleared} fails open on it for exactly that reason.
+     */
+    public boolean hasClearCondition() {
+        return boss != null || clearedByPickingUp != null;
+    }
+
+    /** Whether this dungeon seals an <em>area</em>. Needs a structure to have an extent at all. */
     public boolean canBeSealed() {
-        return structure != null && (boss != null || clearedByPickingUp != null);
+        return structure != null && hasClearCondition();
+    }
+
+    /**
+     * The blocks this dungeon seals wherever they stand, as {@code priestess:sealed_by/<name>}.
+     *
+     * <p>Membership is the whole rule: a block in here cannot be broken by a player who has
+     * not cleared this dungeon, in or out of the structure, and drops nothing because the
+     * break never happens. Populated in {@code ModBlockTagsProvider}.
+     */
+    public TagKey<Block> sealedBlocks() {
+        return sealedBlocks;
+    }
+
+    /** Whether {@code state} is one of this dungeon's gated blocks. */
+    public boolean seals(BlockState state) {
+        return state.is(sealedBlocks);
     }
 
     public boolean isClearedBy(EntityType<?> type) {

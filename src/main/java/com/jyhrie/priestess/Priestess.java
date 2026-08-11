@@ -7,6 +7,7 @@ import com.jyhrie.priestess.entity.ModEntities;
 import com.jyhrie.priestess.item.ModCreativeTabs;
 import com.jyhrie.priestess.item.ModItems;
 import com.jyhrie.priestess.oripathy.OripathyEvents;
+import com.jyhrie.priestess.progression.DungeonSync;
 import com.jyhrie.priestess.world.dimension.AnchorReport;
 import com.jyhrie.priestess.world.dimension.ModStructurePlacements;
 import com.jyhrie.priestess.world.terra.TerraElevationFunction;
@@ -79,6 +80,10 @@ public class Priestess {
         // SERVER type, so it lives in the world save rather than the installation — see
         // PriestessConfig.
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, PriestessConfig.SPEC);
+
+        // The lockdown's client half. Without this the client predicts a break the server is
+        // going to refuse, and a sealed block shatters and comes back rather than not moving.
+        DungeonSync.register();
     }
 
 }

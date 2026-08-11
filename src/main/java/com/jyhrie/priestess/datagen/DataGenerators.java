@@ -34,6 +34,11 @@ public class DataGenerators {
         generator.addProvider(event.includeServer(),
                 new ModDamageTypeTagsProvider(packOutput, worldGen.getRegistryProvider(), existingFileHelper));
 
+        // Block tags. Carries the sealed_by/<dungeon> tags, which are not decoration: the
+        // lockdown reads them to decide what a player may break. See the provider.
+        generator.addProvider(event.includeServer(),
+                new ModBlockTagsProvider(packOutput, lookupProvider, existingFileHelper));
+
         // Not a datapack file — writes docs/terra_world_preview.png so the hand-authored
         // Terra map can be checked without launching the game.
         generator.addProvider(event.includeServer(), new ModTerraPreviewProvider(packOutput));

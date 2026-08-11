@@ -6,8 +6,10 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SandBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -66,6 +68,66 @@ public class ModBlocks {
     public static final RegistryObject<Block> DOROTHYS_TERMINAL = registerBlock("dorothys_terminal",
             () -> new DorothysTerminalBlock(BlockBehaviour.Properties.copy(Blocks.LODESTONE)
                     .lightLevel(BossSummonerBlock::glow)));
+
+    // ── Rhine Lab: the Arts Lab build set ─────────────────────────────────────
+    // The five blocks the Arts Lab is made of, and the first set to be gated by block type
+    // rather than by position: every one of them is in the priestess:sealed_by/dorothys_vision
+    // tag, so none of them can be broken by a player who has not finished Dorothy's Vision.
+    // See DungeonLockdown and ModBlockTagsProvider.
+    //
+    // DEEPSLATE_TILES is the base: pickaxe-only and hard enough that digging one out is a
+    // decision, without being so slow that a cleared lab is tedious to renovate.
+    //
+    // Everything after that base exists because a gate is only as strong as the cheapest way
+    // around it, and mining is not the only way a block leaves the world. The lockdown refuses
+    // the pickaxe; these refuse the three things that would otherwise move a wall nobody is
+    // allowed to mine — see the class comment on DungeonLockdown for the pickaxe half.
+
+    /**
+     * Shared by all five, so the gate cannot be undercut by one of them being softer.
+     *
+     * <p>The three immunities, and what each closes:
+     * <ul>
+     *   <li><b>Explosions</b> — bedrock's resistance rather than obsidian's. TNT is trivially
+     *       available long before Dorothy's Vision is, and a creeper wandering into the lab
+     *       should not be able to open it by accident. At this value no explosion opens it,
+     *       vanilla or otherwise, rather than merely no explosion vanilla can produce.</li>
+     *   <li><b>Pistons</b> — {@link PushReaction#BLOCK}, so a wall cannot be shoved aside
+     *       instead of broken. This also stops a piston head extending into one, which is what
+     *       makes it a wall rather than a block that happens not to move.</li>
+     *   <li><b>The wither</b> — via {@link net.minecraft.tags.BlockTags#WITHER_IMMUNE} in
+     *       {@code ModBlockTagsProvider}, because that is where vanilla looks. A wither eats
+     *       through anything below bedrock and would otherwise be a portable dungeon key.</li>
+     * </ul>
+     *
+     * <p>All three are unconditional — they do not lift when the dungeon is cleared, unlike
+     * the mining gate. None of the three has a player to ask: an explosion, a piston and a
+     * wither skull all arrive without one, and per-player progress has no answer for "may
+     * <em>this TNT</em> break it". Unconditional is also the more honest reading of what these
+     * blocks are: lab plating that a piston was never going to move.
+     */
+    private static BlockBehaviour.Properties artsLab() {
+        return BlockBehaviour.Properties.copy(Blocks.DEEPSLATE_TILES)
+                .explosionResistance(3600000.0F)
+                .pushReaction(PushReaction.BLOCK);
+    }
+
+    public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_CHISELED_WALL =
+            registerBlock("rhine_lab_arts_lab_chiseled_wall", () -> new Block(artsLab()));
+
+    public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_PLATED_WALL =
+            registerBlock("rhine_lab_arts_lab_plated_wall", () -> new Block(artsLab()));
+
+    public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_CONCRETE_WALL =
+            registerBlock("rhine_lab_arts_lab_concrete_wall", () -> new Block(artsLab()));
+
+    public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_TILE =
+            registerBlock("rhine_lab_arts_lab_tile", () -> new Block(artsLab()));
+
+    // A RotatedPillarBlock rather than a plain one: a pillar that cannot be laid on its side
+    // is a pillar you have to build the room around, and the axis state costs nothing.
+    public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_PILLAR =
+            registerBlock("rhine_lab_arts_lab_pillar", () -> new RotatedPillarBlock(artsLab()));
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block) {
         RegistryObject<T> toReturn = BLOCKS.register(name, block);

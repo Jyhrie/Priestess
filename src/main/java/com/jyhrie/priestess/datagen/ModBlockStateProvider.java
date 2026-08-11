@@ -5,6 +5,7 @@ import com.jyhrie.priestess.block.BossSummonerBlock;
 import com.jyhrie.priestess.block.ModBlocks;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -27,6 +28,26 @@ public class ModBlockStateProvider extends BlockStateProvider {
 
         summoner(ModBlocks.JESSELTON_PROJECTOR);
         summoner(ModBlocks.DOROTHYS_TERMINAL);
+
+        // The Arts Lab build set. Four plain cubes and a pillar; the pillar takes the
+        // _top/_side pair and gets a model per axis from axisBlock.
+        simpleBlockWithItem(ModBlocks.RHINE_LAB_ARTS_LAB_CHISELED_WALL.get(),
+                cubeAll(ModBlocks.RHINE_LAB_ARTS_LAB_CHISELED_WALL.get()));
+        simpleBlockWithItem(ModBlocks.RHINE_LAB_ARTS_LAB_PLATED_WALL.get(),
+                cubeAll(ModBlocks.RHINE_LAB_ARTS_LAB_PLATED_WALL.get()));
+        simpleBlockWithItem(ModBlocks.RHINE_LAB_ARTS_LAB_CONCRETE_WALL.get(),
+                cubeAll(ModBlocks.RHINE_LAB_ARTS_LAB_CONCRETE_WALL.get()));
+        simpleBlockWithItem(ModBlocks.RHINE_LAB_ARTS_LAB_TILE.get(),
+                cubeAll(ModBlocks.RHINE_LAB_ARTS_LAB_TILE.get()));
+        pillar(ModBlocks.RHINE_LAB_ARTS_LAB_PILLAR);
+    }
+
+    /** A {@code RotatedPillarBlock}: one model, three axes, plus the upright inventory model. */
+    private void pillar(RegistryObject<Block> block) {
+        String name = block.getId().getPath();
+        RotatedPillarBlock pillar = (RotatedPillarBlock) block.get();
+        axisBlock(pillar, modLoc("block/" + name + "_side"), modLoc("block/" + name + "_top"));
+        simpleBlockItem(pillar, models().getExistingFile(modLoc("block/" + name)));
     }
 
     /**

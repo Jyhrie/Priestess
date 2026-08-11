@@ -51,12 +51,14 @@ public final class DungeonProgress extends SavedData {
     /**
      * Whether {@code player} may treat {@code dungeon} as done.
      *
-     * <p>A dungeon that cannot be sealed at all — no structure, or nothing that clears it —
-     * always reads as cleared, so a half-declared dungeon fails open rather than sealing an
-     * area with no way out of it.
+     * <p>A dungeon that <em>nothing clears</em> always reads as cleared, so a half-declared
+     * dungeon fails open rather than sealing something with no way out of it. Note that this
+     * turns on the clear condition alone and not on {@link Dungeon#canBeSealed()}: a dungeon
+     * with no structure still seals its {@linkplain Dungeon#sealedBlocks() blocks}, so
+     * "has no extent" must not be read as "is finished".
      */
     public static boolean isCleared(Player player, Dungeon dungeon) {
-        if (!dungeon.canBeSealed()) {
+        if (!dungeon.hasClearCondition()) {
             return true;
         }
         if (PriestessConfig.SHARED_PROGRESS.get()) {
@@ -81,6 +83,7 @@ public final class DungeonProgress extends SavedData {
             DungeonProgress data = shared(level.getServer());
             if (data.cleared.add(dungeon.getSerializedName())) {
                 data.setDirty();
+                DungeonSync.sendToAll(level.getServer());
                 announce(level.getServer().getPlayerList().getPlayers(), dungeon);
             }
             return;
@@ -89,6 +92,7 @@ public final class DungeonProgress extends SavedData {
         for (ServerPlayer player : level.getPlayers(p ->
                 p.blockPosition().closerThan(where, CREDIT_RADIUS))) {
             if (addPersonal(player, dungeon)) {
+                DungeonSync.sendTo(player);
                 announce(java.util.List.of(player), dungeon);
             }
         }
@@ -118,10 +122,15 @@ public final class DungeonProgress extends SavedData {
                     : data.cleared.remove(dungeon.getSerializedName());
             if (changed) {
                 data.setDirty();
+                DungeonSync.sendToAll(player.server);
             }
             return changed;
         }
-        return setPersonal(player, dungeon, cleared);
+        boolean changed = setPersonal(player, dungeon, cleared);
+        if (changed) {
+            DungeonSync.sendTo(player);
+        }
+        return changed;
     }
 
     /** Every dungeon {@code player} counts as having finished, for {@code /dungeon list}. */

@@ -2,11 +2,12 @@ package com.jyhrie.priestess.progression;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collection;
@@ -27,8 +28,6 @@ import java.util.stream.Collectors;
  * /dungeon list [target]                   what is cleared, and which storage is live
  * /dungeon clear &lt;dungeon|all&gt; [targets]   mark cleared
  * /dungeon seal  &lt;dungeon|all&gt; [targets]   mark uncleared
- * /dungeon placed count                    how many placed-block exemptions this dimension holds
- * /dungeon placed clear                    drop them all
  * </pre>
  *
  * <h2>What {@code targets} means depends on the config</h2>
@@ -57,12 +56,6 @@ public final class DungeonCommand {
 
         root.then(setNode("clear", true));
         root.then(setNode("seal", false));
-
-        root.then(Commands.literal("placed")
-                .then(Commands.literal("count")
-                        .executes(context -> placedCount(context.getSource())))
-                .then(Commands.literal("clear")
-                        .executes(context -> placedClear(context.getSource()))));
 
         dispatcher.register(root);
     }
@@ -122,13 +115,9 @@ public final class DungeonCommand {
 
         String mode = DungeonProgress.isShared() ? "shared (world-wide)" : "per player";
         String body = List.of(Dungeon.values()).stream()
-                .map(dungeon -> {
-                    String mark = cleared.contains(dungeon) ? "cleared" : "SEALED";
-                    // A dungeon that cannot be sealed reads as cleared for a reason that has
-                    // nothing to do with progress, and saying so saves a bug report.
-                    String why = dungeon.canBeSealed() ? "" : " (nothing seals it — see Dungeon.java)";
-                    return "  " + dungeon.getSerializedName() + ": " + mark + why;
-                })
+                .map(dungeon -> "  " + dungeon.getSerializedName() + ": "
+                        + (cleared.contains(dungeon) ? "cleared" : "SEALED")
+                        + " — " + gates(dungeon))
                 .collect(Collectors.joining("\n"));
 
         source.sendSuccess(() -> Component.literal(
@@ -137,22 +126,29 @@ public final class DungeonCommand {
         return cleared.size();
     }
 
-    private static int placedCount(CommandSourceStack source) {
-        ServerLevel level = source.getLevel();
-        int count = PlacedBlocks.get(level).size();
-        source.sendSuccess(() -> Component.literal(
-                count + " placed-block exemption" + (count == 1 ? "" : "s") + " in "
-                        + level.dimension().location()), false);
-        return count;
-    }
-
-    private static int placedClear(CommandSourceStack source) {
-        ServerLevel level = source.getLevel();
-        int dropped = PlacedBlocks.get(level).forgetAll();
-        source.sendSuccess(() -> Component.literal(
-                "Dropped " + dropped + " placed-block exemption" + (dropped == 1 ? "" : "s")
-                        + " in " + level.dimension().location()), true);
-        return dropped;
+    /**
+     * What this dungeon's flag actually holds shut, in the two ways it can hold anything:
+     * its rooms, and its blocks.
+     *
+     * <p>Printed per line because "SEALED" on its own is not an answer — a dungeon can be
+     * uncleared and gate nothing at all, which looks exactly like a broken lockdown from the
+     * inside and is the report this is meant to pre-empt.
+     */
+    private static String gates(Dungeon dungeon) {
+        if (!dungeon.hasClearCondition()) {
+            return "nothing clears it, so it always reads cleared (see Dungeon.java)";
+        }
+        List<String> what = new java.util.ArrayList<>(2);
+        if (dungeon.canBeSealed()) {
+            what.add("its rooms");
+        }
+        int blocks = BuiltInRegistries.BLOCK.getTag(dungeon.sealedBlocks())
+                .map(HolderSet::size)
+                .orElse(0);
+        if (blocks > 0) {
+            what.add(blocks + " block type" + (blocks == 1 ? "" : "s"));
+        }
+        return what.isEmpty() ? "nothing yet (no structure, no sealed blocks)" : String.join(" and ", what);
     }
 
     private static String describe(Collection<ServerPlayer> targets) {

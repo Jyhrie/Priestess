@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "priestess:block/rhine_lab_arts_lab_chiseled_wall"
+  }
+}

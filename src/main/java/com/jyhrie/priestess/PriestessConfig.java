@@ -43,8 +43,13 @@ public final class PriestessConfig {
                 .comment("true  — one world-wide record. Anyone clearing a dungeon opens it for everyone.",
                          "false — every player carries their own record, saved with the player and",
                          "        kept through death. A dungeon a player has not personally cleared",
-                         "        stays sealed for them even on a server where someone else has.")
-                .define("sharedProgress", true);
+                         "        stays sealed for them even on a server where someone else has.",
+                         "Defaults to false: progression is meant to be something each player walks",
+                         "through, and a shared record means one player who arrived first can open",
+                         "the whole chapter for people who have not played it.",
+                         "NOTE: this file is written once per world. Changing the default does not",
+                         "change a world that already has a serverconfig — edit it there.")
+                .define("sharedProgress", false);
 
         builder.pop();
 
