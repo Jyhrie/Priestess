@@ -130,6 +130,22 @@ public class ModBlocks {
             registerBlock("sal_viento_catacombs_overgrown_stone",
                     () -> new SealedBlock(Dungeon.UNDER_TIDES, catacombs()));
 
+    // ── Decoration ────────────────────────────────────────────────────────────
+
+    /**
+     * Catacomb plumbing. Deliberately <b>not</b> a {@link SealedBlock}: the lockdown gates the
+     * walls that are the gate, and dressing a dungeon with pipes a player cannot take down
+     * would put fittings behind a boss for no reason.
+     *
+     * <p>{@code noOcclusion} is not optional on a block thinner than its cube — without it the
+     * game culls the faces of whatever the pipe touches and leaves holes in the wall behind it.
+     * COPPER for the sound: it is the one vanilla metal block that does not read as machinery.
+     */
+    public static final RegistryObject<Block> SAL_VIENTO_CATACOMBS_PIPE =
+            registerBlock("sal_viento_catacombs_pipe",
+                    () -> new DecorativePipeBlock(0.25F,
+                            BlockBehaviour.Properties.copy(Blocks.COPPER_BLOCK).noOcclusion()));
+
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block) {
         RegistryObject<T> toReturn = BLOCKS.register(name, block);
         registerBlockItem(name, toReturn);

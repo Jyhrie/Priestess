@@ -66,6 +66,7 @@ public class ModLootTableProvider {
             this.dropSelf(ModBlocks.RHINE_LAB_ARTS_LAB_PILLAR.get());
             this.dropSelf(ModBlocks.SAL_VIENTO_CATACOMBS_STONE.get());
             this.dropSelf(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get());
+            this.dropSelf(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE.get());
         }
 
         // Every block registered by the mod must get a table in generate(), or datagen fails.

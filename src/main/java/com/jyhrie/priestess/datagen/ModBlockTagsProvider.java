@@ -1,6 +1,7 @@
 package com.jyhrie.priestess.datagen;
 
 import com.jyhrie.priestess.Priestess;
+import com.jyhrie.priestess.block.DecorativePipeBlock;
 import com.jyhrie.priestess.block.DungeonSealed;
 import com.jyhrie.priestess.block.ModBlocks;
 import com.jyhrie.priestess.progression.Dungeon;
@@ -76,6 +77,16 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
             tag(BlockTags.MINEABLE_WITH_PICKAXE).add(entry.get());
             tag(BlockTags.NEEDS_IRON_TOOL).add(entry.get());
         }
+
+        // What a DecorativePipeBlock joins up with. A pipe missing from this tag still places
+        // and still looks like a pipe — it simply never connects to anything, which is the
+        // first thing to check when a run of them sits in a row as separate stubs.
+        tag(DecorativePipeBlock.PIPES)
+                .add(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE.get());
+
+        // Copper-grade, so stone is enough. Pipes are dressing, not a gate.
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE.get());
+        tag(BlockTags.NEEDS_STONE_TOOL).add(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE.get());
     }
 
     @Override

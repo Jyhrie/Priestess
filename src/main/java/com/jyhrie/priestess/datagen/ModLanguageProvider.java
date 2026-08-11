@@ -100,6 +100,7 @@ public class ModLanguageProvider extends LanguageProvider {
 
         add(ModBlocks.SAL_VIENTO_CATACOMBS_STONE.get(), "Sal Viento Catacombs Stone");
         add(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get(), "Sal Viento Catacombs Overgrown Stone");
+        add(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE.get(), "Sal Viento Catacombs Pipe");
 
         // ── Dungeons ──────────────────────────────────────────────────────────
         // Names for the dungeons themselves, used by the lockdown and clear messages. The

@@ -140,6 +140,11 @@ def arts_lab_pattern(kind, x, y):
         course = y % 4 == 0
         head = x % 8 == (0 if (y // 4) % 2 == 0 else 4)
         return course or head
+    if kind == "pipe":
+        # Bands across the tile rather than a bond. The model wraps this round an eight-pixel
+        # arm, so horizontal lines read as ribs on the pipe from every side, and the tile has
+        # to look the same either way up because the same texture is used on all six faces.
+        return y in (1, 2, 13, 14) or (x + y) % 9 == 0
     if kind == "catacombs_overgrown":
         # The same bond with growth on it. The moss is deterministic per pixel rather than
         # random so the two tiles line up as the same stone, and it hangs from the courses
@@ -433,6 +438,9 @@ SAL_VIENTO_BLOCKS = [
     # name,                                    base,             accent,           seed, pattern
     ("sal_viento_catacombs_stone",           CATACOMBS_STONE, CATACOMBS_JOINT,   321, "catacombs"),
     ("sal_viento_catacombs_overgrown_stone", CATACOMBS_STONE, CATACOMBS_MOSS,    322, "catacombs_overgrown"),
+    # Verdigrised copper, so the plumbing reads as a different material from the masonry it
+    # runs across rather than as a thin piece of the same wall.
+    ("sal_viento_catacombs_pipe",            (0x6A, 0x7F, 0x72), (0x3C, 0x4C, 0x45), 323, "pipe"),
 ]
 
 
