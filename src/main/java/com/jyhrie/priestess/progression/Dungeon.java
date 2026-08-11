@@ -23,37 +23,21 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * The dungeons, declared once, with everything the two progression mechanics need to know
- * about them.
+ * The dungeons, declared once, with everything the two progression mechanics need.
  *
- * <p>This is the only place the three otherwise-unrelated facts about a dungeon meet: which
- * <em>structure</em> is its physical extent, what <em>clears</em> it, and which
- * <em>biomes</em> it unlocks flight in. Keeping them together is the point — a dungeon whose
- * structure and boss were declared in different files would very easily end up sealing an
- * area nothing can open.
+ * <p>The only place three otherwise-unrelated facts meet: which <em>structure</em> is a
+ * dungeon's physical extent, what <em>clears</em> it, and which <em>biomes</em> it unlocks
+ * flight in. Declaring those apart is how you end up sealing an area nothing can open.
  *
- * <h2>Adding one</h2>
- * Add a constant. Nothing else has to change: {@link DungeonLockdown} iterates these to find
- * which dungeon a position is inside, {@link FlightRestriction} iterates them to find which
- * gate a biome sits behind, and {@link DungeonProgress} keys its records off
- * {@link #getSerializedName()}.
+ * <p><b>Adding one:</b> add a constant, and nothing else changes. {@link DungeonLockdown} and
+ * {@link FlightRestriction} iterate these, and {@link DungeonProgress} keys off
+ * {@link #getSerializedName()}. The {@linkplain #sealedBlocks() tag} is derived from the
+ * constant's own name, so a new dungeon has one the moment it exists and cannot accidentally
+ * point at another dungeon's blocks.
  *
- * <h2>The two ways a dungeon is cleared</h2>
- * Most are cleared by killing a boss. Rhine Lab has none — it ends in a chest rather than a
- * fight — so it is cleared by <em>picking up</em> the item that chest holds. Both are
- * declared here and handled in {@link DungeonProgress}; a dungeon may use either, and one
- * with neither can never be sealed at all (see {@link #hasClearCondition()}).
- *
- * <h2>The two ways a dungeon seals</h2>
- * <ul>
- *   <li><b>By place</b> — everything inside {@link #contains}, which needs a structure.</li>
- *   <li><b>By block</b> — every block in {@link #sealedBlocks()}, wherever it stands, which
- *       needs nothing but the tag. This is the one that scales: a dungeon's build set is
- *       gated by adding block ids to a JSON file, not by touching any of this code.</li>
- * </ul>
- * The tag is derived from the constant's own name rather than declared, so a new dungeon has
- * one the moment it exists and there is no way to declare a dungeon whose tag points at
- * another dungeon's blocks.
+ * <p>Cleared by killing a boss, or — for a dungeon that ends in a chest rather than a fight —
+ * by picking up an item. A dungeon with neither can never seal anything; see
+ * {@link #hasClearCondition()}.
  */
 public enum Dungeon {
 
@@ -69,21 +53,17 @@ public enum Dungeon {
             () -> ModEntities.DV_AWAKEN.get(), null, Set.of()),
 
     /**
-     * Rhine Lab HQ. The only dungeon with no boss in it, so the Blueprint in the Director's
-     * Office is what clears it — which also makes it the last of the three, and therefore
-     * the right one to hang Columbia's sky on.
-     *
-     * <p>Note the ordering that creates: Columbia is flight-locked until Rhine Lab is done,
-     * and Rhine Lab is where Movement I ends. Clearing the movement is what earns the sky.
+     * Rhine Lab HQ. No boss, so the Blueprint in the Director's Office clears it. It is also
+     * where Movement I ends, which is why Columbia's sky hangs off it — clearing the movement
+     * is what earns flight.
      */
     RHINE_LAB("rhine_lab_hq",
             null, () -> ModItems.BLUEPRINT_ORIGINIUM_REFINEMENT.get(), Set.of(ModBiomes.COLUMBIA)),
 
     /**
-     * Under Tides. <b>Has no structure yet</b>, so it has no physical extent and nothing is
-     * sealed — the lockdown skips it silently until one is declared in {@code ModStructures}.
-     * Bishop Quintus already clears it, and it unlocks no biome because Ægir has none of its
-     * own painted on the map yet; both are one-line changes here when they exist.
+     * Under Tides. <b>No structure yet</b>, so it seals no area — the lockdown skips it
+     * silently until one is declared in {@code ModStructures}. Bishop Quintus already clears
+     * it; it unlocks no biome because Ægir has none painted on the map yet.
      */
     UNDER_TIDES(null,
             () -> ModEntities.SV_BISHOP_QUINTUS.get(), null, Set.of());

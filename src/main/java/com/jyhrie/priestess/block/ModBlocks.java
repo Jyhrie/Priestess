@@ -77,34 +77,18 @@ public class ModBlocks {
     //
     // DEEPSLATE_TILES is the base: pickaxe-only and hard enough that digging one out is a
     // decision, without being so slow that a cleared lab is tedious to renovate.
-    //
-    // Everything after that base exists because a gate is only as strong as the cheapest way
-    // around it, and mining is not the only way a block leaves the world. The lockdown refuses
-    // the pickaxe; these refuse the three things that would otherwise move a wall nobody is
-    // allowed to mine — see the class comment on DungeonLockdown for the pickaxe half.
 
     /**
      * Shared by all five, so the gate cannot be undercut by one of them being softer.
      *
-     * <p>The three immunities, and what each closes:
-     * <ul>
-     *   <li><b>Explosions</b> — bedrock's resistance rather than obsidian's. TNT is trivially
-     *       available long before Dorothy's Vision is, and a creeper wandering into the lab
-     *       should not be able to open it by accident. At this value no explosion opens it,
-     *       vanilla or otherwise, rather than merely no explosion vanilla can produce.</li>
-     *   <li><b>Pistons</b> — {@link PushReaction#BLOCK}, so a wall cannot be shoved aside
-     *       instead of broken. This also stops a piston head extending into one, which is what
-     *       makes it a wall rather than a block that happens not to move.</li>
-     *   <li><b>The wither</b> — via {@link net.minecraft.tags.BlockTags#WITHER_IMMUNE} in
-     *       {@code ModBlockTagsProvider}, because that is where vanilla looks. A wither eats
-     *       through anything below bedrock and would otherwise be a portable dungeon key.</li>
-     * </ul>
+     * <p>A gate is only as strong as the cheapest way around it, and mining is not the only
+     * way a block leaves the world. Bedrock's blast resistance and {@link PushReaction#BLOCK}
+     * close two of the other three; {@code BlockTags.WITHER_IMMUNE} in
+     * {@code ModBlockTagsProvider} closes the wither, because that is where vanilla looks.
      *
-     * <p>All three are unconditional — they do not lift when the dungeon is cleared, unlike
-     * the mining gate. None of the three has a player to ask: an explosion, a piston and a
-     * wither skull all arrive without one, and per-player progress has no answer for "may
-     * <em>this TNT</em> break it". Unconditional is also the more honest reading of what these
-     * blocks are: lab plating that a piston was never going to move.
+     * <p>All three are unconditional and do not lift when the dungeon is cleared, unlike the
+     * mining gate — an explosion, a piston and a wither skull all arrive without a player, so
+     * there is nobody whose progress to consult.
      */
     private static BlockBehaviour.Properties artsLab() {
         return BlockBehaviour.Properties.copy(Blocks.DEEPSLATE_TILES)

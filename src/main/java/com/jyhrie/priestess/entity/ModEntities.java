@@ -40,53 +40,9 @@ import net.minecraftforge.registries.RegistryObject;
  * language file, and the loot tables, so a new mob here is not finished until those three
  * know about it.
  *
- * <h2>Who belongs to which movement</h2>
- * <table border="1">
- *   <caption>The roster</caption>
- *   <tr><th>Mob</th><th>Movement</th><th>Dungeon</th><th>What it is for</th></tr>
- *
- *   <tr><td>Originium Slug</td><td><i>none</i></td><td><i>none</i></td><td>wasteland vermin.
- *       A blank mob — every mechanic it had has been cut, pending replacements</td></tr>
- *
- *   <tr><td>Failure</td><td>I — Columbia</td><td>Dorothy's Vision</td><td>melee — the swarm;
- *       drops Medium</td></tr>
- *   <tr><td>Replica</td><td>I — Columbia</td><td>Dorothy's Vision</td><td>melee — the
- *       baseline; drops Medium</td></tr>
- *   <tr><td>Bionic</td><td>I — Columbia</td><td>Dorothy's Vision</td><td>melee — the wall;
- *       drops Medium</td></tr>
- *   <tr><td>"Awaken"</td><td>I — Columbia</td><td>Dorothy's Vision</td><td><b>boss</b> —
- *       summoned by the terminal, no attacks yet; drops Dreamland</td></tr>
- *
- *   <tr><td>Imprisoned Pugilist</td><td>I — Columbia</td><td>Mansfield Break</td><td>melee —
- *       a zombie in all but name</td></tr>
- *   <tr><td>Imprisoned Recidivist</td><td>I — Columbia</td><td>Mansfield Break</td><td>melee
- *       — the same mob half again as large, and too heavy to kite</td></tr>
- *   <tr><td>Imprisoned Sniper</td><td>I — Columbia</td><td>Mansfield Break</td><td>ranged —
- *       real arrows, so the only shot in the mod you can dodge</td></tr>
- *   <tr><td>Jesselton Williams</td><td>I — Columbia</td><td>Mansfield Break</td><td><b>boss</b>
- *       — two phases; drops the Master Key</td></tr>
- *
- *   <tr><td>Runner</td><td>II — Ægir</td><td>Under Tides</td><td>melee — the only mob faster
- *       than a sprinting player</td></tr>
- *   <tr><td>Spitter</td><td>II — Ægir</td><td>Under Tides</td><td>ranged — hitscan spit on a
- *       vanilla ranged goal</td></tr>
- *   <tr><td>Reaper</td><td>II — Ægir</td><td>Under Tides</td><td>melee — hits hard and
- *       survives being hit back</td></tr>
- *   <tr><td>Crawler</td><td>II — Ægir</td><td>Under Tides</td><td>melee — knee-high, comes in
- *       numbers</td></tr>
- *   <tr><td>Piercer</td><td>II — Ægir</td><td>Under Tides</td><td>melee — glass cannon; see
- *       its javadoc, it does not literally pierce yet</td></tr>
- *   <tr><td>The First to Talk</td><td>II — Ægir</td><td>Under Tides</td><td><b>miniboss</b> —
- *       bar, melee, enrages at half health</td></tr>
- *   <tr><td>Sal Viento Bishop Quintus</td><td>II — Ægir</td><td>Under Tides</td><td><b>boss</b>
- *       — fully immobile, and unlike "Awaken" it ships with its attack</td></tr>
- * </table>
- *
- * <p><b>Nothing in this mod spawns naturally.</b> The slug was the last one that did, and its
- * spawn wiring went when its mechanics did. Every mob is reached through its spawn egg,
- * except the bosses a structure places — and the dungeons that would place the rest are still
- * Python-generated placeholders. See {@code docs/SPAWNING.md} for how to give a movement its
- * population back.
+ * <p><b>Nothing in this mod spawns naturally.</b> Every mob is reached through its spawn egg,
+ * except the bosses a structure places. See {@code docs/SPAWNING.md} for how to give a
+ * movement its population back.
  *
  * <h2>How this package is laid out</h2>
  * The root holds only the registry and the base classes — {@link BossMonster} and
@@ -110,37 +66,19 @@ import net.minecraftforge.registries.RegistryObject;
  * more.
  *
  * <h2>Everything carries a dungeon code</h2>
- * Packages are invisible to the game and invisible in most of an IDE's search results, so
- * the grouping has to be spelled out in the names themselves — otherwise {@code /summon}
- * autocomplete, the creative tab, the asset folders and the class list are all one
- * undifferentiated alphabetical run. Every mob belonging to a dungeon is prefixed with that
- * dungeon's code:
- * <table border="1">
- *   <caption>Prefixes</caption>
- *   <tr><th>Prefix</th><th>Dungeon</th><th>Members</th></tr>
- *   <tr><td>{@code dv_} / {@code Dv}</td><td>Dorothy's Vision</td><td>Failure, Replica,
- *       Bionic, "Awaken"</td></tr>
- *   <tr><td>{@code mb_} / {@code Mb}</td><td>Mansfield Break</td><td>the three Imprisoned,
- *       Jesselton Williams</td></tr>
- *   <tr><td>{@code sv_} / {@code Sv}</td><td>Under Tides</td><td>Runner, Spitter, Reaper,
- *       Crawler, Piercer, The First to Talk, Bishop Quintus</td></tr>
- *   <tr><td><i>none</i></td><td>—</td><td>the Originium Slug, which belongs to no
- *       dungeon</td></tr>
- * </table>
+ * Packages are invisible to the game and to most IDE searches, so the grouping is spelled out
+ * in the names: {@code dv_}, {@code mb_}, {@code sv_}, or none for a mob belonging to no
+ * dungeon. <b>The table in the README is the authority for which code is whose</b> — it is not
+ * always the package's initials.
  *
- * <p>Two spellings of the same prefix, one per naming convention. {@code snake_case} for
- * anything the game reads — the entity id, the spawn egg id,
- * {@code geo/entity/<id>.geo.json}, {@code textures/entity/<id>.png} — and
- * {@code SCREAMING_SNAKE} for the constants in this file and {@code ModItems}, which track
- * their registry names. {@code PascalCase} for the classes and their files, so
- * {@code DvFailure} sits in {@code mobs/dorothysvision/}. The renderer follows the boss it
- * draws: {@code DvAwakenRenderer}.
+ * <p>Two spellings of the same prefix. {@code snake_case} for anything the game reads — the
+ * entity id, the spawn egg id, {@code geo/entity/<id>.geo.json},
+ * {@code textures/entity/<id>.png} — and {@code SCREAMING_SNAKE} for the constants here and in
+ * {@code ModItems}, which track their registry names. {@code PascalCase} for classes. The
+ * renderer follows the boss it draws: {@code DvAwakenRenderer}.
  *
- * <p>The one place the prefix does <b>not</b> appear is the <b>display names</b>.
- * {@code ModLanguageProvider} still reads "Failure" and "Jesselton Williams", and the class
- * javadoc of each mob still opens with its in-game name. A player never sees {@code dv_} or
- * {@code Mb}. The prefix is a developer-facing filing system, not part of the fiction — so
- * when editing these files, rename identifiers freely and leave the prose alone.
+ * <p>The prefix never appears in <b>display names</b>: it is a developer-facing filing system,
+ * so rename identifiers freely and leave the prose alone.
  *
  * <h2>Adding a mob</h2>
  * <ol>

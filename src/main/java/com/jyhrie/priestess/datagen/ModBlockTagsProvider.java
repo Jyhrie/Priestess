@@ -20,26 +20,19 @@ import java.util.concurrent.CompletableFuture;
  *
  * <h2>{@code sealed_by/<dungeon>}</h2>
  * A block in one of these cannot be broken by a player who has not cleared that dungeon,
- * wherever in the world it stands. See {@link Dungeon#sealedBlocks()} and
- * {@code DungeonLockdown}. Nothing else declares the gate: to put a block behind a dungeon,
- * add it here and run {@code runData}. To take it out again, delete the line. There is no
- * code path to update, which is the point of doing it with a tag — a dungeon's build set is
- * going to be tens of blocks, not five.
- *
- * <p>The tags are additive datapack files like any other, so a pack maintainer can gate their
- * own blocks behind a Priestess dungeon without touching this mod.
+ * wherever it stands — see {@link Dungeon#sealedBlocks()} and {@code DungeonLockdown}. Nothing
+ * else declares the gate: add a line here, run {@code runData}, done. They are additive
+ * datapack files, so a pack can gate its own blocks behind a Priestess dungeon too.
  *
  * <h2>{@code minecraft:wither_immune}</h2>
- * Vanilla's own tag, one of the three ways the Arts Lab set refuses to leave the world by
- * something other than a pickaxe. Unlike {@code sealed_by}, it does not lift when the dungeon
- * is cleared — see {@code ModBlocks.artsLab} for why all three are unconditional.
+ * Vanilla's own tag. One of the three non-pickaxe ways out of the world that the Arts Lab set
+ * refuses; unlike {@code sealed_by} it never lifts. See {@code ModBlocks.artsLab}.
  *
  * <h2>{@code mineable/*}</h2>
- * These blocks copy {@code DEEPSLATE_TILES}, which sets {@code requiresCorrectToolForDrops}.
- * A block with that flag and no {@code mineable} tag is minable by nothing at all — it takes
- * the slow no-tool speed and then drops nothing whatever you hit it with. The tag is what
- * makes the pickaxe count, so it is not optional decoration; it is the difference between a
- * block that works and one that looks broken.
+ * Not decoration. These blocks copy {@code DEEPSLATE_TILES}, which sets
+ * {@code requiresCorrectToolForDrops}, and a block with that flag and no {@code mineable} tag
+ * is mineable by nothing at all — slow no-tool speed, and then no drop whatever you hit it
+ * with.
  */
 public class ModBlockTagsProvider extends BlockTagsProvider {
 
@@ -67,10 +60,9 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
             // behind it.
             tag(Dungeon.DOROTHYS_VISION.sealedBlocks()).add(block);
 
-            // The wither is the one thing that eats through a block without a player behind
-            // it and without an explosion to resist — it just deletes what it flies into. The
-            // other two ways past the gate are refused in the block's own properties (see
-            // ModBlocks.artsLab); this one is a tag because that is where vanilla looks.
+            // The wither deletes what it flies into — no player, no explosion to resist. The
+            // other two ways past the gate live in ModBlocks.artsLab; this one is a tag
+            // because that is where vanilla looks.
             tag(BlockTags.WITHER_IMMUNE).add(block);
 
             tag(BlockTags.MINEABLE_WITH_PICKAXE).add(block);

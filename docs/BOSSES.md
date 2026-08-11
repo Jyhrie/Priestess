@@ -3,7 +3,8 @@
 How a Columbia boss is put together, walked through with **Jesselton Williams** — the first
 one, and the one every other boss in the chapter is a variation on.
 
-For the chapter as a whole see the main [README](../README.md#the-columbia-chapter).
+For the chapter as a whole see [Content and storyline](../README.md#content-and-storyline) in
+the README, or [docs/SCORE_MOVEMENTS.md](SCORE_MOVEMENTS.md) for the full thing.
 
 ---
 
@@ -15,7 +16,7 @@ For the chapter as a whole see the main [README](../README.md#the-columbia-chapt
   - [Numbers](#numbers)
   - [The two phases](#the-two-phases)
   - [The tick](#the-tick)
-  - [Summoning](#summoning)
+  - [Summoning — removed](#summoning--removed)
   - [Staying put](#staying-put)
   - [The drop](#the-drop)
 - [Known rough edges](#known-rough-edges)

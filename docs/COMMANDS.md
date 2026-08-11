@@ -6,8 +6,8 @@ Both mod commands are **op-only (permission level 2, `LEVEL_GAMEMASTERS`)** and 
 the same reason: the mechanics they touch are deliberately invisible or one-way, so without a
 command there is no way to see what state a world is in, and no way to put it back.
 
-For the mechanics themselves see [the README](../README.md#oripathy) and
-[the dungeon code](../README.md#the-dungeon-code).
+For the mechanics themselves see [Oripathy](../README.md#oripathy) and
+[Progression](../README.md#progression) in the README.
 
 ---
 

@@ -29,10 +29,12 @@ public final class PriestessConfig {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
         builder.comment(
-                "Dungeon lockdown: while a dungeon is uncleared, its rooms cannot be mined.",
-                "Blocks a player placed themselves are always exempt, so scaffolding and",
-                "bridging still work — the rule is 'you cannot dig through the dungeon', not",
-                "'you cannot build in it'.")
+                "Dungeon lockdown: while a dungeon is uncleared, its rooms cannot be mined,",
+                "and nor can any block in that dungeon's priestess:sealed_by/<dungeon> tag,",
+                "wherever it stands. Placing is untouched — the rule is 'you cannot dig",
+                "through the dungeon', not 'you cannot build in it'. It does not ask who put",
+                "a block there, so a block you place inside a sealed dungeon is one you",
+                "cannot take back until you clear it.")
                .push("lockdown");
 
         LOCKDOWN_ENABLED = builder

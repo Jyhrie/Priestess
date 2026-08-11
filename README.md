@@ -37,8 +37,9 @@ Two rules that follow from this:
 - **Worldgen changes need a fresh world.** Already-generated chunks keep their old
   terrain and biomes forever. Delete the test world in `run/saves/` and make a new one.
 
-Only items, blocks and the creative tab are registered in code at runtime (via
-`DeferredRegister` in `Priestess.java`).
+What *is* registered in code at runtime, all wired up in `Priestess.java`: items, blocks,
+block entities, the creative tab, mob effects, entity types, the two worldgen codecs, the
+structure placement type, the Oripathy capability and the `DungeonSync` network channel.
 
 ---
 
@@ -47,11 +48,22 @@ Only items, blocks and the creative tab are registered in code at runtime (via
 ```
 src/main/java/com/jyhrie/priestess/
 ├── Priestess.java                  main mod class, MOD_ID, runtime registration
-├── block/ModBlocks.java            block registry (auto-registers BlockItems too)
+├── PriestessConfig.java            serverconfig/priestess-server.toml — lockdown + flight
+├── block/
+│   ├── ModBlocks.java              block registry (auto-registers BlockItems too)
+│   ├── BossSummonerBlock.java      base: hold the catalyst, right-click, boss stands up
+│   ├── JesseltonProjectorBlock.java  its Mansfield instance
+│   ├── DorothysTerminalBlock.java    its Dorothy's Vision instance
+│   └── entity/
+│       ├── ModBlockEntities.java   one type, shared by every summoner
+│       └── BossSummonerBlockEntity.java  the spent countdown and whose boss it is
 ├── item/
 │   ├── ModItems.java               item registry
 │   └── ModCreativeTabs.java        the "Priestess" creative tab
 ├── damage/ModDamageTypes.java      damage types (datapack JSON, like worldgen)
+├── effect/
+│   ├── ModEffects.java             Open Wounds + Acute Oripathy, and both level tables
+│   └── InertMobEffect.java         an effect that does nothing; oripathy code reads it
 ├── entity/                         ← the Columbia roster
 │   │                                 root = registry + base classes only
 │   ├── ModEntities.java            entity types, attributes, spawn placements
@@ -93,12 +105,22 @@ src/main/java/com/jyhrie/priestess/
 │   ├── OripathyProvider.java       attaches it to a Player, saves it to NBT
 │   ├── OripathyEvents.java         symptoms, carrying it through death
 │   └── OripathyCommand.java        /oripathy get|set|add
+├── progression/                    ← the gates: what a dungeon locks until you finish it
+│   ├── Dungeon.java                the dungeons, and all three facts about each
+│   ├── DungeonProgress.java        who has cleared what (shared or per player)
+│   ├── DungeonLockdown.java        you cannot mine a dungeon you have not cleared
+│   ├── DungeonSync.java            tells the client, so the refusal isn't a rubber-band
+│   ├── FlightRestriction.java      whole biomes refuse flight until their dungeon is done
+│   └── DungeonCommand.java         /dungeon list|clear|seal
 ├── datagen/                        ← turns the Java below into JSON
 │   ├── DataGenerators.java         wires up every provider
 │   ├── ModBlockStateProvider.java  blockstates + block models
+│   ├── ModBlockTagsProvider.java   sealed_by/*, wither_immune, mineable/* — a mechanic
+│   ├── ModDamageTypeTagsProvider.java  which vanilla damage tags ours join
 │   ├── ModItemModelProvider.java   item models
 │   ├── ModLanguageProvider.java    en_us.json
 │   ├── ModLootTableProvider.java   block drops
+│   ├── ModTerraPreviewProvider.java  renders docs/terra_world_preview.png
 │   └── ModWorldGenProvider.java    registry bootstrap order for all worldgen
 ├── world/dimension/
 │   ├── ModDimensions.java          dimension type + chunk generator wiring
@@ -106,7 +128,8 @@ src/main/java/com/jyhrie/priestess/
 │   ├── ModNoiseSettings.java       terrain shape + surface blocks
 │   ├── ModStructures.java          structure declarations
 │   ├── ModStructurePlacements.java the one placement type this mod adds
-│   └── SingleInRegionStructurePlacement.java  one per world, anywhere in a region
+│   ├── SingleInRegionStructurePlacement.java  one per world, anywhere in a region
+│   └── AnchorReport.java           logs where those landed, on operator login
 └── world/terra/                    ← the map: where everything actually is
     ├── TerraRegion.java            every region, its map colour, its 8 biomes
     ├── TerraSlot.java              the 8 terrain classes and their elevations
@@ -130,9 +153,12 @@ tools/generate_relief_map.py        first draft of relief.png, from regions.png
 tools/generate_placeholder_art.py   placeholder mob + item textures
 tools/generate_placeholder_models.py  placeholder .geo.json, with UVs packed automatically
 tools/generate_placeholder_dungeons.py  the three dungeon .nbt files
+docs/WORLDGEN.md                    the map, terrain, biomes and surface rules
 docs/COMMANDS.md                    every command, mod and vanilla, and test recipes
-docs/terra_map_preview.png          shaded political map, for humans
-docs/terra_world_preview.png        what the generator will actually produce
+docs/SCORE_MOVEMENTS.md             the storyline, chapter by chapter
+docs/BOSSES.md                      per-boss design and fight notes
+docs/SPAWNING.md                    why nothing spawns naturally, and how to change that
+docs/terra_world_preview.png        what the generator will actually produce (datagen writes it)
 
 src/generated/resources/            ← GENERATED, do not edit
 ```
@@ -246,7 +272,11 @@ be derived from elevation, which meant brightening a mountain quietly made it bu
 well as taller, and a high plateau or a rugged lowland could not be authored at all.
 Relief is damped to zero at the waterline whatever you paint, so coastlines stay clean.
 
-![Terra](docs/terra_map_preview.png)
+![Terra](docs/terra_world_preview.png)
+
+*What the generator will actually produce. `runData` rewrites this every time, so it is never
+out of date with the PNGs. `tools/generate_terra_map.py` also emits a shaded political map at
+`docs/terra_map_preview.png` — that one is not committed, so run the tool if you want it.*
 
 ### Scale, origin and height
 
@@ -262,7 +292,7 @@ Relief is damped to zero at the waterline whatever you paint, so coastlines stay
 | **Mountain spur spacing** | ~128 blocks | `rangeScale`, derived from world width — **not** from blocks/px |
 | **Lowest ground** | y 28 | first knot of `mapHeight` |
 | **Highest ground** | y 244 base, **y 292 with relief** | last knot of `mapHeight` + `ruggedness` × `reliefVariation` |
-| **Sea level** | y 124 | `ModNoiseSettings.java:100` |
+| **Sea level** | y 124 | `sea_level` in `ModNoiseSettings.java` |
 | **World floor / ceiling** | y −64 / y 320 | `NoiseSettings.create(-64, 384, …)` |
 | **Off the N / S edge** | Infy Icefield / Foehn Hotlands, forever | the map's own top and bottom rows |
 | **Off the E / W edge** | open ocean, forever | the map's own left and right columns |
@@ -445,6 +475,68 @@ code already carries "Sal Viento", and only the display name spells it out.
 "Jesselton Williams"; they never see `dv_` or `Mb`. Each mob's class javadoc also still opens
 with its in-game name, so when editing these files rename identifiers freely and leave the
 prose alone.
+
+---
+
+## Progression
+
+Two mechanics, both keyed off one flag per dungeon: **have you cleared it**. Everything lives
+in `progression/`, and both are configurable in `serverconfig/priestess-server.toml`.
+
+Every dungeon is one constant in `Dungeon.java`, which is the only place its three facts meet
+— the structure that is its physical extent, what clears it, and which biomes it ungrounds.
+Adding a dungeon is adding a constant; the lockdown and the flight ban both iterate the enum,
+and `DungeonProgress` keys its records off `getSerializedName()`. A dungeon is cleared by
+killing a declared boss, or by **picking up** a declared item for one that ends in a chest
+rather than a fight. One with neither declared can never seal anything — `isCleared` fails
+open on it deliberately, because a seal with no key is unrecoverable.
+
+**Where the flag lives** is a config choice. `lockdown.sharedProgress=false` (the default)
+gives every player their own record, on the Forge-persisted player tag so it survives death;
+`true` gives one world-wide `SavedData`. Both storages always exist and only one is read, so
+flipping the config back restores exactly what was there — nothing migrates, because
+"everyone cleared it" and "this player cleared it" are not the same fact.
+
+### The lockdown
+
+You cannot mine your way through a dungeon you have not cleared. Two rules, and a break is
+refused if either applies:
+
+| Rule | Covers | Declared in |
+|---|---|---|
+| **By place** | every block inside the dungeon's structure | the structure id in `Dungeon.java` |
+| **By block** | every block in `priestess:sealed_by/<dungeon>`, **wherever it stands** | `ModBlockTagsProvider` |
+
+The block rule is the one to reach for when gating a build set — it needs no structure and is
+a datapack file, so growing a gate is JSON rather than code. The tag name is derived from the
+constant, so a dungeon cannot point at another's blocks. Today the five Rhine Lab Arts Lab
+blocks sit behind `dorothys_vision`.
+
+Placing is untouched, and neither rule asks who put a block there — so a block you place inside
+a sealed dungeon is one you cannot take back until you clear it.
+
+**Three events do the refusing**, all on both sides. `LeftClickBlock` cancels the dig before it
+starts and carries the message; `BreakSpeed` pinned to zero holds a dig already in flight;
+`BreakEvent` is the authority and backstop. Both sides matter because mining is
+client-predicted — a server-only refusal shows the block cracking, shattering and reappearing.
+`DungeonSync` sends each player their cleared set so the client can refuse a *tagged* block
+outright. It cannot do the same for the area rule: structure positions never reach the client.
+
+Those five blocks are also blast-proof, piston-proof and wither-proof — `explosionResistance`
+and `PushReaction.BLOCK` in `ModBlocks.artsLab()`, plus the `wither_immune` tag. Unlike the
+mining gate those never lift, because an explosion, a piston and a wither skull all arrive
+without a player whose progress could be consulted.
+
+### The flight ban
+
+Whole biomes refuse flight until the dungeon gating them is cleared. It works by clearing the
+vanilla `mayfly`/`flying` ability flags every tick, which catches most modded flight too since
+granting the vanilla ability is the usual implementation, and cancels elytra gliding
+separately because that is not a flag. **A jetpack that adds to `deltaMovement` directly is not
+stopped**; see the class note in `FlightRestriction.java` for why that is not fixable in
+general.
+
+**→ `/dungeon list|clear|seal` and test recipes: [docs/COMMANDS.md](docs/COMMANDS.md#dungeon)**
 
 ---
 
