@@ -67,6 +67,14 @@ public class ModLootTableProvider {
             this.dropSelf(ModBlocks.SAL_VIENTO_CATACOMBS_STONE.get());
             this.dropSelf(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get());
             this.dropSelf(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE.get());
+            this.dropSelf(ModBlocks.RMA70_12_DECORATIVE_PIPE.get());
+            this.dropSelf(ModBlocks.RMA70_12_DECORATIVE_VENT.get());
+            this.dropSelf(ModBlocks.RMA70_24_DECORATIVE_PIPE.get());
+            this.dropSelf(ModBlocks.RMA70_24_DECORATIVE_VENT.get());
+            this.dropSelf(ModBlocks.D32_STEEL_DECORATIVE_PIPE.get());
+            this.dropSelf(ModBlocks.D32_STEEL_DECORATIVE_VENT.get());
+            this.dropSelf(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_PIPE.get());
+            this.dropSelf(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_VENT.get());
         }
 
         // Every block registered by the mod must get a table in generate(), or datagen fails.

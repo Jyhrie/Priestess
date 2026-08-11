@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "priestess:block/d32_steel_decorative_vent"
+  }
+}

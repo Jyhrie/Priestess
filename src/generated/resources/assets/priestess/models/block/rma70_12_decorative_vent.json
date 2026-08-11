@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "priestess:block/rma70_12_decorative_vent"
+  }
+}

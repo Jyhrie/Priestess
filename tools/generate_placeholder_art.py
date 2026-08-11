@@ -145,6 +145,12 @@ def arts_lab_pattern(kind, x, y):
         # arm, so horizontal lines read as ribs on the pipe from every side, and the tile has
         # to look the same either way up because the same texture is used on all six faces.
         return y in (1, 2, 13, 14) or (x + y) % 9 == 0
+    if kind == "vent":
+        # A framed grille: border, then horizontal louvres with a gap at the centre line so
+        # the slats read as two banks rather than one comb. Full cube, so unlike the pipe this
+        # tile is only ever seen flat.
+        louvre = 2 <= x <= 13 and y in (3, 5, 7, 10, 12)
+        return edge or louvre
     if kind == "catacombs_overgrown":
         # The same bond with growth on it. The moss is deterministic per pixel rather than
         # random so the two tiles line up as the same stone, and it hangs from the courses
@@ -443,6 +449,35 @@ SAL_VIENTO_BLOCKS = [
     ("sal_viento_catacombs_pipe",            (0x6A, 0x7F, 0x72), (0x3C, 0x4C, 0x45), 323, "pipe"),
 ]
 
+# ── Decorative pipe and vent sets ─────────────────────────────────────────────
+# Four materials, each a pipe and a matching vent, and every one of them connects to every
+# other. The colours are the only thing telling them apart in a corridor, so they are picked
+# to be distinguishable at a glance and in a screenshot: amber, crimson, cold steel, violet.
+# Each pair shares one base so a pipe reads as belonging to its vent.
+
+RMA70_12 = (0xC8, 0x8A, 0x3C)
+RMA70_12_DARK = (0x7A, 0x4E, 0x1C)
+RMA70_24 = (0xB0, 0x44, 0x38)
+RMA70_24_DARK = (0x63, 0x21, 0x1C)
+D32_STEEL = (0x7C, 0x88, 0x95)
+D32_STEEL_DARK = (0x41, 0x4C, 0x58)
+IRIDESCENT = (0x8E, 0x6F, 0xC6)
+IRIDESCENT_DARK = (0x46, 0x9E, 0xA8)
+
+PIPE_SETS = [
+    # name,                                base,        accent,           seed, pattern
+    ("rma70_12_decorative_pipe",         RMA70_12,   RMA70_12_DARK,    331, "pipe"),
+    ("rma70_12_decorative_vent",         RMA70_12,   RMA70_12_DARK,    332, "vent"),
+    ("rma70_24_decorative_pipe",         RMA70_24,   RMA70_24_DARK,    333, "pipe"),
+    ("rma70_24_decorative_vent",         RMA70_24,   RMA70_24_DARK,    334, "vent"),
+    ("d32_steel_decorative_pipe",        D32_STEEL,  D32_STEEL_DARK,   335, "pipe"),
+    ("d32_steel_decorative_vent",        D32_STEEL,  D32_STEEL_DARK,   336, "vent"),
+    # The odd one out on purpose: a violet base against a teal accent, so it shifts colour
+    # across the tile the way the name promises rather than being flat purple.
+    ("iridescent_alloy_decorative_pipe", IRIDESCENT, IRIDESCENT_DARK,  337, "pipe"),
+    ("iridescent_alloy_decorative_vent", IRIDESCENT, IRIDESCENT_DARK,  338, "vent"),
+]
+
 
 def main():
     print("entity textures ->")
@@ -454,7 +489,7 @@ def main():
     print("block textures ->")
     for name, base, accent, seed, frame in BLOCKS:
         block_texture(name, base, accent, seed, frame)
-    for name, base, accent, seed, kind in ARTS_LAB_BLOCKS + SAL_VIENTO_BLOCKS:
+    for name, base, accent, seed, kind in ARTS_LAB_BLOCKS + SAL_VIENTO_BLOCKS + PIPE_SETS:
         patterned_block(name, base, accent, seed, kind)
 
 

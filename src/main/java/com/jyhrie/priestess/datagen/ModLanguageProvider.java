@@ -102,6 +102,15 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get(), "Sal Viento Catacombs Overgrown Stone");
         add(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE.get(), "Sal Viento Catacombs Pipe");
 
+        add(ModBlocks.RMA70_12_DECORATIVE_PIPE.get(), "RMA70-12 Decorative Pipe");
+        add(ModBlocks.RMA70_12_DECORATIVE_VENT.get(), "RMA70-12 Decorative Vent");
+        add(ModBlocks.RMA70_24_DECORATIVE_PIPE.get(), "RMA70-24 Decorative Pipe");
+        add(ModBlocks.RMA70_24_DECORATIVE_VENT.get(), "RMA70-24 Decorative Vent");
+        add(ModBlocks.D32_STEEL_DECORATIVE_PIPE.get(), "D32 Steel Decorative Pipe");
+        add(ModBlocks.D32_STEEL_DECORATIVE_VENT.get(), "D32 Steel Decorative Vent");
+        add(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_PIPE.get(), "Iridescent Alloy Decorative Pipe");
+        add(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_VENT.get(), "Iridescent Alloy Decorative Vent");
+
         // ── Dungeons ──────────────────────────────────────────────────────────
         // Names for the dungeons themselves, used by the lockdown and clear messages. The
         // key is Dungeon.getSerializedName(), so these must track that enum.

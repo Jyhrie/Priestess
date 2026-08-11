@@ -1,5 +1,9 @@
 {
   "values": [
-    "priestess:sal_viento_catacombs_pipe"
+    "priestess:sal_viento_catacombs_pipe",
+    "priestess:rma70_12_decorative_pipe",
+    "priestess:rma70_24_decorative_pipe",
+    "priestess:d32_steel_decorative_pipe",
+    "priestess:iridescent_alloy_decorative_pipe"
   ]
 }

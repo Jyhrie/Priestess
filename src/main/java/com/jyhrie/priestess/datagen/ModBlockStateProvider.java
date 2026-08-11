@@ -53,7 +53,24 @@ public class ModBlockStateProvider extends BlockStateProvider {
         simpleBlockWithItem(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get(),
                 cubeAll(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get()));
 
+        // Pipes and vents. A vent is an ordinary cube — only the pipe has connection state.
         pipe(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE);
+
+        pipe(ModBlocks.RMA70_12_DECORATIVE_PIPE);
+        simpleBlockWithItem(ModBlocks.RMA70_12_DECORATIVE_VENT.get(),
+                cubeAll(ModBlocks.RMA70_12_DECORATIVE_VENT.get()));
+
+        pipe(ModBlocks.RMA70_24_DECORATIVE_PIPE);
+        simpleBlockWithItem(ModBlocks.RMA70_24_DECORATIVE_VENT.get(),
+                cubeAll(ModBlocks.RMA70_24_DECORATIVE_VENT.get()));
+
+        pipe(ModBlocks.D32_STEEL_DECORATIVE_PIPE);
+        simpleBlockWithItem(ModBlocks.D32_STEEL_DECORATIVE_VENT.get(),
+                cubeAll(ModBlocks.D32_STEEL_DECORATIVE_VENT.get()));
+
+        pipe(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_PIPE);
+        simpleBlockWithItem(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_VENT.get(),
+                cubeAll(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_VENT.get()));
     }
 
     /**

@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 /**
  * Block tags — including the ones that <em>are</em> a mechanic.
@@ -61,6 +62,21 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
             ModBlocks.SAL_VIENTO_CATACOMBS_STONE,
             ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE);
 
+    /** Every pipe, of every material. They all join each other because they share one tag. */
+    private static final List<RegistryObject<Block>> PIPES = List.of(
+            ModBlocks.SAL_VIENTO_CATACOMBS_PIPE,
+            ModBlocks.RMA70_12_DECORATIVE_PIPE,
+            ModBlocks.RMA70_24_DECORATIVE_PIPE,
+            ModBlocks.D32_STEEL_DECORATIVE_PIPE,
+            ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_PIPE);
+
+    /** Every vent. Any pipe docks into any of these, whatever material either one is. */
+    private static final List<RegistryObject<Block>> VENTS = List.of(
+            ModBlocks.RMA70_12_DECORATIVE_VENT,
+            ModBlocks.RMA70_24_DECORATIVE_VENT,
+            ModBlocks.D32_STEEL_DECORATIVE_VENT,
+            ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_VENT);
+
     @Override
     protected void addTags(HolderLookup.Provider provider) {
         for (RegistryObject<Block> entry : ModBlocks.BLOCKS.getEntries()) {
@@ -78,15 +94,23 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
             tag(BlockTags.NEEDS_IRON_TOOL).add(entry.get());
         }
 
-        // What a DecorativePipeBlock joins up with. A pipe missing from this tag still places
-        // and still looks like a pipe — it simply never connects to anything, which is the
-        // first thing to check when a run of them sits in a row as separate stubs.
-        tag(DecorativePipeBlock.PIPES)
-                .add(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE.get());
+        // What a DecorativePipeBlock joins up with. One tag for every material, which is the
+        // whole of "they all connect to each other" — a pipe missing from it still places and
+        // still looks like a pipe, it simply never connects, which is the first thing to check
+        // when a run sits in a row as separate stubs.
+        for (RegistryObject<Block> entry : PIPES) {
+            tag(DecorativePipeBlock.PIPES).add(entry.get());
+        }
+        // The vents: not pipes, but the blocks a run is meant to end at.
+        for (RegistryObject<Block> entry : VENTS) {
+            tag(DecorativePipeBlock.PIPE_ATTACHMENTS).add(entry.get());
+        }
 
-        // Copper-grade, so stone is enough. Pipes are dressing, not a gate.
-        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE.get());
-        tag(BlockTags.NEEDS_STONE_TOOL).add(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE.get());
+        // Metal-grade, so stone is enough. Decoration, not a gate.
+        for (RegistryObject<Block> entry : Stream.concat(PIPES.stream(), VENTS.stream()).toList()) {
+            tag(BlockTags.MINEABLE_WITH_PICKAXE).add(entry.get());
+            tag(BlockTags.NEEDS_STONE_TOOL).add(entry.get());
+        }
     }
 
     @Override

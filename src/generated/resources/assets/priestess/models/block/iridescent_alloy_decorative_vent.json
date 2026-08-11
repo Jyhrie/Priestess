@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "priestess:block/iridescent_alloy_decorative_vent"
+  }
+}

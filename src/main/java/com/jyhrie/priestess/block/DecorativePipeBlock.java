@@ -7,7 +7,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -58,11 +57,21 @@ import net.minecraft.world.level.material.Fluids;
 public class DecorativePipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
 
     /**
-     * Every block that counts as a pipe for the purpose of joining up. Populated in
-     * {@code ModBlockTagsProvider}; a pipe that is not in it will never connect to anything.
+     * Every block that counts as a pipe for the purpose of joining up — one tag across all
+     * materials, so an RMA70 pipe meets a D32 Steel one without either knowing the other
+     * exists. Populated in {@code ModBlockTagsProvider}; a pipe left out of it will never
+     * connect to anything, which is the first thing to check when a run sits as loose stubs.
      */
     public static final TagKey<Block> PIPES =
             TagKey.create(Registries.BLOCK, new ResourceLocation(Priestess.MOD_ID, "pipes"));
+
+    /**
+     * Blocks that are not pipes but that a pipe will still dock into — the vents. Separate
+     * from {@link #PIPES} because these are solid cubes and answering "yes, I am a pipe" for
+     * them would be a lie the moment anything else asks.
+     */
+    public static final TagKey<Block> PIPE_ATTACHMENTS =
+            TagKey.create(Registries.BLOCK, new ResourceLocation(Priestess.MOD_ID, "pipe_attachments"));
 
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
@@ -98,9 +107,8 @@ public class DecorativePipeBlock extends PipeBlock implements SimpleWaterloggedB
                 .setValue(WATERLOGGED, level.getFluidState(pos).getType() == Fluids.WATER);
 
         for (Direction direction : Direction.values()) {
-            BlockPos neighbourPos = pos.relative(direction);
             state = state.setValue(PROPERTY_BY_DIRECTION.get(direction),
-                    connectsTo(level, neighbourPos, level.getBlockState(neighbourPos), direction));
+                    connectsTo(level.getBlockState(pos.relative(direction))));
         }
         return state;
     }
@@ -111,18 +119,17 @@ public class DecorativePipeBlock extends PipeBlock implements SimpleWaterloggedB
         if (state.getValue(WATERLOGGED)) {
             level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         }
-        return state.setValue(PROPERTY_BY_DIRECTION.get(direction),
-                connectsTo(level, neighbourPos, neighbour, direction));
+        return state.setValue(PROPERTY_BY_DIRECTION.get(direction), connectsTo(neighbour));
     }
 
     /**
-     * @param toward the direction from the pipe to {@code neighbour}, so the face looking back
-     *               at the pipe is the opposite one
+     * Membership, not geometry. An earlier version also joined to any sturdy face, which meant
+     * a pipe connected to every wall in the game and left nothing for a vent to be — the whole
+     * point of an attachment is that it is the block a run is <em>supposed</em> to end at. Put
+     * a block in one of the two tags to make pipes meet it.
      */
-    private static boolean connectsTo(BlockGetter level, BlockPos neighbourPos,
-                                      BlockState neighbour, Direction toward) {
-        return neighbour.is(PIPES)
-                || neighbour.isFaceSturdy(level, neighbourPos, toward.getOpposite());
+    private static boolean connectsTo(BlockState neighbour) {
+        return neighbour.is(PIPES) || neighbour.is(PIPE_ATTACHMENTS);
     }
 
     // ── Water ─────────────────────────────────────────────────────────────────

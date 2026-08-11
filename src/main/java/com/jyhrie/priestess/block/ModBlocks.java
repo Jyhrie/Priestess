@@ -130,21 +130,66 @@ public class ModBlocks {
             registerBlock("sal_viento_catacombs_overgrown_stone",
                     () -> new SealedBlock(Dungeon.UNDER_TIDES, catacombs()));
 
-    // ── Decoration ────────────────────────────────────────────────────────────
+    // ── Decoration: pipes and vents ───────────────────────────────────────────
+    // Never gated. The lockdown holds the walls that *are* the gate; dressing a dungeon with
+    // fittings a player cannot take down would put plumbing behind a boss for no reason.
+    //
+    // Every pipe joins every other pipe and every vent, whatever the material — that is one
+    // priestess:pipes tag and one priestess:pipe_attachments tag doing the work, not any code
+    // here. A vent is an ordinary full cube; it needs no behaviour, because a pipe decides its
+    // own connections by looking outward and a vent never looks back.
+
+    /** Half the pipe's thickness, so 0.25 is an eight-pixel pipe. Shared, so the sets match. */
+    private static final float PIPE_APOTHEM = 0.25F;
 
     /**
-     * Catacomb plumbing. Deliberately <b>not</b> a {@link SealedBlock}: the lockdown gates the
-     * walls that are the gate, and dressing a dungeon with pipes a player cannot take down
-     * would put fittings behind a boss for no reason.
-     *
-     * <p>{@code noOcclusion} is not optional on a block thinner than its cube — without it the
+     * {@code noOcclusion} is not optional on a block thinner than its own cube — without it the
      * game culls the faces of whatever the pipe touches and leaves holes in the wall behind it.
-     * COPPER for the sound: it is the one vanilla metal block that does not read as machinery.
      */
+    private static RegistryObject<Block> pipe(String name, Block material) {
+        return registerBlock(name, () -> new DecorativePipeBlock(PIPE_APOTHEM,
+                BlockBehaviour.Properties.copy(material).noOcclusion()));
+    }
+
+    /** A plain cube. All it needs is to be in the attachment tag, which is datagen's job. */
+    private static RegistryObject<Block> vent(String name, Block material) {
+        return registerBlock(name, () -> new Block(BlockBehaviour.Properties.copy(material)));
+    }
+
+    // Sal Viento's catacombs: the plumbing that runs through the Under Tides masonry.
     public static final RegistryObject<Block> SAL_VIENTO_CATACOMBS_PIPE =
-            registerBlock("sal_viento_catacombs_pipe",
-                    () -> new DecorativePipeBlock(0.25F,
-                            BlockBehaviour.Properties.copy(Blocks.COPPER_BLOCK).noOcclusion()));
+            pipe("sal_viento_catacombs_pipe", Blocks.COPPER_BLOCK);
+
+    // RMA70-12 — the lighter reagent line. Copper-grade, so it reads as the softer of the two.
+    public static final RegistryObject<Block> RMA70_12_DECORATIVE_PIPE =
+            pipe("rma70_12_decorative_pipe", Blocks.COPPER_BLOCK);
+    public static final RegistryObject<Block> RMA70_12_DECORATIVE_VENT =
+            vent("rma70_12_decorative_vent", Blocks.COPPER_BLOCK);
+
+    // RMA70-24 — the heavier one. Iron-grade against -12's copper, so the pair are told apart
+    // by sound and by mining time as well as by colour.
+    public static final RegistryObject<Block> RMA70_24_DECORATIVE_PIPE =
+            pipe("rma70_24_decorative_pipe", Blocks.IRON_BLOCK);
+    public static final RegistryObject<Block> RMA70_24_DECORATIVE_VENT =
+            vent("rma70_24_decorative_vent", Blocks.IRON_BLOCK);
+
+    // D32 Steel — structural, the heaviest of the four.
+    public static final RegistryObject<Block> D32_STEEL_DECORATIVE_PIPE =
+            pipe("d32_steel_decorative_pipe", Blocks.IRON_BLOCK);
+    public static final RegistryObject<Block> D32_STEEL_DECORATIVE_VENT =
+            vent("d32_steel_decorative_vent", Blocks.IRON_BLOCK);
+
+    // Iridescent Alloy — the refined one, and the only set that carries a light level. A dim
+    // one: it should catch the eye in an unlit corridor without lighting the room.
+    public static final RegistryObject<Block> IRIDESCENT_ALLOY_DECORATIVE_PIPE =
+            registerBlock("iridescent_alloy_decorative_pipe",
+                    () -> new DecorativePipeBlock(PIPE_APOTHEM,
+                            BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
+                                    .noOcclusion().lightLevel(state -> 4)));
+    public static final RegistryObject<Block> IRIDESCENT_ALLOY_DECORATIVE_VENT =
+            registerBlock("iridescent_alloy_decorative_vent",
+                    () -> new Block(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
+                            .lightLevel(state -> 4)));
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block) {
         RegistryObject<T> toReturn = BLOCKS.register(name, block);
