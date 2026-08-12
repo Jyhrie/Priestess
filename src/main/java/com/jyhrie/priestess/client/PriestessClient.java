@@ -1,6 +1,7 @@
 package com.jyhrie.priestess.client;
 
 import com.jyhrie.priestess.Priestess;
+import com.jyhrie.priestess.block.entity.ModBlockEntities;
 import com.jyhrie.priestess.entity.ModEntities;
 import com.jyhrie.priestess.entity.bosses.MbJesseltonWilliams;
 import com.jyhrie.priestess.entity.mobs.dorothysvision.DvBionic;
@@ -107,6 +108,13 @@ public class PriestessClient {
         // "Awaken" is the exception even among those: its scale is tied to a hitbox constant
         // that has to be documented beside it, and its model has no bone named "head".
         event.registerEntityRenderer(ModEntities.DV_AWAKEN.get(), DvAwakenRenderer::new);
+
+        // The boss altars. A block, not a mob, so this is a block entity renderer — the blocks
+        // themselves are RenderShape.INVISIBLE and everything you see comes from here. Bound to
+        // the shared block entity type, so one registration covers both altars and
+        // BossSummonerModel tells them apart. See docs/BOSS_SPAWNERS.md.
+        event.registerBlockEntityRenderer(ModBlockEntities.BOSS_SUMMONER.get(),
+                context -> new BossSummonerRenderer());
     }
 
     private static ResourceLocation texture(String name) {

@@ -12,6 +12,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import software.bernie.geckolib.animatable.GeoBlockEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
@@ -44,7 +50,7 @@ import java.util.UUID;
  * record the boss's position alongside its UUID and only count a miss when that position is
  * loaded.
  */
-public class BossSummonerBlockEntity extends BlockEntity {
+public class BossSummonerBlockEntity extends BlockEntity implements GeoBlockEntity {
 
     /** One second between checks. The answer cannot change faster than a boss can die. */
     private static final int CHECK_INTERVAL_TICKS = 20;
@@ -59,6 +65,17 @@ public class BossSummonerBlockEntity extends BlockEntity {
 
     private int sinceCheck;
     private int misses;
+
+    /**
+     * GeckoLib's per-instance animation state. Client-side rendering only — the server
+     * builds one of these too and never looks at it, which is how GeckoLib is designed and
+     * costs a field.
+     *
+     * <p>The altar is a {@link GeoBlockEntity} because it is drawn by a block entity
+     * renderer rather than by a baked block model; see {@code BossSummonerBlock.getRenderShape}
+     * and {@code docs/BOSS_SPAWNERS.md}.
+     */
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public BossSummonerBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.BOSS_SUMMONER.get(), pos, state);
@@ -126,5 +143,31 @@ public class BossSummonerBlockEntity extends BlockEntity {
         // Absent means armed. A spent altar always writes its boss, so a missing key is
         // either a fresh block or one saved while armed — both want null.
         bossId = tag.hasUUID(NBT_BOSS) ? tag.getUUID(NBT_BOSS) : null;
+    }
+
+    // ── GeckoLib ──────────────────────────────────────────────────────────────
+
+    /**
+     * No animations, and a controller anyway.
+     *
+     * <p>The altar's movement — the core turning above the rim — is done by the renderer
+     * writing a bone rotation directly rather than by a keyframed clip, because a constant
+     * spin is one line of arithmetic and an {@code .animation.json} is a file to keep in step
+     * with the model. GeckoLib still wants a controller registered, so this one exists and
+     * returns {@code CONTINUE} forever.
+     *
+     * <p>Giving the altar real clips — a summon flourish, a shudder as it re-arms — means
+     * writing {@code assets/priestess/animations/block/boss_summoner.animation.json}, pointing
+     * {@code BossSummonerModel.getAnimationResource} at it, and triggering them from here.
+     * See {@code docs/BOSS_SPAWNERS.md}.
+     */
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 0, state -> PlayState.CONTINUE));
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
     }
 }

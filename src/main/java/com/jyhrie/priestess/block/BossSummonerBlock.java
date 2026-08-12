@@ -1,5 +1,7 @@
 package com.jyhrie.priestess.block;
 
+import com.jyhrie.priestess.block.boss_summons.DorothysTerminalBlock;
+import com.jyhrie.priestess.block.boss_summons.JesseltonProjectorBlock;
 import com.jyhrie.priestess.block.entity.BossSummonerBlockEntity;
 import com.jyhrie.priestess.block.entity.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -200,10 +202,38 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
                 BossSummonerBlockEntity::serverTick);
     }
 
-    /** {@link BaseEntityBlock} renders nothing by default; this is an ordinary cube. */
+    /**
+     * Nothing is drawn from a baked block model. The altar is a GeckoLib model drawn by
+     * {@code BossSummonerRenderer}, and {@link RenderShape#INVISIBLE} is what stops the game
+     * drawing a cube inside it as well.
+     *
+     * <p>The blockstate still points at a model file, and that file still matters: it is where
+     * break and landing particles take their texture from. See {@code ModBlockStateProvider}.
+     *
+     * <p>The <em>item</em> is unaffected and is still an ordinary cube — a block model and an
+     * item model are separate things, and an altar that vanished in the inventory would be
+     * unplaceable in practice.
+     */
     @Override
     public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
+        return RenderShape.INVISIBLE;
+    }
+
+    /**
+     * Which GeckoLib model this altar is drawn with, as a file name under
+     * {@code assets/priestess/geo/block/}.
+     *
+     * <p>Both altars share one, because they differ by texture rather than by shape — the same
+     * arrangement the 16x16 cube tiles had before. Override in a subclass to give one its own
+     * silhouette, and add a matching entry to {@code BLOCK_ROSTER} in
+     * {@code tools/generate_placeholder_models.py}.
+     *
+     * <p>The <em>texture</em> is not overridable here: it is derived from the block's registry
+     * name and its {@link #ARMED} value, so a new altar gets its own automatically. See
+     * {@code BossSummonerModel}.
+     */
+    public String modelName() {
+        return "boss_summoner";
     }
 
     @Override

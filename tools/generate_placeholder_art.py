@@ -162,6 +162,19 @@ def arts_lab_pattern(kind, x, y):
     raise ValueError("unknown pattern %r" % kind)
 
 
+def block_model_texture(name, size, base, accent, seed, stripe):
+    """A UV sheet for a GeckoLib *block* model, in textures/block/boss_summoner/.
+
+    Its own subfolder because the 16x16 cube tile for the same altar already occupies
+    textures/block/<name>.png, and the two are not interchangeable: that one is a tile the
+    item model and the break particles use, this one is a packed UV sheet whose coordinates
+    only mean anything against geo/block/boss_summoner.geo.json. Size must match the
+    texture_width/height generate_placeholder_models.py chose by packing.
+    """
+    pixels = noisy_field(size, size, base, accent, seed, stripe=stripe)
+    write_png(os.path.join(ASSETS, "block", "boss_summoner", "%s.png" % name), size, size, pixels)
+
+
 def patterned_block(name, base, accent, seed, kind):
     """A 16x16 tile whose accent pixels come from `kind`. Same grain as the other blocks."""
     width = height = 16
@@ -407,6 +420,22 @@ BLOCKS = [
     ("dorothys_terminal_spent", (0x13, 0x1E, 0x1A), (0x13, 0x1E, 0x1A), 304, False),
 ]
 
+# The UV sheets for the GeckoLib altar model, which is what you actually see in the world —
+# the four tiles above survive as the item model and the break particles only.
+#
+# Each altar keeps the palette of its tile so the two representations read as the same block.
+# Spent is the same hue crushed dark with the accent nearly gone and a wider band, so a used
+# altar reads as switched off rather than as a different block. 128 to match the sheet size
+# generate_placeholder_models.py packs boss_summoner.geo.json onto.
+
+BOSS_ALTAR_MODELS = [
+    # name,                             size, base,               accent,             seed, stripe
+    ("jesselton_projector",             128, (0x2A, 0x24, 0x38), (0xB8, 0x26, 0x2E), 341, 14),
+    ("jesselton_projector_spent",       128, (0x16, 0x13, 0x1D), (0x3A, 0x14, 0x16), 342, 22),
+    ("dorothys_terminal",               128, (0x1E, 0x30, 0x2A), (0x5F, 0xE8, 0xA8), 343, 14),
+    ("dorothys_terminal_spent",         128, (0x10, 0x19, 0x16), (0x1E, 0x3E, 0x30), 344, 22),
+]
+
 # ── Rhine Lab, Arts Lab wing ──────────────────────────────────────────────────
 # Rhine's palette is clean white and cold blue, against Mansfield's denim and Dorothy's
 # sickly greens — a screenshot of a corridor should say which building it is. One base
@@ -491,6 +520,9 @@ def main():
         block_texture(name, base, accent, seed, frame)
     for name, base, accent, seed, kind in ARTS_LAB_BLOCKS + SAL_VIENTO_BLOCKS + PIPE_SETS:
         patterned_block(name, base, accent, seed, kind)
+    print("boss altar model sheets ->")
+    for name, size, base, accent, seed, stripe in BOSS_ALTAR_MODELS:
+        block_model_texture(name, size, base, accent, seed, stripe)
 
 
 if __name__ == "__main__":

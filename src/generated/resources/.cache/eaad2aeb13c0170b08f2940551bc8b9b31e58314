@@ -1,6 +1,7 @@
-// 1.20.1	2026-08-10T23:02:20.3428589	Item Models: priestess
+// 1.20.1	2026-08-12T21:13:36.4290295	Item Models: priestess
 08a06ca849bae639191477d8150812949c54b61e assets/priestess/models/item/blueprint_originium_refinement.json
 ae93b084ac3095b8fd104c7b0bd8c6329f120d2a assets/priestess/models/item/corrupted_neural_shard.json
+258829fb5126af398fd79b161e2dbc25b4191d73 assets/priestess/models/item/devils_devastation.json
 42c8c9a39f9b43a79a4051b0892eb10539b6e1de assets/priestess/models/item/dorothys_neural_processor.json
 095a8723dddcb62c4740f6f1c58e57e18747c8cc assets/priestess/models/item/dreamland.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/priestess/models/item/dv_awaken_spawn_egg.json

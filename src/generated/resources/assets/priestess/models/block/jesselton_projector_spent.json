@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "priestess:block/jesselton_projector_spent"
-  }
-}

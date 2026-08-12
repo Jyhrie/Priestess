@@ -4,6 +4,7 @@ import com.jyhrie.priestess.Priestess;
 import com.jyhrie.priestess.block.ModBlocks;
 import com.jyhrie.priestess.entity.ModEntities;
 import com.jyhrie.priestess.item.ModItems;
+import com.jyhrie.priestess.weapons.ModWeapons;
 import net.minecraft.data.PackOutput;
 import net.minecraftforge.common.data.LanguageProvider;
 
@@ -80,6 +81,21 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModItems.SV_THE_FIRST_TO_TALK_SPAWN_EGG.get(), "The First to Talk Spawn Egg");
         add(ModItems.SV_BISHOP_QUINTUS_SPAWN_EGG.get(), "Sal Viento Bishop Quintus Spawn Egg");
         add(ModItems.DV_AWAKEN_SPAWN_EGG.get(), "\"Awaken\" Spawn Egg");
+
+        // ── Weapons ───────────────────────────────────────────────────────────
+        // Ported in — see docs/LETHALITY WEAPONS.md. The name is painted over by the item's
+        // own animated gradient, so this string supplies the letters and never the colour.
+        add(ModWeapons.DEVILS_DEVASTATION.get(), "Devil's Devastation");
+
+        // §-codes are Lethality's own styling, kept as written. The prompt says Shift because
+        // the item checks Shift; Lethality's said Ctrl, which was a typo against its own code.
+        add("tooltip.priestess.hold_shift", "§7Hold §fShift§7 for details");
+        add("tooltip.priestess.devils_devastation.flavour", "§8« ...And you shall burn them all. »");
+        add("tooltip.priestess.devils_devastation.on_swing", "§6On Swing —");
+        add("tooltip.priestess.devils_devastation.on_swing_detail",
+                "§e -Throws three piercing scythes and two pitchforks that set targets alight.");
+        add("tooltip.priestess.devils_devastation.on_hit", "§6On Hit —");
+        add("tooltip.priestess.devils_devastation.on_hit_detail", "§e -Sets the target alight.");
 
         // ── Blocks ────────────────────────────────────────────────────────────
         add(ModBlocks.IBERIAN_SAND.get(), "Iberian Sand");

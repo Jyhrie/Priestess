@@ -157,21 +157,47 @@ public class ModBlockStateProvider extends BlockStateProvider {
     }
 
     /**
-     * A boss altar: two cube models, picked by {@link BossSummonerBlock#ARMED}, so a spent
-     * altar is visibly spent. The inventory model is the armed one — that is what you are
-     * holding when you place it.
+     * A boss altar. What you see in the world is a GeckoLib model drawn by
+     * {@code BossSummonerRenderer}, so the blockstate models here are <em>not</em> the altar —
+     * the block is {@link net.minecraft.world.level.block.RenderShape#INVISIBLE} and none of
+     * this is rendered as geometry.
+     *
+     * <p>They still have to exist, for two things a block entity renderer does not provide:
+     *
+     * <ul>
+     *   <li><b>Particles.</b> Break and landing particles take their texture from the model the
+     *       blockstate points at. Without one they come out as missing-texture chequerboard.
+     *       Hence a model with a {@code particle} texture and no elements — no faces to draw,
+     *       one texture to sample.</li>
+     *   <li><b>The item.</b> An item model is a separate thing from a block model and is not
+     *       affected by the render shape, so this stays an ordinary cube. It has to: an altar
+     *       that was invisible in the inventory would be unplaceable in practice.</li>
+     * </ul>
+     *
+     * <p>Two particle models rather than one, keyed on {@link BossSummonerBlock#ARMED}, so a
+     * spent altar breaks in its own darker colours. That is also what keeps the blockstate
+     * honest about having two states, which the renderer reads to pick its texture.
      */
     private void summoner(RegistryObject<Block> block) {
         String name = block.getId().getPath();
-        ModelFile armed = models().cubeAll(name, modLoc("block/" + name));
-        ModelFile spent = models().cubeAll(name + "_spent", modLoc("block/" + name + "_spent"));
+
+        ModelFile armedParticles = particlesOnly(name + "_particles", modLoc("block/" + name));
+        ModelFile spentParticles = particlesOnly(name + "_spent_particles",
+                modLoc("block/" + name + "_spent"));
 
         getVariantBuilder(block.get())
                 .partialState().with(BossSummonerBlock.ARMED, true)
-                .modelForState().modelFile(armed).addModel()
+                .modelForState().modelFile(armedParticles).addModel()
                 .partialState().with(BossSummonerBlock.ARMED, false)
-                .modelForState().modelFile(spent).addModel();
+                .modelForState().modelFile(spentParticles).addModel();
 
-        simpleBlockItem(block.get(), armed);
+        // The armed tile, as a plain cube. This is the only place the 16x16 altar textures are
+        // still drawn as geometry.
+        simpleBlockItem(block.get(), models().cubeAll(name + "_inventory", modLoc("block/" + name)));
+    }
+
+    /** A model with a particle texture and nothing else — see {@link #summoner}. */
+    private ModelFile particlesOnly(String name, ResourceLocation texture) {
+        return models().getBuilder(name).texture("particle", texture);
     }
 }

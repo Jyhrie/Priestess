@@ -58,6 +58,7 @@
   "entity.priestess.sv_the_first_to_talk": "The First to Talk",
   "item.priestess.blueprint_originium_refinement": "Blueprint: Originium Refinement",
   "item.priestess.corrupted_neural_shard": "Corrupted Neural Shard",
+  "item.priestess.devils_devastation": "Devil's Devastation",
   "item.priestess.dorothys_neural_processor": "Dorothy's Neural Processor",
   "item.priestess.dreamland": "Dreamland",
   "item.priestess.dv_awaken_spawn_egg": "\"Awaken\" Spawn Egg",
@@ -84,5 +85,11 @@
   "message.priestess.flight.grounded": "Something here will not let you leave the ground.",
   "message.priestess.summoner.no_room": "There is not enough room here.",
   "message.priestess.summoner.spent": "%s is already abroad.",
-  "message.priestess.summoner.wrong_item": "It wants %s."
+  "message.priestess.summoner.wrong_item": "It wants %s.",
+  "tooltip.priestess.devils_devastation.flavour": "§8« ...And you shall burn them all. »",
+  "tooltip.priestess.devils_devastation.on_hit": "§6On Hit —",
+  "tooltip.priestess.devils_devastation.on_hit_detail": "§e -Sets the target alight.",
+  "tooltip.priestess.devils_devastation.on_swing": "§6On Swing —",
+  "tooltip.priestess.devils_devastation.on_swing_detail": "§e -Throws three piercing scythes and two pitchforks that set targets alight.",
+  "tooltip.priestess.hold_shift": "§7Hold §fShift§7 for details"
 }

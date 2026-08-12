@@ -1,6 +1,8 @@
 package com.jyhrie.priestess.block;
 
 import com.jyhrie.priestess.Priestess;
+import com.jyhrie.priestess.block.boss_summons.DorothysTerminalBlock;
+import com.jyhrie.priestess.block.boss_summons.JesseltonProjectorBlock;
 import com.jyhrie.priestess.item.ModItems;
 import com.jyhrie.priestess.progression.Dungeon;
 import net.minecraft.world.item.BlockItem;

@@ -1,10 +1,10 @@
 {
   "variants": {
     "armed=false": {
-      "model": "priestess:block/jesselton_projector_spent"
+      "model": "priestess:block/jesselton_projector_spent_particles"
     },
     "armed=true": {
-      "model": "priestess:block/jesselton_projector"
+      "model": "priestess:block/jesselton_projector_particles"
     }
   }
 }

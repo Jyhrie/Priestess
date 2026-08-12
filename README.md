@@ -161,7 +161,12 @@ docs/COMMANDS.md                    every command, mod and vanilla, and test rec
 docs/DUNGEON_BLOCKS.md              adding a block gated behind a dungeon, and adding a dungeon
 docs/SCORE_MOVEMENTS.md             the storyline, chapter by chapter
 docs/BOSSES.md                      per-boss design and fight notes
+docs/BOSS_SPAWNERS.md               the summoning altars: GeckoLib block models and rendering
 docs/SPAWNING.md                    why nothing spawns naturally, and how to change that
+docs/WEAPONS.md                     building a weapon: click hooks, abilities, projectiles
+docs/TOOLTIPS.md                    flavour text, hold-Shift detail blocks, animated names
+docs/RARITIES.md                    adding a rarity tier above vanilla's four
+docs/LETHALITY WEAPONS.md           weapons ported in from Lethality, and what changed on the way
 docs/terra_world_preview.png        what the generator will actually produce (datagen writes it)
 
 src/generated/resources/            ← GENERATED, do not edit

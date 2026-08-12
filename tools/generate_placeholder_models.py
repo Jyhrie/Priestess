@@ -34,6 +34,14 @@ nothing. They can be migrated by writing their bones into ROSTER below.
 
 **Never add dv_awaken.** That is a real Blockbench export whose UVs belong to a hand-made
 128x128 texture, exactly as generate_placeholder_art.py says of its texture.
+
+## Blocks as well as mobs
+
+BLOCK_ROSTER writes into geo/block/ instead of geo/entity/, and is otherwise identical —
+a GeckoLib block model is the same format as a mob's. The one difference is the coordinate
+frame: GeoBlockRenderer puts the model origin at the block's *centre* on the floor, so a
+block model runs x and z from -8 to +8 and y from 0 to 16, and anything outside that box
+hangs into the neighbouring block. See docs/BOSS_SPAWNERS.md.
 """
 
 import json
@@ -42,6 +50,7 @@ import os
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 GEO = os.path.join(ROOT, "src", "main", "resources", "assets", "priestess", "geo", "entity")
+GEO_BLOCK = os.path.join(ROOT, "src", "main", "resources", "assets", "priestess", "geo", "block")
 
 
 def footprint(size):
@@ -209,17 +218,71 @@ ROSTER = [
 ]
 
 
-def main():
-    for name, bounds, bones in ROSTER:
+# ── Block models ──────────────────────────────────────────────────────────────
+# Same format, different coordinate frame: the origin is the block's centre at floor
+# level, so these run -8..8 on x and z and 0..16 on y. Anything outside that box hangs
+# into the neighbouring block, which for an altar standing on its own is fine and in a
+# corridor is not — so these stay inside it.
+
+def altar(core_size, prong):
+    """The shared boss-altar plan: a plinth, a waist, a rim, a floating core, four prongs.
+
+    Deliberately built like a lectern rather than like a machine — the silhouette has to
+    read as "put something here" from across a room, which means a wide flat base and one
+    thing suspended above it. The core is its own root bone rather than a child of the
+    rim so the renderer can spin it without dragging the prongs round with it.
+    """
+    half = core_size / 2.0
+    return [
+        # Plinth. Full 16-wide footprint, so the block still looks like it occupies its
+        # square from directly above.
+        ("base", None, [0, 0, 0], None,
+         [([-8, 0, -8], [16, 2, 16])]),
+        ("pillar", "base", [0, 2, 0], None,
+         [([-5, 2, -5], [10, 6, 10])]),
+        ("rim", "base", [0, 8, 0], None,
+         [([-7, 8, -7], [14, 2, 14])]),
+        # Pivot at the core's own centre, so setRotY spins it in place.
+        ("core", None, [0, 10 + half, 0], None,
+         [([-half, 10, -half], [core_size, core_size, core_size])]),
+        # Splayed outward, so the rim reads as holding the core rather than fencing it.
+        ("prong_nw", "rim", [-5.5, 10, -5.5], [0, 0, 12],
+         [([-6.5, 10, -6.5], prong)]),
+        ("prong_ne", "rim", [5.5, 10, -5.5], [0, 0, -12],
+         [([3.5, 10, -6.5], prong)]),
+        ("prong_sw", "rim", [-5.5, 10, 5.5], [0, 0, 12],
+         [([-6.5, 10, 3.5], prong)]),
+        ("prong_se", "rim", [5.5, 10, 5.5], [0, 0, -12],
+         [([3.5, 10, 3.5], prong)]),
+    ]
+
+
+BLOCK_ROSTER = [
+    # One plan, both altars. They differ by texture rather than by geometry, exactly as the
+    # 16x16 cube tiles they replace did — giving one its own silhouette is a matter of
+    # adding an entry here and overriding BossSummonerBlock.modelName().
+    ("boss_summoner", (1.5, 1.5, 0.5), altar(core_size=6, prong=[3, 5, 3])),
+]
+
+
+def emit(directory, roster):
+    os.makedirs(directory, exist_ok=True)
+    for name, bounds, bones in roster:
         sheet, model = build(name, bones, bounds)
-        path = os.path.join(GEO, "%s.geo.json" % name)
-        os.makedirs(GEO, exist_ok=True)
+        path = os.path.join(directory, "%s.geo.json" % name)
         with open(path, "w", encoding="utf-8") as handle:
             json.dump(model, handle, indent="\t")
             handle.write("\n")
         cubes = sum(len(b[4]) for b in bones)
         print("  %-24s %d bones, %d cubes, %dx%d"
               % (os.path.basename(path), len(bones), cubes, sheet, sheet))
+
+
+def main():
+    print("entity models ->")
+    emit(GEO, ROSTER)
+    print("block models ->")
+    emit(GEO_BLOCK, BLOCK_ROSTER)
 
 
 if __name__ == "__main__":

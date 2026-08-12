@@ -1,5 +1,6 @@
-package com.jyhrie.priestess.block;
+package com.jyhrie.priestess.block.boss_summons;
 
+import com.jyhrie.priestess.block.BossSummonerBlock;
 import com.jyhrie.priestess.entity.ModEntities;
 import com.jyhrie.priestess.item.ModItems;
 import net.minecraft.core.BlockPos;

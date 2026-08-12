@@ -8,6 +8,8 @@ import com.jyhrie.priestess.item.ModCreativeTabs;
 import com.jyhrie.priestess.item.ModItems;
 import com.jyhrie.priestess.oripathy.OripathyEvents;
 import com.jyhrie.priestess.progression.DungeonSync;
+import com.jyhrie.priestess.weapons.ModWeapons;
+import com.jyhrie.priestess.weapons.network.WeaponNetwork;
 import com.jyhrie.priestess.world.dimension.AnchorReport;
 import com.jyhrie.priestess.world.dimension.ModStructurePlacements;
 import com.jyhrie.priestess.world.terra.TerraElevationFunction;
@@ -60,6 +62,12 @@ public class Priestess {
         ModCreativeTabs.register(modEventBus);
         ModEffects.register(modEventBus);
         ModEntities.register(modEventBus);
+
+        // Weapons ported in from other mods. Self-contained in weapons/ — these two lines and
+        // one in ModCreativeTabs are every reference to it from outside the folder, which is
+        // what keeps it removable. See docs/LETHALITY WEAPONS.md.
+        ModWeapons.register(modEventBus);
+        WeaponNetwork.register();
 
         BIOME_SOURCES.register(modEventBus);
         DENSITY_FUNCTIONS.register(modEventBus);
