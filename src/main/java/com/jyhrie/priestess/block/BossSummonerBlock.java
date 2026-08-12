@@ -30,8 +30,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * A one-boss summoning altar: right-click it holding the right item and the boss stands up
@@ -246,9 +250,60 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
         return state.getValue(ARMED) ? 8 : 0;
     }
 
+    // ── Standing down while the fight is on ───────────────────────────────────
+    // A spent altar is gone: no geometry, no collision, no outline, and no obstacle as far as
+    // pathfinding is concerned. The block is still there — it has to be, because its block
+    // entity is what notices the boss has died and re-arms it — but nothing in the world can
+    // touch it or has to route around it.
+    //
+    // The reason is the fight. A one-block plinth in the middle of an arena is something the
+    // boss's pathfinder has to solve around for the whole encounter, and "the altar you
+    // summoned it from" is a poor thing for a boss to get stuck on. Standing the altar down
+    // for the duration removes the question.
+    //
+    // Three separate systems, and all three have to be told. Collision governs what bumps
+    // into it, isPathfindable governs how the A* graph is built, and the outline shape governs
+    // what the cursor can hit. Changing one and not the others produces a block that is
+    // invisible but still solid, or walkable but still routed around.
+
+    private static boolean stoodDown(BlockState state) {
+        return !state.getValue(ARMED);
+    }
+
+    /** Nothing walks into a spent altar — including the boss that just came out of it. */
+    @Override
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos,
+                                        CollisionContext context) {
+        return stoodDown(state) ? Shapes.empty() : Shapes.block();
+    }
+
+    /**
+     * No outline and no ray-trace hit while spent, which is what makes it properly absent
+     * rather than an invisible thing the cursor keeps catching on.
+     *
+     * <p>It also means a spent altar cannot be broken. That is safe rather than a trap: the
+     * block entity re-arms itself from a presence poll that has no failure mode which survives
+     * the next second — see {@link com.jyhrie.priestess.block.entity.BossSummonerBlockEntity} —
+     * so the block always comes back on its own, and the worst case is a five-second wait.
+     */
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos,
+                               CollisionContext context) {
+        return stoodDown(state) ? Shapes.empty() : Shapes.block();
+    }
+
+    /**
+     * Whether a mob may path <em>through</em> this block.
+     *
+     * <p>False while armed, which is the ordinary answer for a solid block and makes the altar
+     * an obstacle. True while spent, so the pathfinder builds its graph as though the block
+     * were not there at all. An empty collision shape alone would not do this — the A* graph is
+     * built from this method, so a mob would still refuse to plot a route through a block it
+     * could physically walk into.
+     */
     @Override
     public boolean isPathfindable(BlockState state, BlockGetter level, BlockPos pos,
-                                  net.minecraft.world.level.pathfinder.PathComputationType type) {
-        return false;
+                                  PathComputationType type) {
+        return stoodDown(state);
     }
 }

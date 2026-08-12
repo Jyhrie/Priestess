@@ -215,6 +215,59 @@ wrong.
 
 ---
 
+## Standing down while the fight is on
+
+**A spent altar is gone.** Not dark — gone. No geometry, no collision, no selection outline, and
+not an obstacle as far as pathfinding is concerned. It comes back the moment the boss dies.
+
+The reason is the fight. A one-block plinth in the middle of an arena is something the boss's
+pathfinder has to solve around for the whole encounter, and the altar you summoned it from is a
+poor thing for a boss to get stuck on.
+
+**Three independent systems have to be told, and changing one without the others is the usual
+bug:**
+
+| Concern | Where | Armed | Spent |
+|---|---|---|---|
+| what bumps into it | `getCollisionShape` | full cube | empty |
+| how the A* graph is built | `isPathfindable` | `false` (obstacle) | `true` (passable) |
+| what the cursor can hit | `getShape` | full cube | empty |
+| what is drawn | `BossSummonerRenderer.shouldRender` | the model | nothing |
+
+An empty collision shape **alone is not enough**: the pathfinder builds its graph from
+`isPathfindable`, so a mob would still refuse to plot a route through a block it could physically
+walk into. Equally, `isPathfindable` alone would leave a solid invisible cube in the arena.
+
+The block itself is still there throughout — it has to be, because its block entity is what
+polls for the boss and re-arms it.
+
+### It cannot be broken while spent
+
+An empty `getShape` means no ray-trace hit, so a spent altar cannot be right-clicked or mined.
+That is safe rather than a trap: the re-arm poll asks "is the boss there" rather than "did it
+die", which has no failure mode that survives the next second, so the block always comes back on
+its own. Worst case is a five-second wait.
+
+### Why the render skip is `shouldRender`
+
+`GeoBlockRenderer` declares `render` with the raw `BlockEntity` parameter rather than with its own
+type variable, so **any `render` signature a subclass writes is a name clash rather than an
+override** — in either direction. `shouldRender` is a `BlockEntityRenderer` default that GeckoLib
+leaves alone, the dispatcher consults it before calling `render`, and it therefore skips strictly
+more work. The vanilla distance test it replaces is restored by hand, because the interface
+default cannot be reached with `super` from here.
+
+### `noOcclusion()` is load-bearing
+
+Both altars are registered with `.noOcclusion()`, and it is not tidiness.
+
+Occlusion is decided **separately from rendering**. Left occluding, a neighbouring block culls the
+face it shares with the altar — and because the altar's baked model is `INVISIBLE` and its
+GeckoLib model has a narrow waist, you would see straight through the wall at that height. Every
+BER-rendered vanilla block, chests included, sets this for the same reason.
+
+---
+
 ## Adding an altar
 
 Adding a third boss altar touches nothing in the rendering path. In full:
@@ -270,10 +323,15 @@ altar re-arms — are what keyframed clips are actually for, and they are not wi
 
 ## Known gaps
 
-- **The collision box is still a full cube.** The block copies `Blocks.LODESTONE`, so you bump
-  into a solid metre cube while the model has a narrow waist between the rim and the plinth. A
-  `getShape` override with a `VoxelShape` matching the silhouette would fix it; it was left alone
-  because a placeholder shape is not worth pinning collision to.
+- **The armed collision box is still a full cube.** A spent altar has no collision at all, but an
+  armed one is a solid metre cube while the model has a narrow waist between the rim and the
+  plinth, so you bump into air either side of it. Matching `getShape`/`getCollisionShape` to the
+  silhouette would fix it; it was left alone because a placeholder shape is not worth pinning
+  collision to.
+- **The spent textures are currently unreachable.** `BossSummonerModel` still resolves
+  `<name>_spent.png`, and `generate_placeholder_art.py` still emits it, but nothing draws a spent
+  altar any more. Kept because turning spent rendering back on is a one-line change in
+  `shouldRender` — if you decide it should stay visible-but-passable, the art is already there.
 - **No facing.** `GeoBlockRenderer.rotateBlock` will orient a model from a horizontal-facing
   blockstate property, and the altars have none, so every one of them faces the same way. Adding
   `HORIZONTAL_FACING` and setting it in `getStateForPlacement` would make them face the player who
@@ -300,11 +358,16 @@ Then:
    inventory and in your hand**. That is correct; the cube is the item model.
 2. Place it. It should now be a plinth, a waist, a rim and a floating cube — **not** a cube.
 3. The core should turn slowly. Both altars should turn in step.
-4. Right-click holding `priestess:tarnished_dog_tags`. The boss comes up, and the altar should go
-   dark **and the core should stop**.
-5. Kill the boss and wait ~5 seconds. The altar re-lights and the core starts turning again.
-6. Break it. Particles should be the altar's own colours, not black-and-magenta chequerboard — if
-   they are, the blockstate is not pointing at a model with a `particle` texture.
+4. Right-click holding `priestess:tarnished_dog_tags`. The boss comes up and **the altar
+   disappears completely** — no model, no outline when you point at it, and you can walk through
+   the space it occupied.
+5. Check the boss does not path around the empty square. It should walk straight over it.
+6. Kill the boss and wait ~5 seconds. The altar reappears, lit, with the core turning again.
+7. Break it while armed. Particles should be the altar's own colours, not black-and-magenta
+   chequerboard — if they are, the blockstate is not pointing at a model with a `particle`
+   texture.
+8. Wall one in on all sides and look at the wall. No see-through holes — if there are,
+   `noOcclusion()` has gone missing from `ModBlocks`.
 
 If the altar is completely invisible in the world, the renderer is not registered — check the
 `registerBlockEntityRenderer` line in `PriestessClient`. If it renders as a missing-texture blob,

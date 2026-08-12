@@ -62,13 +62,21 @@ public class ModBlocks {
     // creeper cannot delete a fight you were about to have. They light while armed, which is
     // the only way to see the state from more than a few blocks away.
 
+    // noOcclusion() is load-bearing, not tidiness. These are drawn by a block entity renderer
+    // and their baked model is RenderShape.INVISIBLE, but occlusion is decided separately from
+    // rendering: left occluding, a neighbouring block culls the face it shares with the altar,
+    // and because the altar draws nothing in that plane you see straight through the wall. Every
+    // BER-rendered vanilla block — chests included — does this for the same reason.
+
     public static final RegistryObject<Block> JESSELTON_PROJECTOR = registerBlock("jesselton_projector",
             () -> new JesseltonProjectorBlock(BlockBehaviour.Properties.copy(Blocks.LODESTONE)
-                    .lightLevel(BossSummonerBlock::glow)));
+                    .lightLevel(BossSummonerBlock::glow)
+                    .noOcclusion()));
 
     public static final RegistryObject<Block> DOROTHYS_TERMINAL = registerBlock("dorothys_terminal",
             () -> new DorothysTerminalBlock(BlockBehaviour.Properties.copy(Blocks.LODESTONE)
-                    .lightLevel(BossSummonerBlock::glow)));
+                    .lightLevel(BossSummonerBlock::glow)
+                    .noOcclusion()));
 
     // ── Dungeon-gated build sets ──────────────────────────────────────────────
     // Blocks that cannot be mined until their dungeon is cleared. Everything about the gate

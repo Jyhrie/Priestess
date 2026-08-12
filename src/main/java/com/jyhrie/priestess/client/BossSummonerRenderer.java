@@ -5,6 +5,8 @@ import com.jyhrie.priestess.block.entity.BossSummonerBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.renderer.GeoBlockRenderer;
 import software.bernie.geckolib.util.RenderUtils;
@@ -42,6 +44,42 @@ public class BossSummonerRenderer extends GeoBlockRenderer<BossSummonerBlockEnti
 
     public BossSummonerRenderer() {
         super(new BossSummonerModel());
+    }
+
+    /**
+     * A spent altar draws nothing at all.
+     *
+     * <p>It has stood down for the duration of the fight — no collision, no outline, and not an
+     * obstacle to pathfinding either; see {@code BossSummonerBlock}. Drawing it would be the one
+     * part of that left inconsistent, and an altar you can see but walk through is worse than
+     * one that is simply gone.
+     *
+     * <p>Returning early here rather than hiding it in the model is deliberate: this skips the
+     * whole GeckoLib render path — the bone walk and the vertex emission — rather than doing all
+     * of it and producing invisible geometry.
+     *
+     * <p>This is {@code shouldRender} rather than an early return in {@code render} because
+     * {@code render} cannot be overridden here — GeckoLib declares it with the raw
+     * {@link net.minecraft.world.level.block.entity.BlockEntity} parameter rather than with the
+     * renderer's own type variable, so any signature a subclass writes is a name clash rather
+     * than an override. {@code shouldRender} is a default on
+     * {@link net.minecraft.client.renderer.blockentity.BlockEntityRenderer} that GeckoLib leaves
+     * alone, and the dispatcher consults it first, so it skips strictly more work anyway.
+     *
+     * <p>The distance test below is vanilla's default behaviour, restored by hand: the default
+     * cannot be delegated to with {@code super} from here, because the class that implements the
+     * interface is GeckoLib's rather than this one. Dropping it would leave the altars drawing
+     * at any range their chunk is loaded at.
+     */
+    @Override
+    public boolean shouldRender(BossSummonerBlockEntity altar, Vec3 cameraPos) {
+        BlockState state = altar.getBlockState();
+        // hasProperty guards a malformed world where this block entity ended up under
+        // something that is not a summoner. Always true in a sane one.
+        if (state.hasProperty(BossSummonerBlock.ARMED) && !state.getValue(BossSummonerBlock.ARMED)) {
+            return false;
+        }
+        return Vec3.atCenterOf(altar.getBlockPos()).closerThan(cameraPos, getViewDistance());
     }
 
     @Override
