@@ -5,10 +5,14 @@ import com.jyhrie.priestess.block.boss_summons.DorothysTerminalBlock;
 import com.jyhrie.priestess.block.boss_summons.JesseltonProjectorBlock;
 import com.jyhrie.priestess.item.ModItems;
 import com.jyhrie.priestess.progression.Dungeon;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FlowerBlock;
+import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.PinkPetalsBlock;
 import net.minecraft.world.level.block.SandBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -53,6 +57,60 @@ public class ModBlocks {
     // meaningfully harder than dirt.
     public static final RegistryObject<Block> PERMAFROST = registerBlock("permafrost",
             () -> new Block(BlockBehaviour.Properties.copy(Blocks.PACKED_MUD)));
+
+    // ── Plants ────────────────────────────────────────────────────────────────
+    // The first flora in the mod. Both of these are vanilla block classes doing vanilla work:
+    // there is nothing about a flower that Terra needs to do differently, and a subclass that
+    // only calls super is a file to maintain for no behaviour.
+    //
+    // Neither is placed by worldgen and neither is compostable yet. Both are additions on top
+    // of a flower that exists, is obtainable and behaves correctly — see docs/WORLDGEN.md for
+    // where a vegetation feature would go.
+
+    /**
+     * A small flower. Everything that makes it one comes from {@link FlowerBlock} and from
+     * copying POPPY: it breaks instantly and in one hit, it needs a block it can root in, it
+     * is a suspicious stew ingredient, and it takes the random XZ offset that stops a meadow
+     * of them sitting on a visible grid — {@code copy} carries that offset over with the rest
+     * of the material, so it does not have to be asked for.
+     *
+     * <p>Regeneration is the oxeye daisy's effect, chosen because a white flower that mends
+     * something reads right and because no progression hangs on it. Seven seconds is a bowl
+     * of stew's worth rather than a potion's. It is passed as a supplier because Forge
+     * deprecated taking the effect directly — an effect is a registry entry, and holding one
+     * at block-construction time is holding it before the registry is necessarily filled.
+     */
+    public static final RegistryObject<Block> WHITEFLOWER = registerBlock("whiteflower",
+            () -> new FlowerBlock(() -> MobEffects.REGENERATION, 7,
+                    BlockBehaviour.Properties.copy(Blocks.POPPY)));
+
+    /**
+     * Fallen whiteflower petals — the ground cover, in the mould of vanilla's pink petals.
+     * One to four petals per block, facing whichever way the player was, and bone meal adds
+     * one more; all of that is {@link PinkPetalsBlock}, which hardcodes nothing pink and so
+     * serves any petal.
+     *
+     * <p>The layer of grass and stone underneath is what the litter is dressing, so it copies
+     * PINK_PETALS: no collision, instant break, and the plant sound.
+     */
+    public static final RegistryObject<Block> WHITEFLOWER_PETALS = registerBlock("whiteflower_petals",
+            () -> new PinkPetalsBlock(BlockBehaviour.Properties.copy(Blocks.PINK_PETALS)));
+
+    /**
+     * The potted flower. Registered straight into {@code BLOCKS} rather than through
+     * {@link #registerBlock} because it must <em>not</em> have a BlockItem: a potted plant is
+     * made by using the flower on a pot, and an item for it would be a second way to get one
+     * that vanilla does not offer and that no recipe or loot table would explain.
+     *
+     * <p>Forge's three-argument constructor is the whole of "the vanilla pot accepts this
+     * flower" — passing the empty pot registers the plant into that pot's content map, so
+     * there is nothing to add on the vanilla side. It resolves {@code WHITEFLOWER} while it
+     * runs, which is safe only because that block is declared above this one and so is
+     * registered first.
+     */
+    public static final RegistryObject<Block> POTTED_WHITEFLOWER = BLOCKS.register("potted_whiteflower",
+            () -> new FlowerPotBlock(() -> (FlowerPotBlock) Blocks.FLOWER_POT, WHITEFLOWER,
+                    BlockBehaviour.Properties.copy(Blocks.POTTED_POPPY)));
 
     // ── Boss summoners ────────────────────────────────────────────────────────
     // One altar per boss. Right-click with the matching catalyst and the boss stands up out

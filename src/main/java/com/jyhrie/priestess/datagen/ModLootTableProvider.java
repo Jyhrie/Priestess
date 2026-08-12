@@ -7,13 +7,17 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.loot.packs.VanillaBlockLoot;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.advancements.critereon.StatePropertiesPredicate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.PinkPetalsBlock;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import net.minecraftforge.registries.RegistryObject;
@@ -49,6 +53,12 @@ public class ModLootTableProvider {
             this.dropSelf(ModBlocks.PALE_BEACH_SAND.get());
             this.dropSelf(ModBlocks.DEAD_SEABED.get());
             this.dropSelf(ModBlocks.PERMAFROST.get());
+            this.dropSelf(ModBlocks.WHITEFLOWER.get());
+            // A pot drops the pot and the plant as two separate items, which is the whole of
+            // what dropPottedContents writes — and it reads the flower back off the block, so
+            // there is nothing here to keep in step with ModBlocks.
+            this.dropPottedContents(ModBlocks.POTTED_WHITEFLOWER.get());
+            this.add(ModBlocks.WHITEFLOWER_PETALS.get(), petals(ModBlocks.WHITEFLOWER_PETALS.get()));
             // The altars drop themselves armed, whatever state they were broken in — the
             // block entity's boss goes with the block, so a spent altar picked up and put
             // back down is a fresh one. That is the forgiving reading, and the alternative
@@ -75,6 +85,28 @@ public class ModLootTableProvider {
             this.dropSelf(ModBlocks.D32_STEEL_DECORATIVE_VENT.get());
             this.dropSelf(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_PIPE.get());
             this.dropSelf(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_VENT.get());
+        }
+
+        /**
+         * Petals drop one item per petal in the block, so breaking a block of four gives four
+         * back and the ground cover is not a way to delete items.
+         *
+         * <p>One entry carrying four conditional {@code set_count}s rather than four entries,
+         * which is the shape of vanilla's own pink petals table: the entry is always the same
+         * item, and only the count depends on the state. The explosion decay is what makes a
+         * blown-up patch drop less, and it has to wrap the finished table rather than the
+         * entry — it is a table-level function in vanilla's version too.
+         */
+        private LootTable.Builder petals(Block block) {
+            LootPoolSingletonContainer.Builder<?> entry = LootItem.lootTableItem(block);
+            for (int amount = PinkPetalsBlock.MIN_FLOWERS; amount <= PinkPetalsBlock.MAX_FLOWERS; amount++) {
+                entry = entry.apply(SetItemCountFunction.setCount(ConstantValue.exactly(amount))
+                        .when(LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
+                                .setProperties(StatePropertiesPredicate.Builder.properties()
+                                        .hasProperty(PinkPetalsBlock.AMOUNT, amount))));
+            }
+            return this.applyExplosionDecay(block,
+                    LootTable.lootTable().withPool(LootPool.lootPool().add(entry)));
         }
 
         // Every block registered by the mod must get a table in generate(), or datagen fails.

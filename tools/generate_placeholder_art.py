@@ -193,8 +193,8 @@ def patterned_block(name, base, accent, seed, kind):
     write_png(os.path.join(ASSETS, "block", "%s.png" % name), width, height, pixels)
 
 
-def item_texture(name, base, accent, seed, glyph):
-    """A 16x16 item: a rounded slab of `base` with `glyph` stamped on in `accent`.
+def paint_glyph(base, accent, seed, glyph):
+    """A 16x16 RGBA field drawn from an ASCII `glyph`, with the same grain as everything else.
 
     glyph is a list of 16 strings of 16 characters; '#' is accent, '.' is base, ' ' is
     transparent. It is easier to read as ASCII than as coordinates, and these are only
@@ -217,7 +217,28 @@ def item_texture(name, base, accent, seed, glyph):
             pixels[i + 1] = g
             pixels[i + 2] = b
             pixels[i + 3] = 255
-    write_png(os.path.join(ASSETS, "item", "%s.png" % name), width, height, pixels)
+    return pixels
+
+
+def item_texture(name, base, accent, seed, glyph):
+    """A 16x16 item sprite: a slab of `base` with `glyph` stamped on in `accent`."""
+    write_png(os.path.join(ASSETS, "item", "%s.png" % name), 16, 16,
+              paint_glyph(base, accent, seed, glyph))
+
+
+def plant_texture(folder, name, base, accent, seed, glyph):
+    """A 16x16 block tile that is mostly transparent, in textures/block/<folder>/.
+
+    The same glyph painting the items use, and for the same reason the items use it: a plant
+    tile is a drawing on a transparent field rather than a surface, so neither the grainy
+    fill of `block_texture` nor the arithmetic patterns of `patterned_block` can express one —
+    both of those write an opaque pixel everywhere.
+
+    A folder because these come in sets that share nothing with the masonry: `flowers/` for
+    what stands up out of the ground, `litter/` for what has fallen onto it.
+    """
+    write_png(os.path.join(ASSETS, "block", folder, "%s.png" % name), 16, 16,
+              paint_glyph(base, accent, seed, glyph))
 
 
 # ── The roster ────────────────────────────────────────────────────────────────
@@ -397,6 +418,28 @@ DREAMLAND = [
     "                ",
 ]
 
+# A handful of petals, as an inventory icon. Four blooms in a diamond rather than the
+# scatter the block tile uses: the tile is seen from above at world scale and wants to look
+# strewn, the icon is seen at slot size and wants a shape.
+PETAL_HANDFUL = [
+    "                ",
+    "                ",
+    "       ..       ",
+    "      .##.      ",
+    "      .##.      ",
+    "       ..       ",
+    "   ..      ..   ",
+    "  .##.    .##.  ",
+    "  .##.    .##.  ",
+    "   ..      ..   ",
+    "       ..       ",
+    "      .##.      ",
+    "      .##.      ",
+    "       ..       ",
+    "                ",
+    "                ",
+]
+
 ITEMS = [
     # name,                            base,               accent,              seed, glyph
     ("mansfield_master_key",           (0x4A, 0x42, 0x38), (0xD8, 0xC0, 0x78), 201, KEY),
@@ -406,6 +449,94 @@ ITEMS = [
     ("corrupted_neural_shard",         (0x24, 0x18, 0x2E), (0xC8, 0x5F, 0xA8), 205, SHARD),
     ("medium",                         (0x24, 0x30, 0x3A), (0x8C, 0xD8, 0xE8), 206, MEDIUM),
     ("dreamland",                      (0x2A, 0x24, 0x40), (0xC8, 0xA8, 0xF0), 207, DREAMLAND),
+    # The petals' inventory icon. Not the flower's — a small flower's item model is the block
+    # tile itself, drawn flat, so that one needs no sprite of its own.
+    ("whiteflower_petals",             (0xE8, 0xEA, 0xE4), (0xB8, 0xC4, 0xAE), 208, PETAL_HANDFUL),
+]
+
+# ── Plants ────────────────────────────────────────────────────────────────────
+# Terra's flora, on a transparent field. White petals over a green stem, which is the whole
+# palette: this is a wild flower and it belongs to no dungeon, so unlike everything above it
+# is not colour-coded to a place.
+
+WHITEFLOWER_PETAL = (0xE8, 0xEA, 0xE4)
+WHITEFLOWER_GREEN = (0x4E, 0x7A, 0x3E)
+# A grey-green shadow rather than a second white, so a 2x2 bloom on the ground tile reads as
+# a curled petal instead of a flat square.
+WHITEFLOWER_SHADE = (0xC4, 0xC9, 0xBE)
+
+# The standing flower, drawn for the cross model: two of these quads at right angles, so the
+# tile has to read as a whole plant from any side. Bloom on top, green centre, stem to the
+# bottom edge with a leaf either side.
+WHITEFLOWER = [
+    "                ",
+    "      ....      ",
+    "     ......     ",
+    "    ...##...    ",
+    "    ..####..    ",
+    "    ...##...    ",
+    "     ......     ",
+    "      ....      ",
+    "       ##       ",
+    "      ###       ",
+    "     ####       ",
+    "       ###      ",
+    "       ####     ",
+    "       ##       ",
+    "       ##       ",
+    "       ##       ",
+]
+
+# Fallen petals, seen from above. The flowerbed models this feeds sample one 8x8 quadrant of
+# the tile per layer — the first petal placed takes the top-left, the fourth the top-right —
+# so all four quadrants have to carry their own scatter, and the scatter has to be off-centre
+# in each or a full block of petals comes out as a grid of identical clumps.
+WHITEFLOWER_PETALS = [
+    "  ..        ..  ",
+    "  .#        .#  ",
+    "     ..         ",
+    "     .#      .. ",
+    "         ..  .# ",
+    " ..      .#     ",
+    " .#             ",
+    "                ",
+    "    ..     ..   ",
+    "    .#     .#   ",
+    " ..           ..",
+    " .#           .#",
+    "      .. ..     ",
+    "      .# .#     ",
+    "                ",
+    "                ",
+]
+
+# The stems those petals sit on. The flowerbed models sample a 1x3 strip at the left edge and
+# nothing else, so everything outside x=0, y=4..7 is deliberately empty — this is a colour
+# swatch with a shape, not a drawing.
+WHITEFLOWER_PETALS_STEM = [
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "#               ",
+    "#               ",
+    "#               ",
+    "#               ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+]
+
+PLANTS = [
+    # folder,    name,                       base,               accent,             seed, glyph
+    ("flowers", "whiteflower",               WHITEFLOWER_PETAL, WHITEFLOWER_GREEN,  351, WHITEFLOWER),
+    ("litter",  "whiteflower_petals",        WHITEFLOWER_PETAL, WHITEFLOWER_SHADE,  352, WHITEFLOWER_PETALS),
+    ("litter",  "whiteflower_petals_stem",   WHITEFLOWER_GREEN, WHITEFLOWER_GREEN,  353, WHITEFLOWER_PETALS_STEM),
 ]
 
 # ── Boss altars ───────────────────────────────────────────────────────────────
@@ -520,6 +651,9 @@ def main():
         block_texture(name, base, accent, seed, frame)
     for name, base, accent, seed, kind in ARTS_LAB_BLOCKS + SAL_VIENTO_BLOCKS + PIPE_SETS:
         patterned_block(name, base, accent, seed, kind)
+    print("plant textures ->")
+    for folder, name, base, accent, seed, glyph in PLANTS:
+        plant_texture(folder, name, base, accent, seed, glyph)
     print("boss altar model sheets ->")
     for name, size, base, accent, seed, stripe in BOSS_ALTAR_MODELS:
         block_model_texture(name, size, base, accent, seed, stripe)

@@ -105,6 +105,13 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModBlocks.PALE_BEACH_SAND.get(), "Pale Beach Sand");
         add(ModBlocks.DEAD_SEABED.get(), "Dead Seabed");
         add(ModBlocks.PERMAFROST.get(), "Permafrost");
+
+        add(ModBlocks.WHITEFLOWER.get(), "Whiteflower");
+        add(ModBlocks.WHITEFLOWER_PETALS.get(), "Whiteflower Petals");
+        // No item ever carries this name — the potted block has no BlockItem — but vanilla
+        // names its potted blocks too, and a missing key is what a debug screen shows you.
+        add(ModBlocks.POTTED_WHITEFLOWER.get(), "Potted Whiteflower");
+
         add(ModBlocks.JESSELTON_PROJECTOR.get(), "Jesselton's Projector");
         add(ModBlocks.DOROTHYS_TERMINAL.get(), "Dorothy's Terminal");
 

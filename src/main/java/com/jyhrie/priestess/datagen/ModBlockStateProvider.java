@@ -8,6 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.PinkPetalsBlock;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -17,7 +18,25 @@ import net.minecraftforge.client.model.generators.MultiPartBlockStateBuilder;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.stream.IntStream;
+
 public class ModBlockStateProvider extends BlockStateProvider {
+
+    /** The render layer every partly transparent plant model needs. See {@link #flower}. */
+    private static final String CUTOUT = "minecraft:cutout";
+
+    /**
+     * Where the plant models and their textures live: what stands up out of the ground, and
+     * what has fallen onto it.
+     *
+     * <p>The {@code block/} is spelled out and load-bearing. A model name containing a slash is
+     * taken as a complete path and the provider's own {@code block} folder is <em>not</em>
+     * prepended, so {@code "flowers/whiteflower"} would write to {@code models/flowers/} and
+     * sit outside the tree every other block model in the mod is in.
+     */
+    private static final String FLOWERS = "block/flowers/";
+    private static final String LITTER = "block/litter/";
+
     public ModBlockStateProvider(PackOutput output, ExistingFileHelper exFileHelper) {
         super(output, Priestess.MOD_ID, exFileHelper);
     }
@@ -31,6 +50,11 @@ public class ModBlockStateProvider extends BlockStateProvider {
         simpleBlockWithItem(ModBlocks.PALE_BEACH_SAND.get(), cubeAll(ModBlocks.PALE_BEACH_SAND.get()));
         simpleBlockWithItem(ModBlocks.DEAD_SEABED.get(), cubeAll(ModBlocks.DEAD_SEABED.get()));
         simpleBlockWithItem(ModBlocks.PERMAFROST.get(), cubeAll(ModBlocks.PERMAFROST.get()));
+
+        // Plants. Both tiles are mostly transparent, which is what the cutout render type in
+        // each of these models is for — see flower().
+        flower(ModBlocks.WHITEFLOWER, ModBlocks.POTTED_WHITEFLOWER);
+        petals(ModBlocks.WHITEFLOWER_PETALS);
 
         summoner(ModBlocks.JESSELTON_PROJECTOR);
         summoner(ModBlocks.DOROTHYS_TERMINAL);
@@ -71,6 +95,90 @@ public class ModBlockStateProvider extends BlockStateProvider {
         pipe(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_PIPE);
         simpleBlockWithItem(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_VENT.get(),
                 cubeAll(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_VENT.get()));
+    }
+
+    /**
+     * A small flower and its potted version, both from the one tile in {@code block/flowers/}.
+     *
+     * <p><b>{@code renderType} is not optional.</b> Since 1.19 a model's render layer is a
+     * field on the model rather than something registered in client code, and a model that
+     * names none is drawn as solid geometry — which fills every transparent pixel of the tile
+     * with black, so an undeclared flower comes out as a black square with a flower inside it.
+     * Cutout rather than translucent: these tiles are opaque or empty per pixel with nothing in
+     * between, and cutout does not pay for sorting.
+     *
+     * <p><b>The item is a flat sprite, not the block model.</b> {@code simpleBlockWithItem}
+     * would hand the inventory the cross model, and two quads crossing at right angles read as
+     * a smear when a slot shows them head-on. Vanilla points flower items at
+     * {@code item/generated} with the block tile as {@code layer0}, which is what this does —
+     * so the flower needs no item texture of its own.
+     */
+    private void flower(RegistryObject<Block> flower, RegistryObject<Block> potted) {
+        String name = flower.getId().getPath();
+        ResourceLocation texture = modLoc(FLOWERS + name);
+
+        simpleBlock(flower.get(), models().cross(FLOWERS + name, texture).renderType(CUTOUT));
+
+        // The pot is vanilla's model; all it wants is the plant to put in it. Its own name has
+        // to stay potted_<flower> to match the block, but the model can live with the flower.
+        simpleBlock(potted.get(), models().singleTexture(FLOWERS + potted.getId().getPath(),
+                mcLoc("block/flower_pot_cross"), "plant", texture).renderType(CUTOUT));
+
+        itemModels().withExistingParent(name, mcLoc("item/generated")).texture("layer0", texture);
+    }
+
+    /**
+     * A {@link PinkPetalsBlock}: ground cover that holds one to four petals, laid down facing
+     * the way the player was standing.
+     *
+     * <p>Four models and sixteen multipart cases, which is vanilla's own arrangement for pink
+     * petals rather than a choice. Each of vanilla's {@code block/flowerbed_N} parents draws
+     * <em>only</em> the Nth petal, in its own 8x8 quadrant of the tile, so the models stack:
+     * a block holding three petals applies layers 1, 2 <em>and</em> 3. That is why each part's
+     * condition is "amount is N or more" rather than "amount is N" — a condition per exact
+     * amount would show the third petal and nothing else.
+     *
+     * <p>Times four horizontal facings, because the whole patch turns with the player who laid
+     * it. The parent models are authored facing north and {@code Direction.toYRot} measures
+     * from south, hence the 180 — north has to come out as no rotation at all.
+     *
+     * <p>The stem faces in those parents carry {@code tintindex 1}, which vanilla uses to
+     * grass-tint pink petal stems. Nothing here registers a colour provider, so the tint
+     * resolves to white and the stem renders in its own colours — which is the intent: a
+     * whiteflower stem should not change hue with the biome it fell in.
+     */
+    private void petals(RegistryObject<Block> block) {
+        String name = block.getId().getPath();
+        ResourceLocation petals = modLoc(LITTER + name);
+        ResourceLocation stem = modLoc(LITTER + name + "_stem");
+
+        MultiPartBlockStateBuilder builder = getMultipartBuilder(block.get());
+        for (int layer = PinkPetalsBlock.MIN_FLOWERS; layer <= PinkPetalsBlock.MAX_FLOWERS; layer++) {
+            ModelFile model = models()
+                    .withExistingParent(LITTER + name + "_" + layer, mcLoc("block/flowerbed_" + layer))
+                    .texture("flowerbed", petals)
+                    .texture("stem", stem)
+                    .renderType(CUTOUT);
+
+            Integer[] thisManyOrMore = IntStream.rangeClosed(layer, PinkPetalsBlock.MAX_FLOWERS)
+                    .boxed().toArray(Integer[]::new);
+
+            for (Direction facing : Direction.Plane.HORIZONTAL) {
+                builder.part()
+                        .modelFile(model)
+                        .rotationY(((int) facing.toYRot() + 180) % 360)
+                        .addModel()
+                        .condition(PinkPetalsBlock.FACING, facing)
+                        .condition(PinkPetalsBlock.AMOUNT, thisManyOrMore)
+                        .end();
+            }
+        }
+
+        // Its own sprite, unlike the flower's: the block tile is a scatter of petals seen from
+        // directly above, which says nothing at slot size. See PETAL_HANDFUL in
+        // tools/generate_placeholder_art.py.
+        itemModels().withExistingParent(name, mcLoc("item/generated"))
+                .texture("layer0", modLoc("item/" + name));
     }
 
     /**

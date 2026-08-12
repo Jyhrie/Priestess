@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/flowerbed_2",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "flowerbed": "priestess:block/litter/whiteflower_petals",
+    "stem": "priestess:block/litter/whiteflower_petals_stem"
+  }
+}

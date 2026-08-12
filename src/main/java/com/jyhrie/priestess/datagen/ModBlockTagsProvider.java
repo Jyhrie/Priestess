@@ -89,6 +89,18 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
             }
         }
 
+        // Plants. Three small tags rather than any code, and between them they are everything
+        // that makes a flower behave like one to the rest of the game: #small_flowers is what
+        // vanilla's #flowers and #sword_efficient are built out of, so joining it is what makes
+        // bees pollinate the whiteflower and a sword cut it down. The petals get #sword_efficient
+        // directly — vanilla lists pink petals there by name, because the ground cover is not a
+        // small flower and inherits none of it.
+        tag(BlockTags.SMALL_FLOWERS).add(ModBlocks.WHITEFLOWER.get());
+        tag(BlockTags.SWORD_EFFICIENT).add(ModBlocks.WHITEFLOWER_PETALS.get());
+        // What tells vanilla the pot is a pot — it is how the flower pot's own break and pick
+        // behaviour finds the full ones.
+        tag(BlockTags.FLOWER_POTS).add(ModBlocks.POTTED_WHITEFLOWER.get());
+
         for (RegistryObject<Block> entry : IRON_PICKAXE) {
             tag(BlockTags.MINEABLE_WITH_PICKAXE).add(entry.get());
             tag(BlockTags.NEEDS_IRON_TOOL).add(entry.get());

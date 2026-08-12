@@ -1,4 +1,4 @@
-// 1.20.1	2026-08-12T00:05:23.6760131	Loot Tables
+// 1.20.1	2026-08-12T22:46:26.5966768	Loot Tables
 e25008b5eb2960f09a2f2e364b4e98490e0d76fc data/priestess/loot_tables/blocks/black_ice.json
 467aa2fa5806f4fef81a3d5769f4cebd532bd9b5 data/priestess/loot_tables/blocks/d32_steel_decorative_pipe.json
 b1be2c139a07f98ba70251df2ebf98486ae5d564 data/priestess/loot_tables/blocks/d32_steel_decorative_vent.json
@@ -11,6 +11,7 @@ f88d59c6c86086dbfd416c9644c56c2bb02915b8 data/priestess/loot_tables/blocks/iride
 a9cce82a1107c2679dbca5f3f63071386d86e194 data/priestess/loot_tables/blocks/jesselton_projector.json
 3655da9c19908b7b0b896446e4ee9e2ebd6ec375 data/priestess/loot_tables/blocks/pale_beach_sand.json
 39b36cf244ea9ab7e061dd22f491c096d2a3b401 data/priestess/loot_tables/blocks/permafrost.json
+dbdef5dca9e8b73e743a560882a1352c7abfdb9f data/priestess/loot_tables/blocks/potted_whiteflower.json
 17c15f5a120485adcb1a0f9425f2162057bbbe56 data/priestess/loot_tables/blocks/rhine_lab_arts_lab_chiseled_wall.json
 5467e44a7272b6281bec1fd02e1faf466ea32040 data/priestess/loot_tables/blocks/rhine_lab_arts_lab_concrete_wall.json
 48be6d20a947e2e62b9155e47268d3bce143e05d data/priestess/loot_tables/blocks/rhine_lab_arts_lab_pillar.json
@@ -24,4 +25,6 @@ e38e03242eece11f82af3daf36e1190f8cb0d3e6 data/priestess/loot_tables/blocks/sal_v
 c383db0b47153672c217dcca3330d53955964f65 data/priestess/loot_tables/blocks/sal_viento_catacombs_pipe.json
 4a3568d68a7fe61ca7039c837ced4b2dbff8ea41 data/priestess/loot_tables/blocks/sal_viento_catacombs_stone.json
 7c1cc09aee6258655c1c71f75594e91561976a5c data/priestess/loot_tables/blocks/siesta_sand.json
+a73a85bbe27616b648d48b4071f4a762ef2eea90 data/priestess/loot_tables/blocks/whiteflower.json
+113b45db2fcc2b3818c9995afb49a5d4baee793c data/priestess/loot_tables/blocks/whiteflower_petals.json
 c98a0148c0d414d95c33114de1fb211c9cefe977 data/priestess/loot_tables/chests/rhine_directors_office.json
