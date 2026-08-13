@@ -1,4 +1,4 @@
-# Lethality weapons
+go# Lethality weapons
 
 Weapons ported in from [Lethality](https://github.com/) into `com.jyhrie.priestess.weapons`,
 and the record of what changed on the way across.

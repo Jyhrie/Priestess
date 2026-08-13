@@ -159,6 +159,7 @@ tools/generate_placeholder_dungeons.py  the three dungeon .nbt files
 docs/WORLDGEN.md                    the map, terrain, biomes and surface rules
 docs/COMMANDS.md                    every command, mod and vanilla, and test recipes
 docs/DUNGEON_BLOCKS.md              adding a block gated behind a dungeon, and adding a dungeon
+docs/FLOWERS_LITTER.md              adding a flower or ground litter: cutout models, petal states
 docs/SCORE_MOVEMENTS.md             the storyline, chapter by chapter
 docs/BOSSES.md                      per-boss design and fight notes
 docs/BOSS_SPAWNERS.md               the summoning altars: GeckoLib block models and rendering
@@ -261,6 +262,11 @@ a loot table, and a matching item.
 
 To then make terrain actually *use* the block, see
 [Surface rules](docs/WORLDGEN.md#surface-rules).
+
+A **plant** is not one of these. A flower or a patch of fallen petals needs a cutout render
+type, a flat item sprite and — for litter — a loot table that reads the block's state, none of
+which `simpleBlockWithItem` and `dropSelf` will give you:
+**[docs/FLOWERS_LITTER.md](docs/FLOWERS_LITTER.md)**.
 
 ---
 
