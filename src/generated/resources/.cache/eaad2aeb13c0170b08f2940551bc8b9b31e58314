@@ -1,4 +1,4 @@
-// 1.20.1	2026-08-12T21:13:36.4290295	Item Models: priestess
+// 1.20.1	2026-08-13T19:32:58.7340243	Item Models: priestess
 08a06ca849bae639191477d8150812949c54b61e assets/priestess/models/item/blueprint_originium_refinement.json
 ae93b084ac3095b8fd104c7b0bd8c6329f120d2a assets/priestess/models/item/corrupted_neural_shard.json
 258829fb5126af398fd79b161e2dbc25b4191d73 assets/priestess/models/item/devils_devastation.json
@@ -23,3 +23,4 @@ ae93b084ac3095b8fd104c7b0bd8c6329f120d2a assets/priestess/models/item/corrupted_
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/priestess/models/item/sv_spitter_spawn_egg.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/priestess/models/item/sv_the_first_to_talk_spawn_egg.json
 6b8b2200ece52594162647a81b887b1bcec8fb81 assets/priestess/models/item/tarnished_dog_tags.json
+95cac1bd178acc3bb2a2825f7c7e15e1fad39d8b assets/priestess/models/item/template.json

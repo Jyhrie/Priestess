@@ -32,6 +32,10 @@ public class ModItemModelProvider extends ItemModelProvider {
         basicItem(ModItems.MEDIUM.get());
         basicItem(ModItems.DREAMLAND.get());
 
+        // Modules. A curio's inventory sprite is an ordinary item model — Curios draws the
+        // worn item from this same model, so there is nothing extra to generate.
+        basicItem(ModItems.TEMPLATE.get());
+
         // Ported weapons — see docs/LETHALITY WEAPONS.md.
         //
         // Not basicItem(). These use two sprites and have to be held like a sword rather than

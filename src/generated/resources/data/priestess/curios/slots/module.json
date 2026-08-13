@@ -1,0 +1,7 @@
+{
+  "icon": "priestess:slot/empty_module_slot",
+  "order": 100,
+  "validators": [
+    "curios:tag"
+  ]
+}

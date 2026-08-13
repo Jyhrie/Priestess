@@ -76,6 +76,17 @@ description='''${mod_description}'''
     ordering="AFTER"
     side="BOTH"
 
+# Curios owns the Module slot. Mandatory because the mod references the Curios API directly
+# and unguarded — making it optional means wrapping every one of those references in a
+# ModList.get().isLoaded check. AFTER so its slot registry exists before our datapack adds to
+# it. See docs/CURIOS.md.
+[[dependencies.${mod_id}]]
+    modId="curios"
+    mandatory=true
+    versionRange="${curios_version_range}"
+    ordering="AFTER"
+    side="BOTH"
+
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
 # stop your mod loading on the server for example.

@@ -79,6 +79,16 @@ public class ModItems {
     public static final RegistryObject<Item> CORRUPTED_NEURAL_SHARD = ITEMS.register("corrupted_neural_shard",
             () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
 
+    // ── Modules ───────────────────────────────────────────────────────────────
+    // Wearables, in the Module slot this mod adds to Curios. Template is the first and is
+    // exactly what its name says: a working example to copy, which wears and does nothing.
+    // See docs/CURIOS.md — registering it here is only a third of the job, and the two other
+    // thirds are the ones that fail silently.
+
+    /** The reference Module. Equips, occupies the slot, has no effect. */
+    public static final RegistryObject<Item> TEMPLATE = ITEMS.register("template",
+            () -> new TemplateModuleItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
+
     // ── Spawn eggs ────────────────────────────────────────────────────────────
     // Every mob gets one. They are a test tool first — a boss that can only be seen by
     // walking to the one prison in the world is a boss you cannot tune — and they cost

@@ -62,7 +62,9 @@ src/main/java/com/jyhrie/priestess/
 │       └── BossSummonerBlockEntity.java  the spent countdown and whose boss it is
 ├── item/
 │   ├── ModItems.java               item registry
-│   └── ModCreativeTabs.java        the "Priestess" creative tab
+│   ├── ModCreativeTabs.java        the "Priestess" creative tab
+│   ├── ModTags.java                item tag keys — the Curios slot tag lives here
+│   └── TemplateModuleItem.java     the reference Curios module; wears, does nothing
 ├── damage/ModDamageTypes.java      damage types (datapack JSON, like worldgen)
 ├── effect/
 │   ├── ModEffects.java             Open Wounds + Acute Oripathy, and both level tables
@@ -119,6 +121,8 @@ src/main/java/com/jyhrie/priestess/
 │   ├── DataGenerators.java         wires up every provider
 │   ├── ModBlockStateProvider.java  blockstates + block models
 │   ├── ModBlockTagsProvider.java   sealed_by/*, wither_immune, mineable/* — a mechanic
+│   ├── ModItemTagsProvider.java    curios:module — what makes a module wearable
+│   ├── ModCuriosDataProvider.java  the Module slot itself, and granting it to players
 │   ├── ModDamageTypeTagsProvider.java  which vanilla damage tags ours join
 │   ├── ModItemModelProvider.java   item models
 │   ├── ModLanguageProvider.java    en_us.json
@@ -153,7 +157,7 @@ src/main/resources/                 ← hand-authored assets (safe to edit)
 
 tools/generate_terra_map.py         regenerates regions + elevation from a layout
 tools/generate_relief_map.py        first draft of relief.png, from regions.png
-tools/generate_placeholder_art.py   placeholder mob + item textures
+tools/generate_placeholder_art.py   placeholder mob, item, plant and slot-icon textures
 tools/generate_placeholder_models.py  placeholder .geo.json, with UVs packed automatically
 tools/generate_placeholder_dungeons.py  the three dungeon .nbt files
 docs/WORLDGEN.md                    the map, terrain, biomes and surface rules
@@ -164,6 +168,7 @@ docs/SCORE_MOVEMENTS.md             the storyline, chapter by chapter
 docs/BOSSES.md                      per-boss design and fight notes
 docs/BOSS_SPAWNERS.md               the summoning altars: GeckoLib block models and rendering
 docs/SPAWNING.md                    why nothing spawns naturally, and how to change that
+docs/CURIOS.md                      the Module slot, and adding a wearable module
 docs/WEAPONS.md                     building a weapon: click hooks, abilities, projectiles
 docs/TOOLTIPS.md                    flavour text, hold-Shift detail blocks, animated names
 docs/RARITIES.md                    adding a rarity tier above vanilla's four

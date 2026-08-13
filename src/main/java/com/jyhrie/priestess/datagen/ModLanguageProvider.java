@@ -64,6 +64,16 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModItems.CORRUPTED_NEURAL_SHARD.get(), "Corrupted Neural Shard");
         add(ModItems.MEDIUM.get(), "Medium");
         add(ModItems.DREAMLAND.get(), "Dreamland");
+        add(ModItems.TEMPLATE.get(), "Template");
+
+        // ── Modules ───────────────────────────────────────────────────────────
+        // Curios ships these two keys for its own slot types but cannot know about ours.
+        // "identifier" labels the slot in the GUI; "modifiers" is the header above the
+        // attribute list in a worn item's tooltip. Missing either shows the raw key on screen.
+        // Both live in the curios namespace, like the slot's item tag, because Curios is what
+        // looks them up. See docs/CURIOS.md.
+        add("curios.identifier.module", "Module");
+        add("curios.modifiers.module", "When worn as a module:");
 
         add(ModItems.ORIGINIUM_SLUG_SPAWN_EGG.get(), "Originium Slug Spawn Egg");
         add(ModItems.DV_FAILURE_SPAWN_EGG.get(), "Failure Spawn Egg");

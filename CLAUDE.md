@@ -13,7 +13,7 @@ progression gating.
 | Mod ID | `priestess` |
 | Dimension | `priestess:terra` |
 | Base package | `com.jyhrie.priestess` |
-| Sole dependency | GeckoLib 4.8.4 (boss animation) |
+| Dependencies | GeckoLib 4.8.4 (boss animation), Curios 5.14.1 (accessory slots) |
 | Entering the dimension | `/execute in priestess:terra run tp @s ~ ~ ~` — no portal exists |
 
 ## Commands
@@ -99,6 +99,13 @@ references from outside the folder are two lines in `Priestess.java` and one in
 **Oripathy** is a per-player infection capability (`oripathy/`), never shown in any UI. Creative
 and spectator are exempt from gain and symptoms, so testing requires `/gamemode survival`.
 
+**Curios accessories are three files, two of which fail silently.** The mod adds one slot,
+`module`, holding one item, `Template`. Which slot an item fits is *not* decided in Java — it
+comes from an item tag in the **`curios` namespace, not `priestess`** (`ModTags.Items`
+wraps this). Registering the item is not enough: without the `ModItemTagsProvider` entry it is
+equippable nowhere, and without `ModCuriosDataProvider` the slot never appears in the GUI.
+Neither omission logs anything. See `docs/CURIOS.md`.
+
 **Content is scaffolding.** Mobs use placeholder cube models, dungeons are Python-generated
 (`tools/`), and **nothing spawns naturally** — everything is reached via spawn egg or structure
 placement.
@@ -112,7 +119,12 @@ placement.
   the codec notes in `Priestess.java`). Match that density and register rather than stripping
   it back to terse one-liners.
 - GeckoLib is `implementation` + `fg.deobf()`, and dev runs remap its mixin refmap via two
-  properties in `build.gradle` — without them the client dies before the main menu.
+  properties in `build.gradle` — without them the client dies before the main menu. Curios ships
+  mixins too and relies on those same two properties; it compiles against its slim `:api`
+  classifier with the full artifact pulled at runtime.
+- Placeholder textures are generated, not drawn: `tools/generate_placeholder_art.py` is pure
+  stdlib, seeded and idempotent. Add an entry there rather than hand-making a PNG, and remove
+  an entry once real art replaces it so a re-run cannot clobber the real thing.
 
 ## Where to look
 
@@ -129,6 +141,7 @@ item, a block, or a structure. Beyond it:
 | Summoning altars, GeckoLib block models | `docs/BOSS_SPAWNERS.md` |
 | Why nothing spawns, and how to change it | `docs/SPAWNING.md` |
 | Weapons: click hooks, abilities, projectiles | `docs/WEAPONS.md` |
+| Curios: the Module slot, adding a module | `docs/CURIOS.md` |
 | Flowers/litter: cutout models, petal states | `docs/FLOWERS_LITTER.md` |
 | Tooltips, rarities | `docs/TOOLTIPS.md`, `docs/RARITIES.md` |
 

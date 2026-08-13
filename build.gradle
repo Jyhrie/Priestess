@@ -75,7 +75,8 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Translate SRG names in dependency refmaps into the mappings this workspace
-            // actually runs on. GeckoLib ships mixins whose refmap points at SRG
+            // actually runs on. Needed by both mixin-shipping dependencies, GeckoLib and
+            // Curios. GeckoLib ships mixins whose refmap points at SRG
             // ("m_118506_"), and fg.deobf() remaps a dependency's *classes* but leaves its
             // refmap byte-for-byte untouched. Because mapping_channel is "official", that
             // method is named "getTexture" at runtime, the @Inject matches nothing, and a
@@ -137,6 +138,13 @@ repositories {
         content { includeGroup 'software.bernie.geckolib' }
     }
 
+    // Curios, same story — its own host, filtered for the same reason.
+    maven {
+        name = 'Illusive Soulworks'
+        url = 'https://maven.theillusivec4.top/'
+        content { includeGroup 'top.theillusivec4.curios' }
+    }
+
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:flat_dir_resolver
     // flatDir {
@@ -165,6 +173,14 @@ dependencies {
     // the mods.toml entry below makes Forge say so up front instead of NoClassDefFoundError.
     implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
 
+    // Curios. Unlike GeckoLib this splits into two artifacts: ':api' is a slim, API-only jar
+    // that is all the mod compiles against, and the full artifact is only needed at runtime so
+    // the dev client actually has the mod to talk to. compileOnly on the API keeps Curios'
+    // internals out of our compile classpath, which is what stops an accidental import of a
+    // class that is not part of the supported surface.
+    compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}:api")
+    runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}")
+
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
     // The group id is ignored when searching -- in this case, it is "blank"
@@ -187,6 +203,7 @@ tasks.named('processResources', ProcessResources).configure {
             mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_authors: mod_authors, mod_description: mod_description,
             geckolib_version_range: geckolib_version_range,
+            curios_version_range: curios_version_range,
     ]
     inputs.properties replaceProperties
 

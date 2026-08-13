@@ -36,8 +36,20 @@ public class DataGenerators {
 
         // Block tags. Carries the sealed_by/<dungeon> tags, which are not decoration: the
         // lockdown reads them to decide what a player may break. See the provider.
+        ModBlockTagsProvider blockTags =
+                new ModBlockTagsProvider(packOutput, lookupProvider, existingFileHelper);
+        generator.addProvider(event.includeServer(), blockTags);
+
+        // Item tags. Held in a variable above rather than constructed inline because this one
+        // needs the block tags' contents to resolve any tag copied from a block tag.
+        generator.addProvider(event.includeServer(), new ModItemTagsProvider(
+                packOutput, lookupProvider, blockTags.contentsGetter(), existingFileHelper));
+
+        // Curios' slot definitions -> data/priestess/curios/. Defines the Module slot and
+        // grants it to players; without this the slot does not appear in the GUI. See
+        // docs/CURIOS.md.
         generator.addProvider(event.includeServer(),
-                new ModBlockTagsProvider(packOutput, lookupProvider, existingFileHelper));
+                new ModCuriosDataProvider(packOutput, existingFileHelper, lookupProvider));
 
         // Not a datapack file — writes docs/terra_world_preview.png so the hand-authored
         // Terra map can be checked without launching the game.

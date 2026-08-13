@@ -226,6 +226,21 @@ def item_texture(name, base, accent, seed, glyph):
               paint_glyph(base, accent, seed, glyph))
 
 
+def slot_texture(name, base, accent, seed, glyph):
+    """A 16x16 Curios slot icon, in textures/slot/.
+
+    The same glyph the items use, painted faint. The icon is drawn *underneath* an empty slot
+    as a hint of what belongs in it, so at full opacity it reads as an item already sitting
+    there. Alpha comes down rather than the colours going lighter, because the icon has to sit
+    on both the light and dark parts of the inventory background.
+    """
+    pixels = paint_glyph(base, accent, seed, glyph)
+    for i in range(3, len(pixels), 4):
+        if pixels[i]:
+            pixels[i] = 130
+    write_png(os.path.join(ASSETS, "slot", "%s.png" % name), 16, 16, pixels)
+
+
 def plant_texture(folder, name, base, accent, seed, glyph):
     """A 16x16 block tile that is mostly transparent, in textures/block/<folder>/.
 
@@ -440,6 +455,28 @@ PETAL_HANDFUL = [
     "                ",
 ]
 
+# A chip seen face-on, pins down both sides. Template is a Curios accessory rather than
+# anything you hold, and "module" has no silhouette of its own, so the sprite leans on the one
+# shape that reads as a component at 16 pixels.
+MODULE = [
+    "                ",
+    "                ",
+    "     ######     ",
+    "    #......#    ",
+    "  ###.####.###  ",
+    "    #.#..#.#    ",
+    "  ###.#..#.###  ",
+    "    #.#..#.#    ",
+    "    #.#..#.#    ",
+    "  ###.#..#.###  ",
+    "    #.####.#    ",
+    "  ###......###  ",
+    "     ######     ",
+    "                ",
+    "                ",
+    "                ",
+]
+
 ITEMS = [
     # name,                            base,               accent,              seed, glyph
     ("mansfield_master_key",           (0x4A, 0x42, 0x38), (0xD8, 0xC0, 0x78), 201, KEY),
@@ -452,6 +489,16 @@ ITEMS = [
     # The petals' inventory icon. Not the flower's — a small flower's item model is the block
     # tile itself, drawn flat, so that one needs no sprite of its own.
     ("whiteflower_petals",             (0xE8, 0xEA, 0xE4), (0xB8, 0xC4, 0xAE), 208, PETAL_HANDFUL),
+    ("template",                       (0x2A, 0x33, 0x3A), (0x7A, 0xC8, 0xB4), 209, MODULE),
+]
+
+# ── Curios slot icons ─────────────────────────────────────────────────────────
+# Drawn behind an empty slot in the Curios GUI. Greyscale on purpose: this is furniture, and a
+# coloured one competes with the items sitting next to it.
+
+SLOTS = [
+    # name,                base,               accent,              seed, glyph
+    ("empty_module_slot",  (0x54, 0x54, 0x54), (0x8A, 0x8A, 0x8A), 301, MODULE),
 ]
 
 # ── Plants ────────────────────────────────────────────────────────────────────
@@ -646,6 +693,9 @@ def main():
     print("item textures ->")
     for name, base, accent, seed, glyph in ITEMS:
         item_texture(name, base, accent, seed, glyph)
+    print("slot icons ->")
+    for name, base, accent, seed, glyph in SLOTS:
+        slot_texture(name, base, accent, seed, glyph)
     print("block textures ->")
     for name, base, accent, seed, frame in BLOCKS:
         block_texture(name, base, accent, seed, frame)
