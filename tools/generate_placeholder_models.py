@@ -257,6 +257,47 @@ def altar(core_size, prong):
     ]
 
 
+# ── Weapon VFX ────────────────────────────────────────────────────────────────
+# Laevatain's three abilities, as geometry rather than particles. These are not creatures and
+# do not follow the mob conventions above: there is no "head" bone (nothing tracks anything),
+# and the model is built around the origin in the orientation the entity is spawned facing,
+# because WeaponVfxRenderer rotates the whole thing by the entity's yaw and pitch.
+#
+# Each has exactly one bone, named for the file, and that bone name is what the matching
+# animations/<name>.animation.json keyframes. Renaming a bone here silently stops the
+# animation — GeckoLib logs nothing for keyframes that address a bone which is not there.
+
+# laevatain_slash is NOT here, and must not be added. It is a single zero-thickness plane with
+# per-face UV so the crescent can be drawn on the texture with transparency rather than built
+# out of blocks — this generator only knows box UV, which a flat cube cannot use. It is
+# hand-authored alongside its texture in generate_placeholder_art.py.
+
+# The stab: a tapered spike running 80 units — five blocks — straight down +Z, which is the
+# length of Molten Giant's box, so the mesh and the hitbox agree.
+STAB = [
+    ("stab", None, [0, 0, 0], None,
+     [([-3, -3, 0], [6, 6, 26]),
+      ([-2, -2, 26], [4, 4, 28]),
+      ([-1, -1, 54], [2, 2, 26])]),
+]
+
+# The eruption: a central column with four smaller ones around it, all standing on y=0 so the
+# bone can be scaled up from the floor rather than grown from its middle.
+ERUPTION = [
+    ("eruption", None, [0, 0, 0], None,
+     [([-3, 0, -3], [6, 24, 6]),
+      ([-11, 0, -2], [4, 16, 4]),
+      ([7, 0, -2], [4, 16, 4]),
+      ([-2, 0, -11], [4, 16, 4]),
+      ([-2, 0, 7], [4, 16, 4])]),
+]
+
+VFX_ROSTER = [
+    ("laevatain_stab", (6, 1, 0), STAB),
+    ("laevatain_eruption", (2, 2, 1), ERUPTION),
+]
+
+
 BLOCK_ROSTER = [
     # One plan, both altars. They differ by texture rather than by geometry, exactly as the
     # 16x16 cube tiles they replace did — giving one its own silhouette is a matter of
@@ -281,6 +322,8 @@ def emit(directory, roster):
 def main():
     print("entity models ->")
     emit(GEO, ROSTER)
+    print("weapon vfx models ->")
+    emit(GEO, VFX_ROSTER)
     print("block models ->")
     emit(GEO_BLOCK, BLOCK_ROSTER)
 

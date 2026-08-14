@@ -17,6 +17,7 @@ Pure standard library on purpose — the repo's other tools need Pillow, this on
 rarely enough that not adding a dependency is worth more than the convenience.
 """
 
+import math
 import os
 import random
 import struct
@@ -226,6 +227,94 @@ def item_texture(name, base, accent, seed, glyph):
               paint_glyph(base, accent, seed, glyph))
 
 
+def upscale(pixels, width, height, factor):
+    """Nearest-neighbour, so a 16x16 glyph becomes a grid of factor-sized blocks.
+
+    Deliberately not smoothed. The 64x64 sprite is the same drawing as the 16x16 one seen
+    closer, and interpolating it would only invent detail that is not there.
+    """
+    out = bytearray(width * factor * height * factor * 4)
+    row_width = width * factor
+    for y in range(height * factor):
+        src_row = (y // factor) * width * 4
+        for x in range(row_width):
+            src = src_row + (x // factor) * 4
+            dst = (y * row_width + x) * 4
+            out[dst:dst + 4] = pixels[src:src + 4]
+    return out
+
+
+def big_weapon_texture(name, base, accent, seed, glyph):
+    """The two sprites `bigWeapon` in ModItemModelProvider needs.
+
+    A weapon on that model is drawn from a 64x64 sprite in the hand and a separate 16x16 one
+    in the GUI — see docs/LETHALITY WEAPONS.md for why one sprite cannot do both. Both are
+    written here from the same glyph so a placeholder cannot end up with two different
+    silhouettes.
+    """
+    small = paint_glyph(base, accent, seed, glyph)
+    write_png(os.path.join(ASSETS, "item", "%s_gui.png" % name), 16, 16, small)
+    write_png(os.path.join(ASSETS, "item", "%s.png" % name), 64, 64,
+              upscale(small, 16, 16, 4))
+
+
+def slash_plane_texture(name, size, core, edge, sweep_degrees, thickness):
+    """A crescent drawn in alpha, for a VFX plane in textures/entity/.
+
+    The slash mesh is one zero-thickness quad, so the shape of the slash is the shape of the
+    *opaque part of this texture* — nothing about the geometry says "crescent". That is the
+    whole reason it is a plane: an arc drawn here can be curved, tapered and feathered, none of
+    which a stack of boxes can be.
+
+    An annulus segment: keep the pixels a fixed distance from a centre placed off the bottom of
+    the image, throw the rest away. Alpha falls off both across the band and towards the two
+    tips, so the crescent reads as a stroke rather than a cut-out. Colour runs `core` at the
+    centre line to `edge` at the rim.
+    """
+    width = height = size
+    pixels = bytearray(width * height * 4)
+
+    # Centre of curvature inside the lower half, so the arc bows up to a crown just under the
+    # top edge and its tips come back down to the bottom corners. Putting the centre off the
+    # image instead gives a shallow band across the top and wastes most of the sheet.
+    centre_x = size * 0.5
+    centre_y = size * 0.625
+    radius = centre_y - size * 0.125
+    band = size * (thickness * 0.5)
+    half_sweep = sweep_degrees * 0.5
+    taper = 25.0
+
+    for y in range(height):
+        for x in range(width):
+            dx = (x + 0.5) - centre_x
+            dy = (y + 0.5) - centre_y
+            distance = math.hypot(dx, dy)
+
+            across = abs(distance - radius) / band
+            if across >= 1.0:
+                continue
+
+            # Degrees from straight up, so the sweep can be trimmed symmetrically.
+            angle = abs(math.degrees(math.atan2(dx, -dy)))
+            if angle > half_sweep:
+                continue
+
+            # Squared falloff across the band, linear fade over the last `taper` degrees at
+            # each tip. Multiplied, so a pixel at the outer rim of a tip is nearly gone.
+            alpha = 1.0 - across * across
+            if angle > half_sweep - taper:
+                alpha *= (half_sweep - angle) / taper
+
+            colour = [core[n] + (edge[n] - core[n]) * across for n in range(3)]
+            i = (y * width + x) * 4
+            pixels[i] = int(colour[0])
+            pixels[i + 1] = int(colour[1])
+            pixels[i + 2] = int(colour[2])
+            pixels[i + 3] = max(0, min(255, int(alpha * 255)))
+
+    write_png(os.path.join(ASSETS, "entity", "%s.png" % name), width, height, pixels)
+
+
 def slot_texture(name, base, accent, seed, glyph):
     """A 16x16 Curios slot icon, in textures/slot/.
 
@@ -292,6 +381,16 @@ ENTITIES = [
     ("sv_piercer",             64,  64, (0x36, 0x44, 0x52), (0xBC, 0xE0, 0xF0), 115, 8),
     ("sv_the_first_to_talk",  128, 128, (0xB8, 0xAE, 0xA0), (0x5A, 0x2E, 0x78), 116, 14),
     ("sv_bishop_quintus",     256, 256, (0x14, 0x28, 0x44), (0xE0, 0xC8, 0x70), 117, 24),
+    # Laevatain's VFX meshes. Not creatures — sheet sizes here must match the ones
+    # generate_placeholder_models.py chose for the matching .geo.json, or the box UVs land on
+    # the wrong pixels. It prints the size it picked; the stab needed 128.
+    # All three run hot white through orange, because they are all the same fire.
+    #
+    # laevatain_slash is absent: it is a flat plane, so its crescent is drawn in the texture's
+    # alpha rather than in geometry, and a grainy opaque fill would render it as a card. See
+    # SLASH_PLANES below.
+    ("laevatain_stab",        128, 128, (0xFF, 0x7A, 0x1E), (0xFF, 0xF6, 0xE0), 119, 6),
+    ("laevatain_eruption",     64,  64, (0xE0, 0x5A, 0x18), (0xFF, 0xD0, 0x70), 120, 5),
     # NOT "dv_awaken". Its texture is a real 128x128 export that belongs to the Blockbench
     # model in geo/entity/dv_awaken.geo.json, and the UVs only line up with that file. This
     # script overwrites by name, so putting it back here would destroy hand-made art the
@@ -490,6 +589,48 @@ ITEMS = [
     # tile itself, drawn flat, so that one needs no sprite of its own.
     ("whiteflower_petals",             (0xE8, 0xEA, 0xE4), (0xB8, 0xC4, 0xAE), 208, PETAL_HANDFUL),
     ("template",                       (0x2A, 0x33, 0x3A), (0x7A, 0xC8, 0xB4), 209, MODULE),
+]
+
+# ── Big weapons ───────────────────────────────────────────────────────────────
+# Greatswords drawn on the diagonal, hilt at the bottom left and the tip in the top right
+# corner, which is the vanilla sword convention and the one the handheld transforms expect.
+#
+# Devil's Devastation is absent on purpose: its art came across from Lethality and is real
+# rather than placeholder. Adding it here would let a re-run overwrite it.
+
+LAEVATAIN = [
+    "            ####",
+    "           ####.",
+    "          ####. ",
+    "         ####.  ",
+    "        ####.   ",
+    "       ####.    ",
+    "      ####.     ",
+    "     ####.      ",
+    "    ####.       ",
+    "   ####.        ",
+    "  #..#.         ",
+    " ....#          ",
+    "  ..#.          ",
+    " ...            ",
+    "..              ",
+    ".               ",
+]
+
+BIG_WEAPONS = [
+    # name,        base,               accent,              seed, glyph
+    ("laevatain",  (0x3A, 0x1C, 0x14), (0xFF, 0x8A, 0x28), 401, LAEVATAIN),
+]
+
+# ── VFX planes ────────────────────────────────────────────────────────────────
+# Slash textures for flat quads. These carry their own shape in alpha, so unlike everything
+# else above there is no grain and no seed — a noisy slash reads as dirt on glass.
+
+SLASH_PLANES = [
+    # name,              size, core colour,        edge colour,        sweep°, thickness
+    # 240° is more than a semicircle, so the tips hook back down and it reads as a slash
+    # rather than as a rainbow.
+    ("laevatain_slash",  64,   (0xFF, 0xF6, 0xE2), (0xFF, 0x6A, 0x12), 240.0, 0.22),
 ]
 
 # ── Curios slot icons ─────────────────────────────────────────────────────────
@@ -693,6 +834,12 @@ def main():
     print("item textures ->")
     for name, base, accent, seed, glyph in ITEMS:
         item_texture(name, base, accent, seed, glyph)
+    print("vfx plane textures ->")
+    for name, size, core, edge, sweep, thickness in SLASH_PLANES:
+        slash_plane_texture(name, size, core, edge, sweep, thickness)
+    print("big weapon textures ->")
+    for name, base, accent, seed, glyph in BIG_WEAPONS:
+        big_weapon_texture(name, base, accent, seed, glyph)
     print("slot icons ->")
     for name, base, accent, seed, glyph in SLOTS:
         slot_texture(name, base, accent, seed, glyph)

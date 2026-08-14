@@ -1,0 +1,111 @@
+{
+  "base": {
+    "parent": "minecraft:item/handheld",
+    "display": {
+      "firstperson_lefthand": {
+        "rotation": [
+          -15,
+          90,
+          -25
+        ],
+        "scale": [
+          1.7,
+          1.7,
+          0.85
+        ],
+        "translation": [
+          1.13,
+          7.2,
+          1.13
+        ]
+      },
+      "firstperson_righthand": {
+        "rotation": [
+          -15,
+          -90,
+          25
+        ],
+        "scale": [
+          1.7,
+          1.7,
+          0.85
+        ],
+        "translation": [
+          1.13,
+          7.2,
+          1.13
+        ]
+      },
+      "thirdperson_lefthand": {
+        "rotation": [
+          0,
+          90,
+          -55
+        ],
+        "scale": [
+          2.9,
+          2.9,
+          1
+        ],
+        "translation": [
+          0,
+          20,
+          -1
+        ]
+      },
+      "thirdperson_righthand": {
+        "rotation": [
+          0,
+          -90,
+          55
+        ],
+        "scale": [
+          2.9,
+          2.9,
+          1
+        ],
+        "translation": [
+          0,
+          20,
+          -1
+        ]
+      }
+    },
+    "textures": {
+      "layer0": "priestess:item/laevatain"
+    }
+  },
+  "gui_light": "front",
+  "loader": "forge:separate_transforms",
+  "overrides": [
+    {
+      "model": "priestess:item/laevatain_pulling_0",
+      "predicate": {
+        "minecraft:pulling": 1.0
+      }
+    },
+    {
+      "model": "priestess:item/laevatain_pulling_1",
+      "predicate": {
+        "minecraft:pull": 0.65,
+        "minecraft:pulling": 1.0
+      }
+    }
+  ],
+  "perspectives": {
+    "ground": {
+      "parent": "minecraft:item/generated",
+      "gui_light": "front",
+      "textures": {
+        "layer0": "priestess:item/laevatain_gui"
+      }
+    },
+    "gui": {
+      "parent": "minecraft:item/generated",
+      "gui_light": "front",
+      "textures": {
+        "layer0": "priestess:item/laevatain_gui"
+      }
+    }
+  }
+}

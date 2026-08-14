@@ -3,14 +3,15 @@
 How to build a weapon with click behaviours — on-hit effects, right-click abilities,
 shift-right-click alternates, and projectiles.
 
-The worked example throughout is **Devil's Devastation** in `weapons/`. For what that weapon is
-and where it came from, see [LETHALITY WEAPONS.md](LETHALITY%20WEAPONS.md); this file is the
-how-to.
+There are two worked examples in `weapons/`:
 
-> **Scope note.** Devil's Devastation implements the left-click half only — on-hit and
-> swing-at-air. The right-click and shift-right-click sections below are the pattern to follow,
-> not a description of existing code. Everything in them is vanilla Forge API that needs no new
-> plumbing, and the file each snippet belongs in is named.
+- **Devil's Devastation** — the left-click half: on-hit, swing-at-air, and a projectile fan.
+  Ported from Lethality; see [LETHALITY WEAPONS.md](LETHALITY%20WEAPONS.md) for its provenance.
+- **Laevatain** — all three click inputs, each a named ability with its own cooldown: a sweep on
+  left click, and two bow-style charged abilities sharing the right button — an oriented-box
+  line, and a cone on shift. Original content, and the one to read for [right click](#right-click),
+  [shift + right click](#shift--right-click), [charging](#hold-right-click-charged) and
+  [independent cooldowns](#cooldowns-and-durability).
 
 ---
 
@@ -25,6 +26,8 @@ how-to.
 - [Right click](#right-click)
 - [Shift + right click](#shift--right-click)
 - [Hold right click (charged)](#hold-right-click-charged)
+- [Hitting an area](#hitting-an-area)
+- [Animated VFX meshes](#animated-vfx-meshes)
 - [Making a projectile](#making-a-projectile)
 - [Cooldowns and durability](#cooldowns-and-durability)
 - [The name and tooltip](#the-name-and-tooltip)
@@ -361,6 +364,126 @@ public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int 
 
 `remaining` counts **down**, which is why the charge is `duration - remaining`.
 
+### Two charged abilities on one button
+
+`releaseUsing` has no idea which one you started, and **it must not ask.** Re-checking
+`isShiftKeyDown()` at release is the obvious thing and it is wrong: the player can let go of
+shift at any point during the draw, and then a Twilight charge fires Molten Giant.
+
+Record the choice when the draw *starts* and read it back on release:
+
+```java
+// use() / useOn() — decide once, write it down
+stack.getOrCreateTag().putInt(TAG_CHARGING, player.isShiftKeyDown() ? TWILIGHT : MOLTEN_GIANT);
+player.startUsingItem(hand);
+
+// releaseUsing() — read it, and clear it whatever happens next
+int which = stack.getOrCreateTag().getInt(TAG_CHARGING);
+stack.getOrCreateTag().putInt(TAG_CHARGING, NONE);
+```
+
+Clear it unconditionally, including on a draw too short to fire, or a stale value sits on the
+stack waiting for the next release to act on it.
+
+---
+
+## Hitting an area
+
+`Level.getEntitiesOfClass` is the broad phase and **`AABB` is always axis-aligned**, so it is
+never the shape you want on its own — a box built around a 5-block reach swells to its diagonal
+when the player faces north-east, making the ability quietly much wider on some headings than
+others. Gather with an `AABB`, then throw the corners back out with an exact test.
+
+**A cone** — compare against the cosine of the half-angle rather than taking an `acos` per
+candidate, because the dot product of two unit vectors already *is* that cosine:
+
+```java
+Vec3 toTarget = candidate.getBoundingBox().getCenter().subtract(user.getEyePosition());
+double distance = toTarget.length();
+if (distance > range) continue;
+if (toTarget.scale(1.0 / distance).dot(user.getLookAngle())
+        < Math.cos(Math.toRadians(arcDegrees * 0.5))) continue;
+```
+
+**An oriented box** — rewrite the offset into the player's own frame and test each axis:
+
+```java
+Vec3 forward = user.getLookAngle();
+Vec3 right = forward.cross(new Vec3(0, 1, 0));
+right = right.lengthSqr() < 1.0E-6 ? new Vec3(1, 0, 0) : right.normalize();  // straight up/down
+Vec3 up = right.cross(forward).normalize();
+
+Vec3 offset = candidate.getBoundingBox().getCenter().subtract(origin);
+boolean inside = offset.dot(forward) >= 0 && offset.dot(forward) <= length
+        && Math.abs(offset.dot(right)) <= halfWidth
+        && Math.abs(offset.dot(up)) <= halfHeight;
+```
+
+Both are in `LaevatainItem` — `targetsInCone` and `fireLine`. Two things to remember:
+
+- **Stop at terrain**, or the area reaches through walls. One `level.clip` down the centre line
+  and shorten to the hit is usually enough; a per-target line-of-sight check is the thorough
+  version and rarely worth it at short range.
+- **Draw the shape in particles.** An AOE the player cannot see is one they cannot aim, and the
+  outer edge is the part worth drawing — the inside of a cone tells them nothing.
+
+---
+
+## Animated VFX meshes
+
+Particles are fine for a line or an outline, but an ability that wants a *shape* — a slash, a
+thrust, fire coming out of the floor — wants geometry. The pattern is a **short-lived entity
+that plays one GeckoLib animation and removes itself**.
+
+`WeaponVfx` is that entity, and it is the only one you need: one class, one renderer, one
+model, shared by all three of Laevatain's effects. **Adding a fourth is one registration line
+and three asset files — no new Java at all**, because `WeaponVfxModel` derives every path from
+the entity type's registry name.
+
+```java
+// ModWeapons — the only code a new effect needs
+public static final RegistryObject<EntityType<WeaponVfx>> MY_EFFECT =
+        ENTITY_TYPES.register("my_effect", () -> vfx("my_effect", 1.0F, 2.0F));
+```
+
+```
+assets/priestess/geo/entity/my_effect.geo.json         geometry
+assets/priestess/textures/entity/my_effect.png         texture
+assets/priestess/animations/my_effect.animation.json   keyframes
+```
+
+Then spawn it from the server side of the ability, after the damage has already resolved:
+
+```java
+WeaponVfx.spawn(level, ModWeapons.MY_EFFECT.get(), position, yaw, pitch, lifetimeTicks);
+```
+
+**Keep the visual and the hit separate.** Every ability here resolves its damage first and
+spawns the mesh purely to be looked at. That is what lets you retime or replace a visual
+without touching balance, and it means a dropped packet costs the player a flourish rather than
+a hit.
+
+### The five things that will catch you
+
+1. **Bone names are the contract.** The bone in the `.geo.json` and the bone keyframed in the
+   `.animation.json` must have the same name. GeckoLib logs *nothing* when keyframes address a
+   bone that is not there — the mesh simply sits still.
+2. **The clip must be named `play`.** One `RawAnimation` drives every VFX, and it asks for that
+   name. A clip called anything else silently does nothing.
+3. **Lifetime must match `animation_length`.** The JSON is authored in *seconds*, the entity
+   counts *ticks*, at 20 to the second. Too short and the mesh vanishes mid-swing; too long and
+   it hangs in the air on its last frame. The constants in `LaevatainItem` name their file and
+   its length for exactly this reason.
+4. **Transition length 0.** GeckoLib's default eases into a clip over several ticks, which on an
+   eight-tick effect is most of the animation spent blending in.
+5. **The texture sheet must match the model.** `tools/generate_placeholder_models.py` prints the
+   sheet size it packed the UVs onto (64, 128 or 256); the PNG has to be that size or every box
+   UV lands on the wrong pixels.
+
+`super.tick()` is called in `WeaponVfx` for one non-obvious reason: `baseTick` is what advances
+`tickCount`, and GeckoLib drives its animation clock off it. Skip it and the mesh renders frozen
+on frame zero for its whole life.
+
 ---
 
 ## Making a projectile
@@ -511,6 +634,32 @@ AttributeInstance attr = player.getAttribute(Attributes.ATTACK_SPEED);
 float speed = attr != null ? (float) attr.getValue() : 4.0F;
 player.getCooldowns().addCooldown(stack.getItem(), (int) (20.0F / speed));
 ```
+
+### More than one cooldown on one weapon
+
+**`ItemCooldowns` is keyed by `Item`, so it holds exactly one timer per weapon.** A weapon with
+two or three separately-cooling abilities cannot use it for all of them — a 10-second ability
+would lock out a 1-second one.
+
+Keep the extra timers on the **stack's NBT**, as game-time stamps:
+
+```java
+private static boolean ready(ItemStack stack, Level level, String tag) {
+    return level.getGameTime() >= stack.getOrCreateTag().getLong(tag);
+}
+
+private static void startCooldown(ItemStack stack, Level level, String tag, int ticks) {
+    stack.getOrCreateTag().putLong(tag, level.getGameTime() + ticks);
+}
+```
+
+Stack tags sync to the client on their own, so both sides can answer "is it ready" without a
+packet, and `getGameTime` agrees on both. Store the *ready-at* time rather than a countdown —
+nothing has to tick it down, and it survives the item being put in a chest.
+
+That leaves the vanilla cooldown for whichever ability the hotbar sweep is honestly about,
+which is normally the basic attack. Laevatain does exactly this: the sweep uses the real
+cooldown, Molten Giant and Twilight use tags.
 
 **Durability** — `super.hurtEnemy` already spends it on melee. For an ability, spend it
 yourself, server-side only:

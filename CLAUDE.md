@@ -92,9 +92,22 @@ the prefix.** Each mob class's javadoc opens with its in-game name — when edit
 identifiers freely but leave the prose alone. The authoritative table is in `README.md`
 § The dungeon code.
 
-**`weapons/` is a self-contained, removable subsystem** ported in from Lethality. Its only
-references from outside the folder are two lines in `Priestess.java` and one in
-`ModCreativeTabs` — keep it that way.
+**`weapons/` is a self-contained subsystem** — its only references from outside the folder are
+two lines in `Priestess.java` and one in `ModCreativeTabs`. Keep it that way. It was originally
+all ported Lethality content and therefore disposable; **it no longer is** — Laevatain is
+original, so the compartment is still a compile boundary but deleting it now costs real content.
+New weapons go here regardless, because the scaffolding (`WeaponTiers`, `WeaponText`, the swing
+packet) lives here. Note `ItemCooldowns` holds one timer per *item*, so a multi-ability weapon
+keeps its extra cooldowns as game-time stamps in stack NBT. See `docs/WEAPONS.md`.
+
+**Ability visuals are entities, not particles.** `WeaponVfx` is a short-lived, damageless
+`GeoEntity` that plays one GeckoLib clip and discards itself; `WeaponVfxModel` derives geo,
+texture and animation paths from the entity type's registry name, so a new effect is one
+registration line plus three assets and no new Java. These are the **only animated models in
+the mod** — every mob and block model is static geometry with an empty controller. The clip is
+always named `play`, the bone name must match between `.geo.json` and `.animation.json` (a
+mismatch fails silently), and the entity's lifetime in ticks must equal the JSON's
+`animation_length` in seconds × 20.
 
 **Oripathy** is a per-player infection capability (`oripathy/`), never shown in any UI. Creative
 and spectator are exempt from gain and symptoms, so testing requires `/gamemode survival`.

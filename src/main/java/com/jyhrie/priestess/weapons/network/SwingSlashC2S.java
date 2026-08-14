@@ -1,6 +1,7 @@
 package com.jyhrie.priestess.weapons.network;
 
 import com.jyhrie.priestess.weapons.item.DevilsDevastationItem;
+import com.jyhrie.priestess.weapons.item.LaevatainItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
@@ -51,5 +52,6 @@ public class SwingSlashC2S {
      */
     private static void dispatch(ServerPlayer player) {
         DevilsDevastationItem.fireFan(player.level(), player);
+        LaevatainItem.sweep(player.level(), player);
     }
 }

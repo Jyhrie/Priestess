@@ -42,6 +42,11 @@ public class ModItemModelProvider extends ItemModelProvider {
         // like a potato, neither of which item/generated does. See bigWeapon below.
         bigWeapon(ModWeapons.DEVILS_DEVASTATION);
 
+        // Laevatain is not ported, but it is the same shape of thing — a greatsword whose
+        // blade sprite does not fit an inventory slot — so it takes the same model treatment,
+        // plus the two wind-up models its charged abilities swap to.
+        chargedWeapon(ModWeapons.LAEVATAIN);
+
         // Spawn eggs are the one item that needs no texture: the vanilla template tints two
         // greyscale layers from the colours passed to ForgeSpawnEggItem.
         spawnEgg(ModItems.ORIGINIUM_SLUG_SPAWN_EGG);
@@ -137,6 +142,68 @@ public class ModItemModelProvider extends ItemModelProvider {
                         .end())
                 .perspective(ItemDisplayContext.GUI, small)
                 .perspective(ItemDisplayContext.GROUND, small)
+                .end();
+    }
+
+    /**
+     * A {@link #bigWeapon} that also visibly winds up while one of its abilities is charging.
+     *
+     * <p><b>{@code UseAnim.BOW} does not do this on its own.</b> It supplies the bow-holding arm
+     * pose in third person and, in first person, near enough nothing — the item just sits in
+     * hand for the whole draw. The reason a real bow appears to bend is that its <em>model
+     * swaps</em>, through overrides on the {@code pulling} and {@code pull} predicates. This
+     * builds the same thing: two wind-up models the weapon changes to as the draw deepens.
+     *
+     * <p>Both reuse the weapon's existing sprite, so a charge costs no new art — only the
+     * transforms differ, hauling the blade back and up over the shoulder.
+     *
+     * <p><b>Override order matters.</b> Vanilla takes the <em>last</em> entry whose predicates
+     * all pass, so the deeper threshold has to be declared second or it can never win. The
+     * predicates themselves are registered in {@code WeaponsClient.clientSetup}.
+     */
+    private void chargedWeapon(RegistryObject<? extends net.minecraft.world.item.Item> weapon) {
+        bigWeapon(weapon);
+
+        String name = weapon.getId().getPath();
+        ResourceLocation pulling = new ResourceLocation("pulling");
+        ResourceLocation pull = new ResourceLocation("pull");
+
+        // Drawn back a little, then a lot. The numbers are the base first-person transform
+        // rotated further round Z and lifted, which reads as the blade being cocked.
+        ItemModelBuilder early = windUp(name + "_pulling_0", modLoc("item/" + name), 45.0F, 2.0F);
+        ItemModelBuilder full = windUp(name + "_pulling_1", modLoc("item/" + name), 70.0F, 4.0F);
+
+        getBuilder(name)
+                .override().predicate(pulling, 1.0F).model(early).end()
+                .override().predicate(pulling, 1.0F).predicate(pull, 0.65F).model(full).end();
+    }
+
+    /** One wind-up pose: the held sprite, hauled back by {@code extraRoll} and lifted. */
+    private ItemModelBuilder windUp(String name, ResourceLocation sprite,
+                                    float extraRoll, float lift) {
+        return getBuilder(name)
+                .guiLight(BlockModel.GuiLight.FRONT)
+                .parent(getExistingFile(mcLoc("item/handheld")))
+                .texture("layer0", sprite)
+                .transforms()
+                .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
+                        .rotation(0, -90, 55 + extraRoll).translation(0, 20 + lift, -1)
+                        .scale(2.9F, 2.9F, 1.0F)
+                        .end()
+                .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
+                        .rotation(0, 90, -55 - extraRoll).translation(0, 20 + lift, -1)
+                        .scale(2.9F, 2.9F, 1.0F)
+                        .end()
+                .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
+                        .rotation(-15, -90, 25 + extraRoll)
+                        .translation(1.13F, 7.2F + lift, 1.13F)
+                        .scale(1.7F, 1.7F, 0.85F)
+                        .end()
+                .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
+                        .rotation(-15, 90, -25 - extraRoll)
+                        .translation(1.13F, 7.2F + lift, 1.13F)
+                        .scale(1.7F, 1.7F, 0.85F)
+                        .end()
                 .end();
     }
 }

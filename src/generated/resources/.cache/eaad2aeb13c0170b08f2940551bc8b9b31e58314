@@ -1,4 +1,4 @@
-// 1.20.1	2026-08-13T19:32:58.7340243	Item Models: priestess
+// 1.20.1	2026-08-14T00:16:41.2128883	Item Models: priestess
 08a06ca849bae639191477d8150812949c54b61e assets/priestess/models/item/blueprint_originium_refinement.json
 ae93b084ac3095b8fd104c7b0bd8c6329f120d2a assets/priestess/models/item/corrupted_neural_shard.json
 258829fb5126af398fd79b161e2dbc25b4191d73 assets/priestess/models/item/devils_devastation.json
@@ -8,6 +8,9 @@ ae93b084ac3095b8fd104c7b0bd8c6329f120d2a assets/priestess/models/item/corrupted_
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/priestess/models/item/dv_bionic_spawn_egg.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/priestess/models/item/dv_failure_spawn_egg.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/priestess/models/item/dv_replica_spawn_egg.json
+5c72bc3844356e23bf9394585a12563003bcf274 assets/priestess/models/item/laevatain.json
+1f17fef65d57788059bb71e53644cea399ecd317 assets/priestess/models/item/laevatain_pulling_0.json
+d57b6b58ff55072b50a5f5091d4b2b23c83b9ba6 assets/priestess/models/item/laevatain_pulling_1.json
 49606637fee67e9d45b2bd0d86e84773a880df18 assets/priestess/models/item/mansfield_master_key.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/priestess/models/item/mb_imprisoned_pugilist_spawn_egg.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/priestess/models/item/mb_imprisoned_recidivist_spawn_egg.json

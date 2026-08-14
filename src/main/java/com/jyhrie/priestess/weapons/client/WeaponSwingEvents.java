@@ -51,7 +51,8 @@ public final class WeaponSwingEvents {
             return;
         }
         ItemStack held = player.getMainHandItem();
-        if (held.getItem() == ModWeapons.DEVILS_DEVASTATION.get()) {
+        if (held.getItem() == ModWeapons.DEVILS_DEVASTATION.get()
+                || held.getItem() == ModWeapons.LAEVATAIN.get()) {
             WeaponNetwork.sendToServer(new SwingSlashC2S());
         }
     }

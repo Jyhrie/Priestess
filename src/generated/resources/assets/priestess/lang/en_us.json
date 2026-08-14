@@ -70,6 +70,7 @@
   "item.priestess.dv_bionic_spawn_egg": "Bionic Spawn Egg",
   "item.priestess.dv_failure_spawn_egg": "Failure Spawn Egg",
   "item.priestess.dv_replica_spawn_egg": "Replica Spawn Egg",
+  "item.priestess.laevatain": "Laevatain",
   "item.priestess.mansfield_master_key": "Mansfield Master Key",
   "item.priestess.mb_imprisoned_pugilist_spawn_egg": "Imprisoned Pugilist Spawn Egg",
   "item.priestess.mb_imprisoned_recidivist_spawn_egg": "Imprisoned Recidivist Spawn Egg",
@@ -97,5 +98,12 @@
   "tooltip.priestess.devils_devastation.on_hit_detail": "§e -Sets the target alight.",
   "tooltip.priestess.devils_devastation.on_swing": "§6On Swing —",
   "tooltip.priestess.devils_devastation.on_swing_detail": "§e -Throws three piercing scythes and two pitchforks that set targets alight.",
-  "tooltip.priestess.hold_shift": "§7Hold §fShift§7 for details"
+  "tooltip.priestess.hold_shift": "§7Hold §fShift§7 for details",
+  "tooltip.priestess.laevatain.flavour": "§8« Everything burns. I only decide when. »",
+  "tooltip.priestess.laevatain.left": "§6Laevatain §7— Left Click",
+  "tooltip.priestess.laevatain.left_detail": "§e -A wide sweep in front, burning everything it catches.",
+  "tooltip.priestess.laevatain.right": "§6Molten Giant §7— Hold Right Click §8(3s)",
+  "tooltip.priestess.laevatain.right_detail": "§e -Charge, then erupt a 2x2x5 wall of flame ahead. The whole line burns at once.",
+  "tooltip.priestess.laevatain.shift_right": "§6Twilight §7— Hold Shift + Right Click §8(10s)",
+  "tooltip.priestess.laevatain.shift_right_detail": "§e -Charge, then a 60° cone 10 blocks deep. Fire erupts beneath every mob caught."
 }

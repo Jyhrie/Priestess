@@ -107,6 +107,21 @@ public class ModLanguageProvider extends LanguageProvider {
         add("tooltip.priestess.devils_devastation.on_hit", "§6On Hit —");
         add("tooltip.priestess.devils_devastation.on_hit_detail", "§e -Sets the target alight.");
 
+        // Laevatain. Not ported — original, and the one weapon in the mod whose three click
+        // inputs are three named abilities, so the tooltip names all three. The §-codes follow
+        // the convention set above: §6 for the heading, §e for the detail, §8 for flavour.
+        add(ModWeapons.LAEVATAIN.get(), "Laevatain");
+        add("tooltip.priestess.laevatain.flavour", "§8« Everything burns. I only decide when. »");
+        add("tooltip.priestess.laevatain.left", "§6Laevatain §7— Left Click");
+        add("tooltip.priestess.laevatain.left_detail",
+                "§e -A wide sweep in front, burning everything it catches.");
+        add("tooltip.priestess.laevatain.right", "§6Molten Giant §7— Hold Right Click §8(3s)");
+        add("tooltip.priestess.laevatain.right_detail",
+                "§e -Charge, then erupt a 2x2x5 wall of flame ahead. The whole line burns at once.");
+        add("tooltip.priestess.laevatain.shift_right", "§6Twilight §7— Hold Shift + Right Click §8(10s)");
+        add("tooltip.priestess.laevatain.shift_right_detail",
+                "§e -Charge, then a 60° cone 10 blocks deep. Fire erupts beneath every mob caught.");
+
         // ── Blocks ────────────────────────────────────────────────────────────
         add(ModBlocks.IBERIAN_SAND.get(), "Iberian Sand");
         add(ModBlocks.IBERIAN_SANDSTONE.get(), "Iberian Sandstone");

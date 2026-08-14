@@ -3,7 +3,9 @@ package com.jyhrie.priestess.weapons;
 import com.jyhrie.priestess.Priestess;
 import com.jyhrie.priestess.weapons.entity.DevilsPitchforkEntity;
 import com.jyhrie.priestess.weapons.entity.DevilsScytheEntity;
+import com.jyhrie.priestess.weapons.entity.WeaponVfx;
 import com.jyhrie.priestess.weapons.item.DevilsDevastationItem;
+import com.jyhrie.priestess.weapons.item.LaevatainItem;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Item;
@@ -13,13 +15,20 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 /**
- * Weapons ported in from other mods, and everything they need to exist.
+ * Weapons, and everything they need to exist.
  *
  * <p>This package is deliberately a <em>sealed compartment</em>. Nothing outside
  * {@code weapons/} imports anything inside it except {@link Priestess}, which calls
  * {@link #register} once, and {@code ModCreativeTabs}, which asks it for a list of items to
- * show. Delete the folder and those two references and the mod still builds — which is the
- * point, because none of this is Columbia's and it should stay easy to rip back out.
+ * show. Delete the folder and those two references and the mod still builds.
+ *
+ * <p><b>That isolation no longer means "all of this is disposable".</b> It was originally true
+ * that nothing here was Columbia's — the package existed to hold weapons ported in from
+ * Lethality, and being easy to rip back out was the whole point. Laevatain is original content
+ * and lives here anyway, because the scaffolding a weapon needs is here and
+ * {@code docs/WEAPONS.md} sends you here to build one. So the compartment still stands as a
+ * compile-time boundary, but ripping it out now costs a weapon the mod actually owns. Check
+ * what is in {@code item/} before deleting anything.
  *
  * <p>That isolation is why this file carries its own {@link DeferredRegister}s rather than
  * adding to {@code ModItems} and {@code ModEntities}. Two registers against the same Forge
@@ -61,6 +70,14 @@ public final class ModWeapons {
     public static final RegistryObject<Item> DEVILS_DEVASTATION =
             ITEMS.register("devils_devastation", DevilsDevastationItem::new);
 
+    // ── Laevatain ─────────────────────────────────────────────────────────────
+    // Surtr's greatsword. Three fire abilities on the three click inputs: a sweep on left
+    // click, a charged line on right, a cone on shift-right. NOT ported — original content,
+    // built to docs/WEAPONS.md. See the note on this class's isolation contract above.
+
+    public static final RegistryObject<Item> LAEVATAIN =
+            ITEMS.register("laevatain", LaevatainItem::new);
+
     // Both projectiles are MISC: they are not mobs, they carry no attributes, and nothing
     // should ever count them against a spawn cap.
     //
@@ -85,6 +102,34 @@ public final class ModWeapons {
                     .clientTrackingRange(8)
                     .updateInterval(1)
                     .build("devils_pitchfork"));
+
+    // ── Laevatain's VFX ───────────────────────────────────────────────────────
+    // Three pieces of animated geometry, all one class — they differ only in their assets, and
+    // WeaponVfxModel finds those from the registry name below. None of them deal damage or
+    // collide; the abilities have already resolved by the time one is spawned. See WeaponVfx.
+    //
+    // MISC for the same reason as the projectiles: not mobs, never a spawn-cap cost.
+    // updateInterval is irrelevant to something that never moves, but clientTrackingRange is
+    // not — a slash you cannot see because you walked eight blocks away is a bug.
+
+    public static final RegistryObject<EntityType<WeaponVfx>> LAEVATAIN_SLASH =
+            ENTITY_TYPES.register("laevatain_slash", () -> vfx("laevatain_slash", 3.0F, 1.0F));
+
+    public static final RegistryObject<EntityType<WeaponVfx>> LAEVATAIN_STAB =
+            ENTITY_TYPES.register("laevatain_stab", () -> vfx("laevatain_stab", 1.0F, 1.0F));
+
+    public static final RegistryObject<EntityType<WeaponVfx>> LAEVATAIN_ERUPTION =
+            ENTITY_TYPES.register("laevatain_eruption", () -> vfx("laevatain_eruption", 1.0F, 2.0F));
+
+    private static EntityType<WeaponVfx> vfx(String name, float width, float height) {
+        return EntityType.Builder.<WeaponVfx>of(WeaponVfx::new, MobCategory.MISC)
+                .sized(width, height)
+                .clientTrackingRange(32)
+                .updateInterval(1)
+                .fireImmune()
+                .noSummon()
+                .build(name);
+    }
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
