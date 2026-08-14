@@ -75,6 +75,14 @@ public final class WeaponsClient {
         event.registerEntityRenderer(ModWeapons.LAEVATAIN_SLASH.get(), WeaponVfxRenderer::new);
         event.registerEntityRenderer(ModWeapons.LAEVATAIN_STAB.get(), WeaponVfxRenderer::new);
         event.registerEntityRenderer(ModWeapons.LAEVATAIN_ERUPTION.get(), WeaponVfxRenderer::new);
+
+        // Aegir Greatspear. The thrown lance is drawn by its particle trail and nothing else,
+        // so it is bound to a renderer that draws nothing rather than left unbound — an entity
+        // type with no renderer logs an error and falls back to a missing-model cube.
+        event.registerEntityRenderer(ModWeapons.AEGIR_TIDE.get(), InvisibleEntityRenderer::new);
+        // The whirlpool takes the same VFX renderer as Laevatain's effects despite not being a
+        // WeaponVfx — see AegirWhirlpool and WeaponVfxModel.
+        event.registerEntityRenderer(ModWeapons.AEGIR_WHIRLPOOL.get(), WeaponVfxRenderer::new);
     }
 
     private WeaponsClient() {

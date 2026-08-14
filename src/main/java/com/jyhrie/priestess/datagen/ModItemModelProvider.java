@@ -47,6 +47,11 @@ public class ModItemModelProvider extends ItemModelProvider {
         // plus the two wind-up models its charged abilities swap to.
         chargedWeapon(ModWeapons.LAEVATAIN);
 
+        // Aegir Greatspear. Also original, also a blade that does not fit a slot — but plain
+        // bigWeapon, not chargedWeapon: none of its three abilities draw, so there is no wind-up
+        // to model and the pulling/pull predicates would never fire.
+        bigWeapon(ModWeapons.AEGIR_GREATSPEAR);
+
         // Spawn eggs are the one item that needs no texture: the vanilla template tints two
         // greyscale layers from the colours passed to ForgeSpawnEggItem.
         spawnEgg(ModItems.ORIGINIUM_SLUG_SPAWN_EGG);

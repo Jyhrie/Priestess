@@ -123,6 +123,36 @@ warning so it is not silent if it ever does.
 
 - [ ] Fix
 
+### A6. Laevatain swings 3× faster than its javadoc says — `LaevatainItem.java:73-78`
+
+```java
+/**
+ * Offset from the player's base attack speed of 4.0, so the final value is 0.8333 attacks a
+ * second — one swing per 1.2 seconds. ...
+ */
+private static final float ATTACK_SPEED = -1.6F;
+```
+
+`SwordItem` applies this as an **ADDITION** modifier to the player's base attack speed of 4.0,
+so the real final value is `4.0 - 1.6 =` **2.4 attacks/second — one swing per 0.42 s**, not
+0.8333 and 1.2 s. To get the documented rate the constant would have to be about `-3.17`.
+
+This propagates: `sweep` computes its cooldown as `(int)(20.0F / attackSpeed)` and comments
+*"At this weapon's attack speed that is 24 ticks — the 1.2 seconds the sword advertises"*
+(`LaevatainItem.java:263-265`). It is actually **8 ticks**. The tooltip's "1.2 s" is wrong by
+the same factor.
+
+The code is self-consistent — the cooldown does track the real swing rate — so nothing is
+broken; the number is just three times what every comment and the tooltip claim. Decide which
+is right: change `ATTACK_SPEED` to `-3.17F` to match the design, or correct the three comments
+and the tooltip to say 0.42 s.
+
+*(Found while setting Aegir Greatspear's swing rate off the same formula. That weapon's
+`-2.8F` → 1.2 attacks/s → 16 ticks is documented correctly.)*
+
+- [ ] Fix the constant (weapon becomes slower, as documented)
+- [ ] Fix the comments + tooltip (weapon stays fast)
+
 ---
 
 ## B. Broken references and stale comments
@@ -373,7 +403,7 @@ delete the run config or add a first gametest.
 
 | Group | Count | Of which functional |
 |---|---|---|
-| A. Correctness | 5 | 5 |
+| A. Correctness | 6 | 6 |
 | B. Broken references | 3 | 0 (all prose) |
 | C. Conventions | 7 | 0 |
 | D. Duplication | 4 | 0 |

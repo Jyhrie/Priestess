@@ -122,6 +122,20 @@ public class ModLanguageProvider extends LanguageProvider {
         add("tooltip.priestess.laevatain.shift_right_detail",
                 "§e -Charge, then a 60° cone 10 blocks deep. Fire erupts beneath every mob caught.");
 
+        // Aegir Greatspear. Original, and the counterpart to Laevatain: three named abilities on
+        // the same three inputs, all of which pull rather than burn. Same §-code convention.
+        add(ModWeapons.AEGIR_GREATSPEAR.get(), "Aegir Greatspear");
+        add("tooltip.priestess.aegir_greatspear.flavour", "§8« The sea does not chase. It waits, and takes. »");
+        add("tooltip.priestess.aegir_greatspear.left", "§Waterless Parting of the Great Ocean §7— Left Click");
+        add("tooltip.priestess.aegir_greatspear.left_detail",
+                "§b -Throws a lance of water. Whatever it strikes is dragged toward you.");
+        add("tooltip.priestess.aegir_greatspear.right", "§Waterless Grasp of the Raging Seas §7— Right Click §8(10s)");
+        add("tooltip.priestess.aegir_greatspear.right_detail",
+                "§b -A 5x5x5 surge ahead. Everything inside it is hauled to your feet.");
+        add("tooltip.priestess.aegir_greatspear.shift_right", "§Waterless Dance of the Shattered Maelstrom §7— Shift + Right Click §8(30s)");
+        add("tooltip.priestess.aegir_greatspear.shift_right_detail",
+                "§b -Opens a whirlpool where you aim. It pulls for 8 seconds and grinds for 5 a second.");
+
         // ── Blocks ────────────────────────────────────────────────────────────
         add(ModBlocks.IBERIAN_SAND.get(), "Iberian Sand");
         add(ModBlocks.IBERIAN_SANDSTONE.get(), "Iberian Sandstone");

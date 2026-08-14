@@ -292,9 +292,37 @@ ERUPTION = [
       ([-2, 0, 7], [4, 16, 4])]),
 ]
 
+# The whirlpool: three square rings of decreasing radius, stacked downward, so the silhouette
+# is a funnel. Squares rather than discs because this generator only emits boxes — the spin in
+# aegir_whirlpool.animation.json is what stops the corners reading as corners.
+#
+# It is the one effect here that outlives its own animation: the clip is a two-second rotation
+# marked "loop": true and the entity lives eight seconds, so unlike Laevatain's three there is
+# no tick count to keep in step with. See AegirWhirlpool.
+#
+# The mesh spans about 3.5 blocks across against a 6-block pull radius, and is deliberately
+# not scaled up to match: twelve bars at the full radius do not fit on a 256x256 box-UV sheet,
+# which is the ceiling this generator packs to. The rest of the reach is drawn by the particle
+# ring AegirWhirlpool.swirl() throws at 0.8 of the radius — cheaper than geometry, and it reads
+# better as spray than another square ring would.
+def whirlpool_ring(radius, height, thickness):
+    return [
+        ([-radius, height, -radius - thickness], [radius * 2, 3, thickness]),
+        ([-radius, height, radius], [radius * 2, 3, thickness]),
+        ([-radius - thickness, height, -radius], [thickness, 3, radius * 2]),
+        ([radius, height, -radius], [thickness, 3, radius * 2]),
+    ]
+
+
+WHIRLPOOL = [
+    ("whirlpool", None, [0, 0, 0], None,
+     whirlpool_ring(26, 6, 2) + whirlpool_ring(17, 3, 2) + whirlpool_ring(9, 0, 2)),
+]
+
 VFX_ROSTER = [
     ("laevatain_stab", (6, 1, 0), STAB),
     ("laevatain_eruption", (2, 2, 1), ERUPTION),
+    ("aegir_whirlpool", (6, 2, 0), WHIRLPOOL),
 ]
 
 

@@ -1,9 +1,12 @@
 package com.jyhrie.priestess.weapons;
 
 import com.jyhrie.priestess.Priestess;
+import com.jyhrie.priestess.weapons.entity.AegirTide;
+import com.jyhrie.priestess.weapons.entity.AegirWhirlpool;
 import com.jyhrie.priestess.weapons.entity.DevilsPitchforkEntity;
 import com.jyhrie.priestess.weapons.entity.DevilsScytheEntity;
 import com.jyhrie.priestess.weapons.entity.WeaponVfx;
+import com.jyhrie.priestess.weapons.item.AegirGreatspearItem;
 import com.jyhrie.priestess.weapons.item.DevilsDevastationItem;
 import com.jyhrie.priestess.weapons.item.LaevatainItem;
 import net.minecraft.world.entity.EntityType;
@@ -78,6 +81,14 @@ public final class ModWeapons {
     public static final RegistryObject<Item> LAEVATAIN =
             ITEMS.register("laevatain", LaevatainItem::new);
 
+    // ── Aegir Greatspear ──────────────────────────────────────────────────────
+    // Ægir's polearm. Three abilities that all pull: a thrown lance on left click, a 5x5x5 box
+    // on right, an eight-second whirlpool on shift-right. NOT ported — original content, and
+    // the first weapon here written main-hand only on purpose.
+
+    public static final RegistryObject<Item> AEGIR_GREATSPEAR =
+            ITEMS.register("aegir_greatspear", AegirGreatspearItem::new);
+
     // Both projectiles are MISC: they are not mobs, they carry no attributes, and nothing
     // should ever count them against a spawn cap.
     //
@@ -120,6 +131,38 @@ public final class ModWeapons {
 
     public static final RegistryObject<EntityType<WeaponVfx>> LAEVATAIN_ERUPTION =
             ENTITY_TYPES.register("laevatain_eruption", () -> vfx("laevatain_eruption", 1.0F, 2.0F));
+
+    // ── Aegir Greatspear's entities ───────────────────────────────────────────
+    // The thrown lance has no model at all — its trail is the whole of what you see, so it is
+    // bound to InvisibleEntityRenderer and needs no geo, texture or animation. The whirlpool
+    // does have a mesh, and reuses the VFX model and renderer without being a WeaponVfx; see
+    // AegirWhirlpool for why it cannot be one.
+
+    public static final RegistryObject<EntityType<AegirTide>> AEGIR_TIDE =
+            ENTITY_TYPES.register("aegir_tide", () -> EntityType.Builder
+                    .<AegirTide>of(AegirTide::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .clientTrackingRange(8)
+                    // Same reasoning as the two above: it is fast and short-lived, so the
+                    // default of 3 would let the client see it only a handful of times.
+                    .updateInterval(1)
+                    .noSummon()
+                    .build("aegir_tide"));
+
+    /**
+     * Sized to the pull radius rather than to the mesh, so what the hitbox says and what the
+     * ability actually reaches are the same six blocks. It never collides with anything, so a
+     * box this large costs nothing but honesty in the debug view.
+     */
+    public static final RegistryObject<EntityType<AegirWhirlpool>> AEGIR_WHIRLPOOL =
+            ENTITY_TYPES.register("aegir_whirlpool", () -> EntityType.Builder
+                    .<AegirWhirlpool>of(AegirWhirlpool::new, MobCategory.MISC)
+                    .sized(12.0F, 2.0F)
+                    .clientTrackingRange(32)
+                    .updateInterval(1)
+                    .fireImmune()
+                    .noSummon()
+                    .build("aegir_whirlpool"));
 
     private static EntityType<WeaponVfx> vfx(String name, float width, float height) {
         return EntityType.Builder.<WeaponVfx>of(WeaponVfx::new, MobCategory.MISC)

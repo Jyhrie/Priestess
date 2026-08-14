@@ -1,46 +1,54 @@
 package com.jyhrie.priestess.weapons.client;
 
 import com.jyhrie.priestess.Priestess;
+import com.jyhrie.priestess.weapons.entity.AegirWhirlpool;
 import com.jyhrie.priestess.weapons.entity.WeaponVfx;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraftforge.registries.ForgeRegistries;
+import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.model.GeoModel;
 
 /**
- * Geometry, texture and animation for every {@link WeaponVfx}, derived from the entity type's
- * registry name.
+ * Geometry, texture and animation for an animated ability effect, all three derived from the
+ * entity type's registry name.
  *
  * <p>So {@code priestess:laevatain_slash} reads {@code geo/entity/laevatain_slash.geo.json},
  * {@code textures/entity/laevatain_slash.png} and
  * {@code animations/laevatain_slash.animation.json}. One class covers all of them, and a new
  * effect needs no class at all — just the three files under the same name.
  *
+ * <p>Generic over the entity rather than fixed to {@link WeaponVfx}, because
+ * {@link AegirWhirlpool} is an animated effect that deliberately is <em>not</em> one — it deals
+ * damage across its whole life, which {@code WeaponVfx} promises never to do. The lookup here
+ * needs nothing from either class beyond its entity type, so both use this unchanged.
+ *
  * <p>Unlike the mob and projectile models this returns a <em>real</em> animation path rather
- * than null. These are the first animated models in the mod; everything else is static
+ * than null. These are the only animated models in the mod; everything else is static
  * geometry with an empty controller.
  */
-public class WeaponVfxModel extends GeoModel<WeaponVfx> {
+public class WeaponVfxModel<T extends Entity & GeoEntity> extends GeoModel<T> {
 
     /** Only reachable if an entity type is somehow unregistered, which would be a bug elsewhere. */
     private static final String FALLBACK = "laevatain_slash";
 
     @Override
-    public ResourceLocation getModelResource(WeaponVfx vfx) {
-        return new ResourceLocation(Priestess.MOD_ID, "geo/entity/" + name(vfx) + ".geo.json");
+    public ResourceLocation getModelResource(T effect) {
+        return new ResourceLocation(Priestess.MOD_ID, "geo/entity/" + name(effect) + ".geo.json");
     }
 
     @Override
-    public ResourceLocation getTextureResource(WeaponVfx vfx) {
-        return new ResourceLocation(Priestess.MOD_ID, "textures/entity/" + name(vfx) + ".png");
+    public ResourceLocation getTextureResource(T effect) {
+        return new ResourceLocation(Priestess.MOD_ID, "textures/entity/" + name(effect) + ".png");
     }
 
     @Override
-    public ResourceLocation getAnimationResource(WeaponVfx vfx) {
-        return new ResourceLocation(Priestess.MOD_ID, "animations/" + name(vfx) + ".animation.json");
+    public ResourceLocation getAnimationResource(T effect) {
+        return new ResourceLocation(Priestess.MOD_ID, "animations/" + name(effect) + ".animation.json");
     }
 
-    private static String name(WeaponVfx vfx) {
-        ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(vfx.getType());
+    private static String name(Entity effect) {
+        ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(effect.getType());
         return key != null ? key.getPath() : FALLBACK;
     }
 }

@@ -391,6 +391,10 @@ ENTITIES = [
     # SLASH_PLANES below.
     ("laevatain_stab",        128, 128, (0xFF, 0x7A, 0x1E), (0xFF, 0xF6, 0xE0), 119, 6),
     ("laevatain_eruption",     64,  64, (0xE0, 0x5A, 0x18), (0xFF, 0xD0, 0x70), 120, 5),
+    # Aegir Greatspear's whirlpool. Same rule as the two above — 256 is what
+    # generate_placeholder_models.py reported for its twelve-bar funnel, and the box UVs only
+    # land correctly on a sheet that size. Deep water into foam, the spear's own palette.
+    ("aegir_whirlpool",       256, 256, (0x14, 0x3A, 0x5E), (0xB8, 0xEC, 0xFF), 121, 10),
     # NOT "dv_awaken". Its texture is a real 128x128 export that belongs to the Blockbench
     # model in geo/entity/dv_awaken.geo.json, and the UVs only line up with that file. This
     # script overwrites by name, so putting it back here would destroy hand-made art the
@@ -617,9 +621,31 @@ LAEVATAIN = [
     ".               ",
 ]
 
+# A spear rather than a sword: a broad leaf head at the top right and a thin shaft running the
+# whole diagonal, so the two big weapons are told apart by silhouette alone at slot size.
+AEGIR_GREATSPEAR = [
+    "            ####",
+    "           #####",
+    "          #####.",
+    "         ####.  ",
+    "        ####.   ",
+    "       ###.     ",
+    "      ##..      ",
+    "     .##.       ",
+    "    ..##.       ",
+    "   ...#.        ",
+    "  ...#.         ",
+    " ...#.          ",
+    "...#.           ",
+    "..#.            ",
+    ".#.             ",
+    "#.              ",
+]
+
 BIG_WEAPONS = [
-    # name,        base,               accent,              seed, glyph
-    ("laevatain",  (0x3A, 0x1C, 0x14), (0xFF, 0x8A, 0x28), 401, LAEVATAIN),
+    # name,               base,               accent,              seed, glyph
+    ("laevatain",         (0x3A, 0x1C, 0x14), (0xFF, 0x8A, 0x28), 401, LAEVATAIN),
+    ("aegir_greatspear",  (0x14, 0x2A, 0x3E), (0x8A, 0xE0, 0xFF), 402, AEGIR_GREATSPEAR),
 ]
 
 # ── VFX planes ────────────────────────────────────────────────────────────────

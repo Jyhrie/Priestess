@@ -3,7 +3,7 @@
 How to build a weapon with click behaviours — on-hit effects, right-click abilities,
 shift-right-click alternates, and projectiles.
 
-There are two worked examples in `weapons/`:
+There are three worked examples in `weapons/`:
 
 - **Devil's Devastation** — the left-click half: on-hit, swing-at-air, and a projectile fan.
   Ported from Lethality; see [LETHALITY WEAPONS.md](LETHALITY%20WEAPONS.md) for its provenance.
@@ -12,6 +12,17 @@ There are two worked examples in `weapons/`:
   line, and a cone on shift. Original content, and the one to read for [right click](#right-click),
   [shift + right click](#shift--right-click), [charging](#hold-right-click-charged) and
   [independent cooldowns](#cooldowns-and-durability).
+- **Aegir Greatspear** — the same three inputs *without* charging, so read it against Laevatain
+  to see what a plain right-click ability costs: a thrown projectile that pulls what it hits, a
+  5×5×5 oriented box, and a whirlpool placed at the clicked position. Original content, and the
+  one to read for a **projectile that stops at the first thing it meets** (`AegirTide`, versus
+  Devil's Devastation's piercing sweep), an **ability that outlives the click** (`AegirWhirlpool`
+  ticks for 8 seconds), and **moving other entities** (`WeaponPhysics`).
+
+**Aegir Greatspear is main-hand only, and new weapons should follow it rather than the other
+two.** Both older weapons scan `InteractionHand.values()` in their swing handler while
+`WeaponSwingEvents` gates on the main hand alone — so holding one of them in the off hand while
+swinging the other fires both. See `ERRORS.md` § A1.
 
 ---
 
