@@ -126,13 +126,13 @@ public class ModLanguageProvider extends LanguageProvider {
         // the same three inputs, all of which pull rather than burn. Same §-code convention.
         add(ModWeapons.AEGIR_GREATSPEAR.get(), "Aegir Greatspear");
         add("tooltip.priestess.aegir_greatspear.flavour", "§8« The sea does not chase. It waits, and takes. »");
-        add("tooltip.priestess.aegir_greatspear.left", "§Waterless Parting of the Great Ocean §7— Left Click");
+        add("tooltip.priestess.aegir_greatspear.left", "§3Waterless Parting of the Great Ocean §7— Left Click");
         add("tooltip.priestess.aegir_greatspear.left_detail",
                 "§b -Throws a lance of water. Whatever it strikes is dragged toward you.");
-        add("tooltip.priestess.aegir_greatspear.right", "§Waterless Grasp of the Raging Seas §7— Right Click §8(10s)");
+        add("tooltip.priestess.aegir_greatspear.right", "§3Waterless Grasp of the Raging Seas §7— Right Click §8(10s)");
         add("tooltip.priestess.aegir_greatspear.right_detail",
                 "§b -A 5x5x5 surge ahead. Everything inside it is hauled to your feet.");
-        add("tooltip.priestess.aegir_greatspear.shift_right", "§Waterless Dance of the Shattered Maelstrom §7— Shift + Right Click §8(30s)");
+        add("tooltip.priestess.aegir_greatspear.shift_right", "§3Waterless Dance of the Shattered Maelstrom §7— Shift + Right Click §8(30s)");
         add("tooltip.priestess.aegir_greatspear.shift_right_detail",
                 "§b -Opens a whirlpool where you aim. It pulls for 8 seconds and grinds for 5 a second.");
 

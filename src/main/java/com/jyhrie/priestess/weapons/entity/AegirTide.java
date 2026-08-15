@@ -46,7 +46,7 @@ public class AegirTide extends AbstractHurtingProjectile {
      * something or the chunk unloads — so without this a shot fired at open sky is an entity
      * that never goes away.
      */
-    private static final int MAX_LIFE_TICKS = 40;
+    private static final int MAX_LIFE_TICKS = 8;
 
     /** Retained velocity per tick. 1.0 is a straight, undecaying line; vanilla's default is 0.95. */
     private static final float INERTIA = 1.0F;
