@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.entity.mobs.undertides;
 
+import com.jyhrie.priestess.config.MobStats;
 import com.jyhrie.priestess.damage.ModDamageTypes;
 import com.jyhrie.priestess.entity.GeoMonster;
 import com.jyhrie.priestess.entity.projectiles.ArtsBeam;
@@ -48,7 +49,6 @@ import net.minecraft.world.level.Level;
  */
 public class SvSpitter extends GeoMonster implements RangedAttackMob {
 
-    private static final float SPIT_DAMAGE = 5.0F;
     /** Ticks between spits, picked at random in this band so a group does not fire in unison. */
     private static final int SPIT_INTERVAL_MIN = 40;
     private static final int SPIT_INTERVAL_MAX = 70;
@@ -59,6 +59,11 @@ public class SvSpitter extends GeoMonster implements RangedAttackMob {
         super(type, level);
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code MobStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0)
@@ -94,7 +99,8 @@ public class SvSpitter extends GeoMonster implements RangedAttackMob {
      */
     @Override
     public void performRangedAttack(LivingEntity target, float velocity) {
-        ArtsBeam.fire(this, target, ModDamageTypes.ORIGINIUM_ACID, SPIT_DAMAGE, ParticleTypes.ITEM_SLIME);
+        ArtsBeam.fire(this, target, ModDamageTypes.ORIGINIUM_ACID,
+                MobStats.SPITTER_SPIT_DAMAGE.get().floatValue(), ParticleTypes.ITEM_SLIME);
         this.playSound(SoundEvents.LLAMA_SPIT, 1.0F,
                 0.8F + this.getRandom().nextFloat() * 0.2F);
     }

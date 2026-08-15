@@ -81,6 +81,34 @@ Both are configured in `serverconfig/priestess-server.toml` (`PriestessConfig`, 
 it lives in the world save). `lockdown.sharedProgress` switches between per-player and
 world-wide storage; both always exist and only one is read.
 
+**Every combat number is config, and nothing reads it where it is declared.** `config/` holds
+four **COMMON** configs — `config/priestess/boss.toml`, `miniboss.toml`, `mob.toml` and
+`weapon.toml`, one class each in `com.jyhrie.priestess.config`, split because the four are tuned
+at different times by different questions. Unlike the SERVER file above they belong to the
+installation, so one edit retunes every world. Between them: the six attributes for all sixteen
+creatures, the three weapons' damage and swing speed, and every ability damage. `Stats` holds
+what they share — the `Block`/`Weapon` types, the bounds, and the act of writing to an entity.
+
+The timing is the whole design: attribute suppliers are built once during mod loading and item
+modifiers once during registration, both racing config load and both frozen for the process
+afterwards, so
+
+- the `attributes()` methods and the `SwordItem` constructor keep the compiled numbers as
+  **defaults**, and
+- `entity/EntityStats` writes the configured values over them on `EntityJoinLevelEvent` —
+  *after* NBT load, which is what makes the config authoritative rather than advisory — while
+  `weapons/item/ConfiguredSwordItem` builds its modifier map from the config per call.
+
+Because both read fresh, an edit to the toml takes effect **without a restart** — weapons at
+once, mobs the next time they join a level. Other consequences: **editing a number in an
+`attributes()` method alone does nothing**; only base values are written, so runtime *modifiers*
+survive (which is why the miniboss enrages with one); a mob in an already-loaded chunk keeps its
+old numbers until that chunk cycles; and because weapon abilities scale off
+`WeaponText.itemAttackDamage`, raising a weapon's `attackDamage` raises everything it throws.
+COMMON is not synced, so a client with a divergent file sees wrong tooltips while the server
+still deals its own numbers. Cooldowns, ranges and geometry are deliberately *not* configurable.
+See `docs/STATS.md`.
+
 **Mobs are prefixed by dungeon code**, and the code is *not* always the package initials:
 
 | Dorothy's Vision | Mansfield Break | Under Tides (Sal Viento) | no dungeon |
@@ -96,8 +124,9 @@ identifiers freely but leave the prose alone. The authoritative table is in `REA
 two lines in `Priestess.java` and one in `ModCreativeTabs`. Keep it that way. It was originally
 all ported Lethality content and therefore disposable; **it no longer is** — Laevatain is
 original, so the compartment is still a compile boundary but deleting it now costs real content.
-New weapons go here regardless, because the scaffolding (`WeaponTiers`, `WeaponText`, the swing
-packet) lives here. Note `ItemCooldowns` holds one timer per *item*, so a multi-ability weapon
+New weapons go here regardless, because the scaffolding (`WeaponTiers`, `WeaponText`,
+`ConfiguredSwordItem`, the swing packet) lives here — extend `ConfiguredSwordItem`, never
+`SwordItem` directly, or the weapon's numbers stop answering to the config. Note `ItemCooldowns` holds one timer per *item*, so a multi-ability weapon
 keeps its extra cooldowns as game-time stamps in stack NBT. See `docs/WEAPONS.md`.
 
 **Ability visuals are entities, not particles.** `WeaponVfx` is a short-lived, damageless
@@ -138,6 +167,11 @@ placement.
 - Placeholder textures are generated, not drawn: `tools/generate_placeholder_art.py` is pure
   stdlib, seeded and idempotent. Add an entry there rather than hand-making a PNG, and remove
   an entry once real art replaces it so a re-run cannot clobber the real thing.
+- Adding a weapon touches seven files in five packages — the item class, `config/WeaponStats`,
+  `ModWeapons`, `ModLanguageProvider`, `ModItemModelProvider`, the placeholder-art table, and
+  both ends of the swing packet. Missing one usually fails *silently* rather than at compile
+  time: a weapon with no name, no texture, or one that swings and never fires. `docs/WEAPONS.md`
+  is the checklist; work through it rather than from memory.
 
 ## Where to look
 
@@ -151,6 +185,7 @@ item, a block, or a structure. Beyond it:
 | Dungeon-gated blocks, adding a dungeon | `docs/DUNGEON_BLOCKS.md` |
 | Storyline, chapter by chapter | `docs/SCORE_MOVEMENTS.md` |
 | Per-boss design and fights | `docs/BOSSES.md` |
+| The balance config: mob, boss, weapon and ability numbers | `docs/STATS.md` |
 | Summoning altars, GeckoLib block models | `docs/BOSS_SPAWNERS.md` |
 | Why nothing spawns, and how to change it | `docs/SPAWNING.md` |
 | Weapons: click hooks, abilities, projectiles | `docs/WEAPONS.md` |

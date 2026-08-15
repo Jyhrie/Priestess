@@ -105,6 +105,12 @@ ATTACK_DAMAGE         8.0       FOLLOW_RANGE          48.0
 xpReward              250
 ```
 
+**These six are defaults, not the numbers the game runs on.** They live in
+`config/priestess/boss.toml` under `[boss.mb_jesselton_williams]`, along with the
+two beam damages below, and `EntityStats` writes the configured values over the top of these as
+he joins the world. Changing a number in `attributes()` alone changes nothing — see
+`docs/STATS.md`. `xpReward` is not configured and is set in the constructor as normal.
+
 His own armour is low on purpose. Phase one is meant to be survivable *in gear* and phase
 two is meant to *ignore* gear — the difficulty lives in the damage types, not in how spongy
 he is.

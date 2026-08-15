@@ -31,6 +31,11 @@ public class MbImprisonedRecidivist extends GeoMonster {
         this.xpReward = 12;
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code MobStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 45.0)

@@ -28,3 +28,7 @@ forge*changelog.txt
 *.log.gz
 run-data/logs/*.log
 src/generated/resources/.cache/
+
+# Python bytecode from tools/
+__pycache__/
+*.pyc

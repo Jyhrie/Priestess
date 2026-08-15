@@ -29,6 +29,11 @@ public class DvFailure extends GeoMonster {
         super(type, level);
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code MobStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 // Dies to a stone sword in three hits. It is a tax on standing still, not a

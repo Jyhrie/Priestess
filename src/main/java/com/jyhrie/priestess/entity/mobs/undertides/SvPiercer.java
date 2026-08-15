@@ -37,6 +37,11 @@ public class SvPiercer extends GeoMonster {
         super(type, level);
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code MobStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 // Deliberately frail. See the class note — this is meant to be a threat you

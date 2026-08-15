@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.weapons.entity;
 
+import com.jyhrie.priestess.config.WeaponStats;
 import com.jyhrie.priestess.weapons.ModWeapons;
 import com.jyhrie.priestess.weapons.WeaponPhysics;
 import net.minecraft.nbt.CompoundTag;
@@ -65,8 +66,12 @@ public class AegirWhirlpool extends Entity implements GeoEntity {
     /** Velocity added toward the centre, per tick, per caught mob. */
     private static final double PULL_STRENGTH = 0.12;
 
+    /**
+     * How often it grinds. Fixed at one second because the number it applies is <em>quoted</em>
+     * per second — {@code maelstromDamagePerSecond} in the config — so the interval and the
+     * units have to agree or the tooltip starts lying.
+     */
     private static final int DAMAGE_INTERVAL_TICKS = 20;
-    private static final float DAMAGE_PER_SECOND = 5.0F;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -130,7 +135,8 @@ public class AegirWhirlpool extends Entity implements GeoEntity {
             WeaponPhysics.pullTowards(caught, centre, PULL_STRENGTH);
 
             if (damageTick) {
-                caught.hurt(this.damageSources().indirectMagic(this, owner), DAMAGE_PER_SECOND);
+                caught.hurt(this.damageSources().indirectMagic(this, owner),
+                        WeaponStats.AEGIR_MAELSTROM_DAMAGE_PER_SECOND.get().floatValue());
             }
         }
 

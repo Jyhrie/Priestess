@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.entity.minibosses;
 
+import com.jyhrie.priestess.config.MinibossStats;
 import com.jyhrie.priestess.entity.BossMonster;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -8,6 +9,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
@@ -22,6 +24,8 @@ import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
+
+import java.util.UUID;
 
 /**
  * The First to Talk — Sal Viento's miniboss, and the first thing down there that answers.
@@ -38,12 +42,17 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * and {@code mobs/} already are; adding a third tier costs one directory and no code.
  *
  * <h2>The one thing it does</h2>
- * At half health it speeds up — {@link #ENRAGED_SPEED} instead of the base, applied once by
- * writing the attribute rather than by a modifier, because there is nothing to remove it
- * later. That is a deliberately small trick. It is a readable turn that needs no new
- * damage type, no summons and no second attack, and it leaves the interesting half of the
- * fight unspent: a mob called The First to Talk should eventually do something with its
- * voice, and this is a placeholder standing in that slot rather than filling it.
+ * At half health it speeds up, to whatever {@code enragedMovementSpeed} says in
+ * {@code config/priestess/miniboss.toml}. That is a deliberately small trick. It is a readable turn
+ * that needs no new damage type, no summons and no second attack, and it leaves the interesting
+ * half of the fight unspent: a mob called The First to Talk should eventually do something with
+ * its voice, and this is a placeholder standing in that slot rather than filling it.
+ *
+ * <p>It is applied as an {@link AttributeModifier} and not by writing the base value, which used
+ * to be the argument here — nothing removes it later, so a plain write was simpler. It cannot be
+ * one any more: {@code EntityStats} rewrites base movement speed from the config every time this
+ * joins the world, so a base write would be silently undone the first time its chunk reloaded.
+ * A modifier sits on top of that and survives it, and saves and reloads for free.
  */
 public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
 
@@ -51,8 +60,13 @@ public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
     private static final float ENRAGE_AT = 0.5F;
 
     private static final double BASE_SPEED = 0.26;
-    /** Still under a sprinting player, so enraging shortens the fight without removing exit. */
-    private static final double ENRAGED_SPEED = 0.32;
+
+    /**
+     * Identifies the enrage's speed modifier, so the same one is never added twice and so it can
+     * be found again after a reload. Any fixed UUID does; this one was generated for the purpose
+     * and means nothing beyond being unique.
+     */
+    private static final UUID ENRAGE_SPEED_ID = UUID.fromString("6f2a1c84-9e33-4d1b-8a57-0c9d4f1e7b20");
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
@@ -64,6 +78,11 @@ public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
         this.xpReward = 120;
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/miniboss.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code MinibossStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 120.0)
@@ -102,8 +121,13 @@ public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
         enraged = true;
 
         AttributeInstance speed = this.getAttribute(Attributes.MOVEMENT_SPEED);
-        if (speed != null) {
-            speed.setBaseValue(ENRAGED_SPEED);
+        if (speed != null && speed.getModifier(ENRAGE_SPEED_ID) == null) {
+            // The difference from where it currently stands, so the total lands exactly on the
+            // configured enraged speed rather than on base plus some fixed bonus. Taken at the
+            // moment of enraging, which is the moment the number is meant to describe.
+            double delta = MinibossStats.FIRST_TO_TALK_ENRAGED_SPEED.get() - speed.getBaseValue();
+            speed.addPermanentModifier(new AttributeModifier(ENRAGE_SPEED_ID, "Enraged",
+                    delta, AttributeModifier.Operation.ADDITION));
         }
 
         bossEvent.setColor(BossEvent.BossBarColor.RED);
@@ -129,7 +153,7 @@ public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
         super.readAdditionalSaveData(tag);
         enraged = tag.getBoolean("Enraged");
         if (enraged) {
-            // The attribute itself does save, but the bar colour does not — reapply both so a
+            // The speed modifier itself does save, but the bar colour does not — reapply so a
             // reloaded fight looks like the one you left.
             bossEvent.setColor(BossEvent.BossBarColor.RED);
         }

@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.weapons.item;
 
+import com.jyhrie.priestess.config.WeaponStats;
 import com.jyhrie.priestess.weapons.ModWeapons;
 import com.jyhrie.priestess.weapons.WeaponText;
 import com.jyhrie.priestess.weapons.WeaponTiers;
@@ -22,7 +23,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.context.UseOnContext;
@@ -64,36 +64,23 @@ import java.util.List;
  * the two abilities keep their ready-times in the stack's NBT as game-time stamps. Stack tags
  * sync to the client on their own, so both sides can answer "is it ready" without a packet.
  */
-public class LaevatainItem extends SwordItem {
+public class LaevatainItem extends ConfiguredSwordItem {
 
     // ── The sword ─────────────────────────────────────────────────────────────
-
-    private static final int ATTACK_DAMAGE = 18;
-
-    /**
-     * Offset from the player's base attack speed of 4.0, so the final value is 0.8333 attacks a
-     * second — one swing per <b>1.2 seconds</b>. Slower than any vanilla sword; the damage and
-     * the sweep are what pay for it.
-     */
-    private static final float ATTACK_SPEED = -1.6F;
+    //
+    // Damage, swing speed and all three ability damages live in
+    // config/priestess/weapon.toml — see WeaponStats and ConfiguredSwordItem. What is left
+    // here is the geometry, the burn durations and the timings, which are shape rather than
+    // balance.
+    //
+    // At the default -1.6 offset from the player's base 4.0 the sword swings 0.8333 times a
+    // second: one swing per 1.2 seconds, slower than any vanilla sword, with the damage and
+    // the sweep paying for it.
 
     // ── Laevatain, the sweep ──────────────────────────────────────────────────
 
     private static final double SWEEP_RANGE = 5.0;
     private static final double SWEEP_ARC_DEGREES = 120.0;
-
-    /**
-     * Fraction of the sword's damage each caught mob takes.
-     *
-     * <p>Kept at or below 1.0 on purpose. A mob the player actually connected with is inside
-     * its hurt-immunity window when the sweep resolves, and vanilla {@code hurt} ignores a
-     * second hit that is not <em>larger</em> than the one still on the clock — so the aimed
-     * target takes the melee hit and the sweep passes over it, while everything else around it
-     * takes the sweep. That is vanilla's own sweeping-edge rule, borrowed rather than
-     * reimplemented, and it is why this class does not clear {@code invulnerableTime} the way
-     * {@link DevilsDevastationItem} deliberately does.
-     */
-    private static final float SWEEP_DAMAGE_FRACTION = 0.75F;
 
     private static final int SWEEP_BURN_SECONDS = 4;
 
@@ -145,7 +132,6 @@ public class LaevatainItem extends SwordItem {
     private static final double MOLTEN_GIANT_HALF_WIDTH = 1.0;
     private static final double MOLTEN_GIANT_HALF_HEIGHT = 1.0;
 
-    private static final float MOLTEN_GIANT_DAMAGE_FRACTION = 1.5F;
     private static final int MOLTEN_GIANT_BURN_SECONDS = 8;
 
     // ── Twilight, the charged cone ────────────────────────────────────────────
@@ -158,7 +144,6 @@ public class LaevatainItem extends SwordItem {
 
     private static final double TWILIGHT_RANGE = 10.0;
     private static final double TWILIGHT_ARC_DEGREES = 60.0;
-    private static final float TWILIGHT_DAMAGE_FRACTION = 1.25F;
     private static final int TWILIGHT_BURN_SECONDS = 10;
 
     // ── VFX lifetimes ─────────────────────────────────────────────────────────
@@ -177,7 +162,7 @@ public class LaevatainItem extends SwordItem {
     private static final int ERUPTION_VFX_TICKS = 12;
 
     public LaevatainItem() {
-        super(WeaponTiers.DEMONIC, ATTACK_DAMAGE, ATTACK_SPEED, new Properties());
+        super(WeaponTiers.DEMONIC, WeaponStats.LAEVATAIN, new Properties());
     }
 
     @Override
@@ -236,7 +221,13 @@ public class LaevatainItem extends SwordItem {
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         target.setSecondsOnFire(SWEEP_BURN_SECONDS);
-        // Note the absence of `target.invulnerableTime = 0` here — see SWEEP_DAMAGE_FRACTION.
+        // Note the absence of `target.invulnerableTime = 0` here, unlike DevilsDevastationItem
+        // which clears it deliberately. A mob the player actually connected with is still inside
+        // its hurt-immunity window when the sweep resolves, and vanilla `hurt` ignores a second
+        // hit that is not *larger* than the one on the clock — so the aimed target takes the
+        // melee hit and the sweep passes over it, while everything around it takes the sweep.
+        // That is vanilla's own sweeping-edge rule, borrowed rather than reimplemented, and it
+        // is why sweepDamageFraction is documented as belonging at or below 1.0.
         return super.hurtEnemy(stack, target, attacker);
     }
 
@@ -268,7 +259,8 @@ public class LaevatainItem extends SwordItem {
             user.getCooldowns().addCooldown(stack.getItem(), (int) (20.0F / attackSpeed));
 
             if (!level.isClientSide()) {
-                float damage = WeaponText.itemAttackDamage(stack) * SWEEP_DAMAGE_FRACTION;
+                float damage = WeaponText.itemAttackDamage(stack)
+                        * WeaponStats.LAEVATAIN_SWEEP_FRACTION.get().floatValue();
                 for (LivingEntity target : targetsInCone(level, user, SWEEP_RANGE, SWEEP_ARC_DEGREES)) {
                     target.hurt(user.damageSources().playerAttack(user), damage);
                     target.setSecondsOnFire(SWEEP_BURN_SECONDS);
@@ -443,7 +435,8 @@ public class LaevatainItem extends SwordItem {
             length = hit.getLocation().subtract(origin).length();
         }
 
-        float damage = WeaponText.itemAttackDamage(stack) * MOLTEN_GIANT_DAMAGE_FRACTION * charge;
+        float damage = WeaponText.itemAttackDamage(stack)
+                * WeaponStats.LAEVATAIN_MOLTEN_GIANT_FRACTION.get().floatValue() * charge;
 
         // Broad phase: an axis-aligned box big enough to contain the oriented one whatever the
         // heading. Cheap, and the exact test below throws the corners back out.
@@ -497,7 +490,8 @@ public class LaevatainItem extends SwordItem {
             // The cone's reach and angle are fixed; only the damage answers to the charge, so a
             // half-charged cast covers the same ground and hits for less rather than becoming a
             // different, smaller ability the player has to re-aim.
-            float damage = WeaponText.itemAttackDamage(stack) * TWILIGHT_DAMAGE_FRACTION * charge;
+            float damage = WeaponText.itemAttackDamage(stack)
+                    * WeaponStats.LAEVATAIN_TWILIGHT_FRACTION.get().floatValue() * charge;
             for (LivingEntity target : targetsInCone(level, player, TWILIGHT_RANGE, TWILIGHT_ARC_DEGREES)) {
                 target.hurt(player.damageSources().playerAttack(player), damage);
                 target.setSecondsOnFire(TWILIGHT_BURN_SECONDS);

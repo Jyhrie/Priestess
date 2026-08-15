@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.entity.bosses;
 
+import com.jyhrie.priestess.config.BossStats;
 import com.jyhrie.priestess.damage.ModDamageTypes;
 import com.jyhrie.priestess.entity.BossMonster;
 import com.jyhrie.priestess.entity.projectiles.ArtsBeam;
@@ -58,8 +59,6 @@ public class MbJesseltonWilliams extends BossMonster {
 
     private static final int RANGED_COOLDOWN_TICKS = 45;
     private static final double RANGED_RANGE = 24.0;
-    private static final float PHASE_ONE_DAMAGE = 9.0F;
-    private static final float PHASE_TWO_DAMAGE = 7.0F;
 
     /** How far he will chase before the prison pulls him back. */
     private static final int HOME_RADIUS = 40;
@@ -72,6 +71,11 @@ public class MbJesseltonWilliams extends BossMonster {
         this.xpReward = 250;
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/boss.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code BossStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 220.0)
@@ -143,9 +147,11 @@ public class MbJesseltonWilliams extends BossMonster {
         rangedCooldown = RANGED_COOLDOWN_TICKS;
 
         if (isPhaseTwo()) {
-            ArtsBeam.fire(this, target, ModDamageTypes.VOID_ARTS, PHASE_TWO_DAMAGE, ParticleTypes.SCULK_SOUL);
+            ArtsBeam.fire(this, target, ModDamageTypes.VOID_ARTS,
+                    BossStats.JESSELTON_PHASE_TWO_DAMAGE.get().floatValue(), ParticleTypes.SCULK_SOUL);
         } else {
-            ArtsBeam.fire(this, target, ModDamageTypes.SPECTRAL_ARTS, PHASE_ONE_DAMAGE, ParticleTypes.CRIT);
+            ArtsBeam.fire(this, target, ModDamageTypes.SPECTRAL_ARTS,
+                    BossStats.JESSELTON_PHASE_ONE_DAMAGE.get().floatValue(), ParticleTypes.CRIT);
         }
         this.playSound(SoundEvents.EVOKER_CAST_SPELL, 1.0F, isPhaseTwo() ? 0.6F : 1.0F);
     }

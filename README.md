@@ -49,6 +49,12 @@ structure placement type, the Oripathy capability and the `DungeonSync` network 
 src/main/java/com/jyhrie/priestess/
 ├── Priestess.java                  main mod class, MOD_ID, runtime registration
 ├── PriestessConfig.java            serverconfig/priestess-server.toml — lockdown + flight
+├── config/                         ← config/priestess/*.toml — every combat number
+│   ├── Stats.java                  shared: the Block/Weapon types, bounds, applying to entities
+│   ├── BossStats.java              boss.toml — the three bosses
+│   ├── MinibossStats.java          miniboss.toml — the miniboss tier
+│   ├── MobStats.java               mob.toml — the twelve trash mobs
+│   └── WeaponStats.java            weapon.toml — damage, swing speed, ability fractions
 ├── block/
 │   ├── ModBlocks.java              block registry (auto-registers BlockItems too)
 │   ├── DungeonSealed.java          marks a block as gated; carries the immunities
@@ -72,6 +78,7 @@ src/main/java/com/jyhrie/priestess/
 ├── entity/                         ← the Columbia roster
 │   │                                 root = registry + base classes only
 │   ├── ModEntities.java            entity types, attributes, spawn placements
+│   ├── EntityStats.java            writes config/'s numbers onto mobs as they join a level
 │   ├── BossMonster.java            base: boss bar + "the world cannot take it away"
 │   ├── GeoMonster.java             base: melee goals + GeckoLib plumbing, nothing else
 │   ├── mobs/                       ← the trash mobs, one package per dungeon
@@ -166,6 +173,7 @@ docs/DUNGEON_BLOCKS.md              adding a block gated behind a dungeon, and a
 docs/FLOWERS_LITTER.md              adding a flower or ground litter: cutout models, petal states
 docs/SCORE_MOVEMENTS.md             the storyline, chapter by chapter
 docs/BOSSES.md                      per-boss design and fight notes
+docs/STATS.md                       the balance config: every mob, boss, weapon and ability number
 docs/BOSS_SPAWNERS.md               the summoning altars: GeckoLib block models and rendering
 docs/SPAWNING.md                    why nothing spawns naturally, and how to change that
 docs/CURIOS.md                      the Module slot, and adding a wearable module
@@ -501,7 +509,9 @@ prose alone.
 ## Progression
 
 Two mechanics, both keyed off one flag per dungeon: **have you cleared it**. Everything lives
-in `progression/`, and both are configurable in `serverconfig/priestess-server.toml`.
+in `progression/`, and both are configurable in `serverconfig/priestess-server.toml`. (Combat
+numbers are four separate, installation-wide configs under `config/priestess/`, see
+`docs/STATS.md`.)
 
 Every dungeon is one constant in `Dungeon.java`, which is the only place its three facts meet
 — the structure that is its physical extent, what clears it, and which biomes it ungrounds.

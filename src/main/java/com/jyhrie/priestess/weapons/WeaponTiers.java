@@ -17,9 +17,10 @@ import java.util.List;
  *
  * <p>A {@link Tier} carries durability, mining level, enchantability and the repair
  * ingredient. It does <em>not</em> carry attack damage for these weapons — every one of them
- * passes its own damage and swing speed to the {@code SwordItem} constructor and leaves the
- * tier's {@code attackDamageBonus} at zero, so changing numbers here will not change how hard
- * anything hits.
+ * gets its damage and swing speed from {@code config/priestess/weapon.toml} by way of
+ * {@code ConfiguredSwordItem}, and leaves the tier's {@code attackDamageBonus} at zero. Changing
+ * numbers here will not change how hard anything hits, and a bonus set here would be the one
+ * part of a weapon's damage the config could not reach.
  *
  * <p>{@link TierSortingRegistry} is what makes a modded tier sort against vanilla's, so that
  * "needs better than diamond" checks resolve correctly. Sorting after {@code NETHERITE} with

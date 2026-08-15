@@ -1,5 +1,9 @@
 package com.jyhrie.priestess;
 
+import com.jyhrie.priestess.config.BossStats;
+import com.jyhrie.priestess.config.MinibossStats;
+import com.jyhrie.priestess.config.MobStats;
+import com.jyhrie.priestess.config.WeaponStats;
 import com.jyhrie.priestess.block.ModBlocks;
 import com.jyhrie.priestess.block.entity.ModBlockEntities;
 import com.jyhrie.priestess.effect.ModEffects;
@@ -88,6 +92,23 @@ public class Priestess {
         // SERVER type, so it lives in the world save rather than the installation — see
         // PriestessConfig.
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, PriestessConfig.SPEC);
+
+        // Balance, in four files under config/priestess/, and COMMON rather than SERVER: it
+        // belongs to the installation and not to a world, so one edit retunes every save instead
+        // of having to be repeated per world. Deliberately unlike the config above, which gates
+        // what a world permits and therefore has to travel with it.
+        //
+        // Split by tier because the four are tuned at different times by different questions —
+        // see the note on Stats. Forge tracks configs by filename, so a mod may register as many
+        // as it likes, and a filename containing a directory gets that directory created for it.
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, BossStats.SPEC,
+                "priestess/boss.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MinibossStats.SPEC,
+                "priestess/miniboss.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MobStats.SPEC,
+                "priestess/mob.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, WeaponStats.SPEC,
+                "priestess/weapon.toml");
 
         // The lockdown's client half. Without this the client predicts a break the server is
         // going to refuse, and a sealed block shatters and comes back rather than not moving.

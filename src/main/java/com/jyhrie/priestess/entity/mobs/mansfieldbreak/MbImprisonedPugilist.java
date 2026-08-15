@@ -28,6 +28,11 @@ public class MbImprisonedPugilist extends GeoMonster {
         super(type, level);
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code MobStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 // A zombie's 20, rounded up a little for the extra damage it deals.

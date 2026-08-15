@@ -112,24 +112,35 @@ Nothing else. **You never touch `Priestess.java`** — `ModWeapons.register` and
 
 ## Step 1 — the item class
 
-`weapons/item/YourWeaponItem.java`. Extend `SwordItem` for a melee weapon; the tier supplies
-durability and repair, and the two numbers supply damage and speed.
+`weapons/item/YourWeaponItem.java`. Extend **`ConfiguredSwordItem`** for a melee weapon; the tier
+supplies durability and repair, and a `Stats.Weapon` supplies damage and speed.
 
 ```java
-public class YourWeaponItem extends SwordItem {
-
-    private static final int ATTACK_DAMAGE = 12;
-    private static final float ATTACK_SPEED = -2.4F;   // negative = slower than a fist
+public class YourWeaponItem extends ConfiguredSwordItem {
 
     public YourWeaponItem() {
-        super(WeaponTiers.DEMONIC, ATTACK_DAMAGE, ATTACK_SPEED, new Properties());
+        super(WeaponTiers.DEMONIC, WeaponStats.YOUR_WEAPON, new Properties());
     }
 }
 ```
 
-`ATTACK_SPEED` is an offset from 4.0, so `-2.4` means 1.6 swings a second. Leave
+The two numbers themselves go in `config/WeaponStats`, which puts them in
+`config/priestess/weapon.toml` under `[weapon.your_weapon]`:
+
+```java
+YOUR_WEAPON = weapon(builder, 12.0, -2.4);   // damage, speed
+```
+
+`attackSpeed` is an offset from 4.0, so `-2.4` means 1.6 swings a second. Leave
 `WeaponTiers.DEMONIC`'s `attackDamageBonus` at zero and put all the damage here, so one number
 governs it.
+
+**Why not plain `SwordItem`.** `SwordItem` builds its attribute modifiers once, in its
+constructor, and every item is constructed during registration — before any world exists, and so
+before a SERVER config has been read. `ConfiguredSwordItem` still passes the compiled defaults to
+`super`, and overrides the *getter* so the modifiers are built from the config each time they are
+asked for. It is also what makes ability damage configurable for free: everything that scales off
+`WeaponText.itemAttackDamage` reads those modifiers. See `docs/STATS.md`.
 
 Want a rarity above vanilla's four? Override `getRarity` and return
 `WeaponRarities.CALAMITOUS`.
@@ -173,7 +184,21 @@ public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity atta
 
 To scale off the weapon's real damage rather than a constant, use
 `WeaponText.itemAttackDamage(stack)`. It reads the stack's own attribute modifiers plus
-Sharpness, so an enchanted copy hits proportionally harder.
+Sharpness, so an enchanted copy hits proportionally harder — and, since `ConfiguredSwordItem`
+builds those modifiers from the config, so does a copy on a server that raised `attackDamage`.
+
+**Every ability here is written as a fraction of that**, and the fraction is itself a config key.
+Declare it beside the weapon's damage in the config classes and read it where the ability resolves:
+
+```java
+float damage = WeaponText.itemAttackDamage(stack)
+        * WeaponStats.YOUR_WEAPON_ABILITY_FRACTION.get().floatValue();
+```
+
+The division of labour: `attackDamage` moves the weapon and everything it throws together, and
+the fractions decide only the shape of the kit. Use a flat number instead only when there is no
+wielded item to scale off — the Maelstrom whirlpool is the one case, because it outlives the
+swing that opened it.
 
 ---
 

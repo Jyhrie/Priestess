@@ -78,6 +78,11 @@ public class DvAwaken extends BossMonster implements GeoEntity {
         this.setNoGravity(true);
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/boss.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code BossStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 300.0)

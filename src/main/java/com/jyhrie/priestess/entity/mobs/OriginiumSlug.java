@@ -47,6 +47,11 @@ public class OriginiumSlug extends Monster {
         this.setPathfindingMalus(BlockPathTypes.WATER, 8.0F);
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code MobStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 8.0)

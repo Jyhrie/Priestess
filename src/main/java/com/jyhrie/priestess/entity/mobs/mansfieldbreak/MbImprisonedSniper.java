@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.entity.mobs.mansfieldbreak;
 
+import com.jyhrie.priestess.config.MobStats;
 import com.jyhrie.priestess.entity.GeoMonster;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -53,13 +54,6 @@ import net.minecraft.world.level.Level;
  */
 public class MbImprisonedSniper extends GeoMonster implements RangedAttackMob {
 
-    /**
-     * Damage before the velocity multiplier, which {@code shoot} applies on top. A vanilla
-     * arrow is 2.0; this is a little meaner because there are meant to be few of these and
-     * they are meant to be the reason you take cover.
-     */
-    private static final double ARROW_DAMAGE = 3.0;
-
     /** Ticks between shots. Vanilla's skeleton uses 20 on Hard and 40 otherwise; this is flat. */
     private static final int SHOOT_INTERVAL_TICKS = 30;
 
@@ -78,6 +72,11 @@ public class MbImprisonedSniper extends GeoMonster implements RangedAttackMob {
         this.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code MobStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 // A skeleton's 20. It is not meant to survive being reached.
@@ -119,7 +118,10 @@ public class MbImprisonedSniper extends GeoMonster implements RangedAttackMob {
     @Override
     public void performRangedAttack(LivingEntity target, float velocity) {
         Arrow arrow = new Arrow(this.level(), this);
-        arrow.setBaseDamage(ARROW_DAMAGE);
+        // Damage before the velocity multiplier, which shoot() applies on top. A vanilla arrow
+        // is 2.0; the default here is a little meaner because there are meant to be few of
+        // these and they are meant to be the reason you take cover.
+        arrow.setBaseDamage(MobStats.SNIPER_ARROW_DAMAGE.get());
 
         double dx = target.getX() - this.getX();
         double dy = target.getY(0.3333333333333333) - arrow.getY();

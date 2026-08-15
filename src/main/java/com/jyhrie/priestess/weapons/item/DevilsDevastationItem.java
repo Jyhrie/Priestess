@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.weapons.item;
 
+import com.jyhrie.priestess.config.WeaponStats;
 import com.jyhrie.priestess.weapons.ModWeapons;
 import com.jyhrie.priestess.weapons.WeaponRarities;
 import com.jyhrie.priestess.weapons.WeaponText;
@@ -21,7 +22,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -47,11 +47,16 @@ import java.util.List;
  * 15 base damage at -2.0 swing speed, so about 16 on a full charge once the player's own base
  * attack damage is counted, once every second. The tier adds nothing to damage — see
  * {@link WeaponTiers}. Each projectile carries half the sword's damage, pitchforks +2.
+ *
+ * <p>All four of those are <em>defaults</em>. They live in {@code config/priestess/weapon.toml}
+ * under {@code [weapon.devils_devastation]}, and an installation is free to disagree with every
+ * one of them; see {@link ConfiguredSwordItem}.
  */
-public class DevilsDevastationItem extends SwordItem {
+public class DevilsDevastationItem extends ConfiguredSwordItem {
 
-    private static final int ATTACK_DAMAGE = 15;
-    private static final float ATTACK_SPEED = -2.0F;
+    // Damage, swing speed, the projectile fraction and the pitchfork bonus all live in
+    // config/priestess/weapon.toml — see WeaponStats and ConfiguredSwordItem. What is left here
+    // is the fan's geometry and its muzzle velocity.
 
     /** Muzzle velocity of every projectile in the fan. */
     private static final float PROJECTILE_SPEED = 1.75F;
@@ -64,9 +69,6 @@ public class DevilsDevastationItem extends SwordItem {
 
     /** Degrees off-centre for the two pitchforks — inside the scythes. */
     private static final float PITCHFORK_ANGLE = 12.5F;
-
-    /** Flat bonus a pitchfork carries over a scythe. */
-    private static final float PITCHFORK_DAMAGE_BONUS = 2.0F;
 
     /** Height above the player's feet the fan leaves from. Double, because it is added to {@code getY()}. */
     private static final double SPAWN_HEIGHT = 0.25;
@@ -82,7 +84,7 @@ public class DevilsDevastationItem extends SwordItem {
             new ResourceLocation("terramity", "crescent_moonblade_wave");
 
     public DevilsDevastationItem() {
-        super(WeaponTiers.DEMONIC, ATTACK_DAMAGE, ATTACK_SPEED, new Properties());
+        super(WeaponTiers.DEMONIC, WeaponStats.DEVILS_DEVASTATION, new Properties());
     }
 
     @Override
@@ -219,7 +221,8 @@ public class DevilsDevastationItem extends SwordItem {
                 continue;
             }
 
-            float scytheDamage = WeaponText.itemAttackDamage(stack) * 0.5F;
+            float scytheDamage = WeaponText.itemAttackDamage(stack)
+                    * WeaponStats.DEVILS_PROJECTILE_FRACTION.get().floatValue();
 
             // Better Combat drives its own attack timing, so when it is installed Lethality
             // lets it own the rate limit and skips the cooldown entirely. Not integrated yet
@@ -251,7 +254,8 @@ public class DevilsDevastationItem extends SwordItem {
         shoot(level, new DevilsScytheEntity(level, user.getX(), user.getY() + SPAWN_HEIGHT,
                 user.getZ(), scytheDamage), user, SCYTHE_ANGLE);
 
-        float pitchforkDamage = scytheDamage + PITCHFORK_DAMAGE_BONUS;
+        float pitchforkDamage = scytheDamage
+                + WeaponStats.DEVILS_PITCHFORK_BONUS.get().floatValue();
         shoot(level, new DevilsPitchforkEntity(level, user.getX(), user.getY() + SPAWN_HEIGHT,
                 user.getZ(), pitchforkDamage), user, -PITCHFORK_ANGLE);
         shoot(level, new DevilsPitchforkEntity(level, user.getX(), user.getY() + SPAWN_HEIGHT,

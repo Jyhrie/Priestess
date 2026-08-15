@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.weapons.item;
 
+import com.jyhrie.priestess.config.WeaponStats;
 import com.jyhrie.priestess.weapons.ModWeapons;
 import com.jyhrie.priestess.weapons.WeaponPhysics;
 import com.jyhrie.priestess.weapons.WeaponText;
@@ -24,7 +25,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
@@ -69,23 +69,21 @@ import java.util.List;
  * Off-hand ability firing is not wanted, and a both-hands scan combined with a main-hand-only
  * client check is what lets one swing fire a <em>different</em> weapon held in the off hand.
  */
-public class AegirGreatspearItem extends SwordItem {
+public class AegirGreatspearItem extends ConfiguredSwordItem {
 
     // ── The spear ─────────────────────────────────────────────────────────────
-
-    private static final int ATTACK_DAMAGE = 15;
-
-    /**
-     * Offset from the player's base attack speed of 4.0, so the final value is <b>1.2 attacks a
-     * second</b> — one swing per 0.83 seconds, and a 16-tick cooldown out of
-     * {@code 20 / attackSpeed} below. Slower than a sword and faster than Laevatain: it is a
-     * reach weapon, and the throw is what it is really swinging.
-     */
-    private static final float ATTACK_SPEED = -2.8F;
+    //
+    // Damage, swing speed and all three ability damages live in
+    // config/priestess/weapon.toml — see WeaponStats and ConfiguredSwordItem. What is left here
+    // is the geometry and the timings, which are shape rather than balance.
+    //
+    // At the default -2.8 offset from the player's base 4.0 the spear swings 1.2 times a
+    // second — one swing per 0.83 seconds, and the 16-tick cooldown that `20 / attackSpeed`
+    // works out to below. Slower than a sword and faster than Laevatain: it is a reach weapon,
+    // and the throw is what it is really swinging.
 
     // ── Left click: Tide-Piercer ──────────────────────────────────────────────
 
-    private static final float TIDE_DAMAGE_FRACTION = 0.9F;
     private static final float TIDE_SPEED = 2.2F;
 
     /**
@@ -111,8 +109,6 @@ public class AegirGreatspearItem extends SwordItem {
     private static final double UNDERTOW_HALF_WIDTH = 2.5;
     private static final double UNDERTOW_HALF_HEIGHT = 2.5;
 
-    private static final float UNDERTOW_DAMAGE_FRACTION = 1.2F;
-
     /** Stronger than the throw's: this is the ability whose whole job is repositioning a group. */
     private static final double UNDERTOW_PULL_STRENGTH = 0.75;
 
@@ -128,7 +124,7 @@ public class AegirGreatspearItem extends SwordItem {
     private static final double MAELSTROM_PLACE_RANGE = 20.0;
 
     public AegirGreatspearItem() {
-        super(WeaponTiers.DEMONIC, ATTACK_DAMAGE, ATTACK_SPEED, new Properties());
+        super(WeaponTiers.DEMONIC, WeaponStats.AEGIR_GREATSPEAR, new Properties());
     }
 
     @Override
@@ -208,8 +204,8 @@ public class AegirGreatspearItem extends SwordItem {
         user.getCooldowns().addCooldown(stack.getItem(), (int) (20.0F / attackSpeed));
 
         if (!level.isClientSide()) {
-            AegirTide tide = new AegirTide(level, user,
-                    WeaponText.itemAttackDamage(stack) * TIDE_DAMAGE_FRACTION);
+            AegirTide tide = new AegirTide(level, user, WeaponText.itemAttackDamage(stack)
+                    * WeaponStats.AEGIR_TIDE_FRACTION.get().floatValue());
             tide.shootFromRotation(user, user.getXRot(), user.getYRot(), 0.0F,
                     TIDE_SPEED, TIDE_INACCURACY);
             level.addFreshEntity(tide);
@@ -273,7 +269,8 @@ public class AegirGreatspearItem extends SwordItem {
             Vec3 forward = player.getLookAngle();
             double length = reachBeforeTerrain(level, player, origin, forward, UNDERTOW_LENGTH);
 
-            float damage = WeaponText.itemAttackDamage(stack) * UNDERTOW_DAMAGE_FRACTION;
+            float damage = WeaponText.itemAttackDamage(stack)
+                    * WeaponStats.AEGIR_UNDERTOW_FRACTION.get().floatValue();
             for (LivingEntity caught : undertowTargets(level, player, origin, forward, length)) {
                 caught.hurt(player.damageSources().playerAttack(player), damage);
                 WeaponPhysics.pullTowards(caught, player.position(), UNDERTOW_PULL_STRENGTH);

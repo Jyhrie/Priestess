@@ -1,5 +1,6 @@
 package com.jyhrie.priestess.entity.bosses;
 
+import com.jyhrie.priestess.config.BossStats;
 import com.jyhrie.priestess.damage.ModDamageTypes;
 import com.jyhrie.priestess.entity.BossMonster;
 import com.jyhrie.priestess.entity.projectiles.ArtsBeam;
@@ -62,7 +63,6 @@ public class SvBishopQuintus extends BossMonster implements GeoEntity {
 
     private static final int BEAM_COOLDOWN_TICKS = 50;
     private static final double BEAM_RANGE = 28.0;
-    private static final float BEAM_DAMAGE = 8.0F;
 
     /** How wide a cone in front of it counts as "facing you". Beyond this it holds fire. */
     private static final float FIRING_ARC_DEGREES = 40.0F;
@@ -76,6 +76,11 @@ public class SvBishopQuintus extends BossMonster implements GeoEntity {
         this.xpReward = 400;
     }
 
+    /**
+     * Defaults only. {@code EntityStats} overwrites all six of these from
+     * {@code config/priestess/boss.toml} as it joins the world, so editing a number
+     * here alone changes nothing — change it in {@code BossStats} too.
+     */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 400.0)
@@ -128,7 +133,8 @@ public class SvBishopQuintus extends BossMonster implements GeoEntity {
         }
         beamCooldown = BEAM_COOLDOWN_TICKS;
 
-        ArtsBeam.fire(this, target, ModDamageTypes.ORIGINIUM_ACID, BEAM_DAMAGE, ParticleTypes.BUBBLE_POP);
+        ArtsBeam.fire(this, target, ModDamageTypes.ORIGINIUM_ACID,
+                BossStats.QUINTUS_BEAM_DAMAGE.get().floatValue(), ParticleTypes.BUBBLE_POP);
         this.playSound(SoundEvents.CONDUIT_ATTACK_TARGET, 2.0F, 0.7F);
     }
 
