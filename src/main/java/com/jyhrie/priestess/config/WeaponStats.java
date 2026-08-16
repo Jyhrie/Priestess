@@ -22,18 +22,16 @@ import net.minecraftforge.common.ForgeConfigSpec;
  * harder; change a fraction to change the shape of its kit. The one exception is the Maelstrom,
  * which is flat: the vortex outlives the swing that opened it.
  *
- * <h2>A note on the weapons compartment</h2>
- * {@code weapons/} is meant to be a sealed package — delete the folder and the mod still builds.
- * This file is the one piece of a weapon that lives outside it, and it is a deliberate trade:
- * the four balance configs belong together far more than this one belongs beside the item
+ * <p>This file is the one piece of a weapon living outside the sealed {@code weapons/} package,
+ * because the four balance configs belong together more than this belongs beside the item
  * classes. Nothing here imports {@code weapons/}, so the compartment still holds in the
- * direction that matters; deleting the folder means deleting this file too, and that is the
- * whole of the extra bill.
+ * direction that matters — deleting the folder means deleting this file too.
  */
 public final class WeaponStats {
 
     public static final ForgeConfigSpec SPEC;
 
+    public static final Stats.Weapon TEMPLATE_WEAPON_STATS;
     public static final Stats.Weapon DEVILS_DEVASTATION;
     public static final Stats.Weapon LAEVATAIN;
     public static final Stats.Weapon AEGIR_GREATSPEAR;
@@ -74,6 +72,13 @@ public final class WeaponStats {
                 "from this file every time anything asks a weapon what it does.")
                .push("weapon");
 
+        builder.comment("Template weapon — scaffolding, not a weapon anyone is meant to hold.",
+                        "Kept alongside TemplateWeaponItem so a new weapon starts from a block",
+                        "that already parses rather than from memory. Copy both, rename both.")
+               .push("template_weapon");
+        TEMPLATE_WEAPON_STATS = weapon(builder, 1.0, -1.0);
+        builder.pop();
+
         builder.comment("Devil's Devastation — throws a fan of five on every swing: three scythes",
                         "and two pitchforks. Ported from Lethality.")
                .push("devils_devastation");
@@ -90,6 +95,7 @@ public final class WeaponStats {
         builder.comment("Laevatain — Surtr's greatsword. Three fire abilities on the three click",
                         "inputs. The slowest weapon here; the damage and the sweep pay for it.")
                .push("laevatain");
+
         LAEVATAIN = weapon(builder, 18.0, -1.6);
         LAEVATAIN_SWEEP_FRACTION = builder
                 .comment("Left click, the sweep. Keep this at or below 1.0: a mob the player",

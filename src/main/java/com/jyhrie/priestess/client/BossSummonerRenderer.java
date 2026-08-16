@@ -17,22 +17,16 @@ import software.bernie.geckolib.util.RenderUtils;
  * <p>Bound to the block entity type rather than to either block, so both altars come through
  * here and {@link BossSummonerModel} decides what each one looks like.
  *
- * <h2>The spin is code, not a keyframed clip</h2>
- * A constant rotation is one line of arithmetic. An {@code .animation.json} would be another
- * file to keep in step with the model for the same result, so the core bone's rotation is
- * written directly in {@link #preRender} instead. Real animations — a flourish on summon, a
- * shudder on re-arm — are events rather than a constant, and those <em>would</em> want clips;
- * see {@code docs/BOSS_SPAWNERS.md}.
+ * <p>The spin is code rather than a keyframed clip: a constant rotation is one line of
+ * arithmetic, where an {@code .animation.json} is another file to keep in step with the model.
+ * Real animations — a flourish on summon, a shudder on re-arm — are events and <em>would</em>
+ * want clips; see {@code docs/BOSS_SPAWNERS.md}.
  *
- * <p>Driven off {@link RenderUtils#getCurrentTick()} plus the partial tick, so it is smooth
- * between ticks and identical on every altar in view. There is no per-altar phase offset,
- * which means a row of them turns in lockstep — deliberate, since they are meant to read as
- * one installation, and the place to change it if that looks wrong is here.
+ * <p>There is no per-altar phase offset, so a row of them turns in lockstep. Deliberate, since
+ * they are meant to read as one installation.
  *
- * <h2>A spent altar stops</h2>
- * The core holds still once the altar has been used, which is the second half of the
- * armed/spent read — the first being the darker texture. Motion catches the eye across a room
- * far more reliably than a colour does.
+ * <p>A spent altar's core holds still, which is the second half of the armed/spent read — the
+ * first being the darker texture. Motion catches the eye far more reliably than colour.
  */
 public class BossSummonerRenderer extends GeoBlockRenderer<BossSummonerBlockEntity> {
 

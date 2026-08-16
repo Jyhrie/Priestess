@@ -27,30 +27,16 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 /**
  * Aegir Greatspear's third ability: a standing vortex that holds a room for eight seconds.
  *
- * <p><b>This is the one animated entity in the mod that is not a {@link WeaponVfx}</b>, and the
- * reason is the contract on that class — a {@code WeaponVfx} deals no damage and exists purely
- * to be looked at, because every ability that spawns one has already resolved by the time it
- * appears. This has not resolved: it is the ability, ticking, for a hundred and sixty ticks
- * after the click that made it. Subclassing {@code WeaponVfx} would have inherited the renderer
- * for free and quietly broken the promise its javadoc makes, so it is its own entity and
- * borrows only the renderer.
+ * <p>The one animated entity here that is not a {@link WeaponVfx}, because that class promises
+ * to deal no damage and to appear only after its ability has resolved. This <em>is</em> the
+ * ability, ticking, so it is its own entity and borrows only the renderer.
  *
- * <h2>What it does each tick</h2>
- * <ul>
- *   <li><b>Every tick</b> — drags everything alive inside {@link #RADIUS} toward its centre.
- *       The pull is per-tick and gentle rather than occasional and violent, which is what makes
- *       it read as water and not as a series of shoves.</li>
- *   <li><b>Every second</b> — {@link #DAMAGE_PER_SECOND} to everything still inside it. Tied to
- *       the same interval the damage is quoted in, so the tooltip's "5 damage a second" is
- *       literally what the code does.</li>
- * </ul>
+ * <p>The damage interval is tied to the interval the damage is quoted in, so the tooltip's
+ * "5 damage a second" is literally what the code does.
  *
- * <h2>Why the animation loops, and why the tick/length rule does not apply here</h2>
- * Every other animated effect in the mod obeys "lifetime in ticks == {@code animation_length}
- * × 20", because each plays one clip once and must vanish on its last frame. This one lives far
- * longer than any sensible hand-keyframed clip: its animation is a <b>two-second spin marked
- * {@code "loop": true}</b>, played four times over. There is nothing to keep in step, and
- * lengthening the vortex is a change to {@link #LIFETIME_TICKS} alone.
+ * <p>The usual "lifetime in ticks == {@code animation_length} × 20" rule does not apply: this
+ * clip is a two-second spin marked {@code "loop": true}, so lengthening the vortex is a change
+ * to {@link #LIFETIME_TICKS} alone.
  */
 public class AegirWhirlpool extends Entity implements GeoEntity {
 
@@ -66,19 +52,12 @@ public class AegirWhirlpool extends Entity implements GeoEntity {
     /** Velocity added toward the centre, per tick, per caught mob. */
     private static final double PULL_STRENGTH = 0.12;
 
-    /**
-     * How often it grinds. Fixed at one second because the number it applies is <em>quoted</em>
-     * per second — {@code maelstromDamagePerSecond} in the config — so the interval and the
-     * units have to agree or the tooltip starts lying.
-     */
+    /** Fixed at one second, because the config quotes the damage per second. */
     private static final int DAMAGE_INTERVAL_TICKS = 20;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    /**
-     * Who cast it, for the damage source, so a kill is credited to the player and not to a
-     * nameless entity. Not persisted — see the lifetime note on {@link #addAdditionalSaveData}.
-     */
+    /** For the damage source, so a kill is credited to the player. Not persisted. */
     @Nullable
     private LivingEntity owner;
 
@@ -105,11 +84,7 @@ public class AegirWhirlpool extends Entity implements GeoEntity {
                 SoundSource.PLAYERS, 1.2F, 0.7F);
     }
 
-    /**
-     * {@code super.tick()} is called for the same reason {@link WeaponVfx} calls it: it advances
-     * {@code tickCount}, which is both GeckoLib's animation clock and the age this counts its
-     * own life against.
-     */
+    /** {@code super.tick()} advances {@code tickCount}, which is GeckoLib's animation clock. */
     @Override
     public void tick() {
         super.tick();
@@ -126,8 +101,7 @@ public class AegirWhirlpool extends Entity implements GeoEntity {
                 this.getBoundingBox().inflate(RADIUS),
                 other -> other != owner && other.isAlive() && !other.isSpectator())) {
 
-            // The bounding-box query above is a cube; this is what makes the reach a sphere,
-            // so a mob in the corner of that cube is not caught by a vortex it is outside of.
+            // The query above is a cube; this makes the reach a sphere.
             if (caught.position().distanceToSqr(centre) > RADIUS * RADIUS) {
                 continue;
             }
@@ -158,19 +132,14 @@ public class AegirWhirlpool extends Entity implements GeoEntity {
         }
     }
 
-    // ── Plumbing ──────────────────────────────────────────────────────────────
-
     @Override
     protected void defineSynchedData() {
-        // Nothing is synced. Position rides the spawn packet, and the client needs no more than
-        // that — the pull and the damage are the server's business and the spin is on a clock
-        // both sides already have.
+        // Position rides the spawn packet; the pull and the damage are the server's business.
     }
 
     /**
-     * Nothing to save. One of these lives eight seconds, so the only way it could be written to
-     * disk is a save landing mid-cast; reloading into a half-finished vortex with no caster is
-     * worse than reloading into none.
+     * Nothing to save. Reloading into a half-finished vortex with no caster is worse than
+     * reloading into none.
      */
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
@@ -201,10 +170,7 @@ public class AegirWhirlpool extends Entity implements GeoEntity {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
-    /**
-     * Transition length 0, as with {@link WeaponVfx}: GeckoLib's default eases into a clip over
-     * several ticks, and a vortex that fades up to speed looks like it is buffering.
-     */
+    /** Transition length 0: GeckoLib's default eases into a clip over several ticks. */
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", 0,

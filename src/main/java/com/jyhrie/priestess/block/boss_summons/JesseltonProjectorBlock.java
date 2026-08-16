@@ -17,12 +17,9 @@ import net.minecraft.world.item.Item;
  * projects {@link com.jyhrie.priestess.entity.bosses.MbJesseltonWilliams} — the Jesselton of
  * the assimilated universe, the one who took Mansfield — into the cell block with you.
  *
- * <p>The tags are this world's Jesselton, and they are what the effigy aims along: a likeness
- * and a name are enough to find the same man in a version of events where he won.
- *
- * <p>He is 0.7 x 2.2 and walks, so the inherited clearance check — his own hitbox, one block
- * up — is all this needs. If the altar is buried, he simply steps out. Contrast
- * {@link DorothysTerminalBlock}, whose boss cannot.
+ * <p>He walks, so the inherited clearance check — his own hitbox, one block up — is all this
+ * needs; if the altar is buried he simply steps out. Contrast {@link DorothysTerminalBlock},
+ * whose boss cannot.
  */
 public class JesseltonProjectorBlock extends BossSummonerBlock {
 

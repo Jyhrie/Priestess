@@ -18,8 +18,6 @@ public class ModCreativeTabs {
     public static final RegistryObject<CreativeModeTab> PRIESTESS_TAB = CREATIVE_MODE_TABS.register("priestess_tab",
             () -> CreativeModeTab.builder()
                     .icon(() -> new ItemStack(ModBlocks.IBERIAN_SAND.get()))
-                    // Everything in ModItems.ITEMS shows up automatically, in registration
-                    // order — that includes the BlockItems ModBlocks registers for us.
                     // ModWeapons keeps its own register so the weapons package stays
                     // self-contained, so it has to be asked for separately.
                     .displayItems((parameters, output) -> {

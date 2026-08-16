@@ -26,13 +26,9 @@ public class ModBlockStateProvider extends BlockStateProvider {
     private static final String CUTOUT = "minecraft:cutout";
 
     /**
-     * Where the plant models and their textures live: what stands up out of the ground, and
-     * what has fallen onto it.
-     *
-     * <p>The {@code block/} is spelled out and load-bearing. A model name containing a slash is
-     * taken as a complete path and the provider's own {@code block} folder is <em>not</em>
-     * prepended, so {@code "flowers/whiteflower"} would write to {@code models/flowers/} and
-     * sit outside the tree every other block model in the mod is in.
+     * The {@code block/} prefix is load-bearing: a model name containing a slash is taken as a
+     * complete path and the provider's own {@code block} folder is <em>not</em> prepended, so
+     * {@code "flowers/whiteflower"} would write to {@code models/flowers/}.
      */
     private static final String FLOWERS = "block/flowers/";
     private static final String LITTER = "block/litter/";
@@ -51,16 +47,12 @@ public class ModBlockStateProvider extends BlockStateProvider {
         simpleBlockWithItem(ModBlocks.DEAD_SEABED.get(), cubeAll(ModBlocks.DEAD_SEABED.get()));
         simpleBlockWithItem(ModBlocks.PERMAFROST.get(), cubeAll(ModBlocks.PERMAFROST.get()));
 
-        // Plants. Both tiles are mostly transparent, which is what the cutout render type in
-        // each of these models is for — see flower().
         flower(ModBlocks.WHITEFLOWER, ModBlocks.POTTED_WHITEFLOWER);
         petals(ModBlocks.WHITEFLOWER_PETALS);
 
         summoner(ModBlocks.JESSELTON_PROJECTOR);
         summoner(ModBlocks.DOROTHYS_TERMINAL);
 
-        // The Arts Lab build set. Four plain cubes and a pillar; the pillar takes the
-        // _top/_side pair and gets a model per axis from axisBlock.
         simpleBlockWithItem(ModBlocks.RHINE_LAB_ARTS_LAB_CHISELED_WALL.get(),
                 cubeAll(ModBlocks.RHINE_LAB_ARTS_LAB_CHISELED_WALL.get()));
         simpleBlockWithItem(ModBlocks.RHINE_LAB_ARTS_LAB_PLATED_WALL.get(),
@@ -71,13 +63,11 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 cubeAll(ModBlocks.RHINE_LAB_ARTS_LAB_TILE.get()));
         pillar(ModBlocks.RHINE_LAB_ARTS_LAB_PILLAR);
 
-        // The Sal Viento catacombs set. Plain cubes; nothing here knows they are gated.
         simpleBlockWithItem(ModBlocks.SAL_VIENTO_CATACOMBS_STONE.get(),
                 cubeAll(ModBlocks.SAL_VIENTO_CATACOMBS_STONE.get()));
         simpleBlockWithItem(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get(),
                 cubeAll(ModBlocks.SAL_VIENTO_CATACOMBS_OVERGROWN_STONE.get()));
 
-        // Pipes and vents. A vent is an ordinary cube — only the pipe has connection state.
         pipe(ModBlocks.SAL_VIENTO_CATACOMBS_PIPE);
 
         pipe(ModBlocks.RMA70_12_DECORATIVE_PIPE);
@@ -100,18 +90,14 @@ public class ModBlockStateProvider extends BlockStateProvider {
     /**
      * A small flower and its potted version, both from the one tile in {@code block/flowers/}.
      *
-     * <p><b>{@code renderType} is not optional.</b> Since 1.19 a model's render layer is a
-     * field on the model rather than something registered in client code, and a model that
-     * names none is drawn as solid geometry — which fills every transparent pixel of the tile
-     * with black, so an undeclared flower comes out as a black square with a flower inside it.
-     * Cutout rather than translucent: these tiles are opaque or empty per pixel with nothing in
-     * between, and cutout does not pay for sorting.
+     * <p><b>{@code renderType} is not optional.</b> Since 1.19 the render layer is a field on
+     * the model, and a model that names none is drawn as solid geometry — so an undeclared
+     * flower comes out as a black square with a flower inside it. Cutout rather than
+     * translucent, since these tiles are opaque or empty per pixel and cutout skips sorting.
      *
-     * <p><b>The item is a flat sprite, not the block model.</b> {@code simpleBlockWithItem}
-     * would hand the inventory the cross model, and two quads crossing at right angles read as
-     * a smear when a slot shows them head-on. Vanilla points flower items at
-     * {@code item/generated} with the block tile as {@code layer0}, which is what this does —
-     * so the flower needs no item texture of its own.
+     * <p><b>The item is a flat sprite, not the block model</b>, because two quads crossing at
+     * right angles read as a smear in a slot. It uses the block tile as {@code layer0}, so the
+     * flower needs no item texture of its own.
      */
     private void flower(RegistryObject<Block> flower, RegistryObject<Block> potted) {
         String name = flower.getId().getPath();
@@ -119,8 +105,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
 
         simpleBlock(flower.get(), models().cross(FLOWERS + name, texture).renderType(CUTOUT));
 
-        // The pot is vanilla's model; all it wants is the plant to put in it. Its own name has
-        // to stay potted_<flower> to match the block, but the model can live with the flower.
+        // Vanilla's model; all it wants is the plant to put in it.
         simpleBlock(potted.get(), models().singleTexture(FLOWERS + potted.getId().getPath(),
                 mcLoc("block/flower_pot_cross"), "plant", texture).renderType(CUTOUT));
 
@@ -131,20 +116,16 @@ public class ModBlockStateProvider extends BlockStateProvider {
      * A {@link PinkPetalsBlock}: ground cover that holds one to four petals, laid down facing
      * the way the player was standing.
      *
-     * <p>Four models and sixteen multipart cases, which is vanilla's own arrangement for pink
-     * petals rather than a choice. Each of vanilla's {@code block/flowerbed_N} parents draws
-     * <em>only</em> the Nth petal, in its own 8x8 quadrant of the tile, so the models stack:
-     * a block holding three petals applies layers 1, 2 <em>and</em> 3. That is why each part's
-     * condition is "amount is N or more" rather than "amount is N" — a condition per exact
-     * amount would show the third petal and nothing else.
+     * <p>Four models and sixteen multipart cases, which is vanilla's own arrangement. Each
+     * {@code block/flowerbed_N} parent draws <em>only</em> the Nth petal, so the models stack
+     * and each part's condition has to be "amount is N or more" — a condition per exact amount
+     * would show the third petal and nothing else.
      *
-     * <p>Times four horizontal facings, because the whole patch turns with the player who laid
-     * it. The parent models are authored facing north and {@code Direction.toYRot} measures
-     * from south, hence the 180 — north has to come out as no rotation at all.
+     * <p>Times four facings. The parents are authored facing north while
+     * {@code Direction.toYRot} measures from south, hence the 180.
      *
-     * <p>The stem faces in those parents carry {@code tintindex 1}, which vanilla uses to
-     * grass-tint pink petal stems. Nothing here registers a colour provider, so the tint
-     * resolves to white and the stem renders in its own colours — which is the intent: a
+     * <p>The stem faces carry {@code tintindex 1}, which vanilla grass-tints. Nothing here
+     * registers a colour provider, so the tint resolves to white — intentionally, since a
      * whiteflower stem should not change hue with the biome it fell in.
      */
     private void petals(RegistryObject<Block> block) {
@@ -175,8 +156,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
         }
 
         // Its own sprite, unlike the flower's: the block tile is a scatter of petals seen from
-        // directly above, which says nothing at slot size. See PETAL_HANDFUL in
-        // tools/generate_placeholder_art.py.
+        // directly above, which says nothing at slot size.
         itemModels().withExistingParent(name, mcLoc("item/generated"))
                 .texture("layer0", modLoc("item/" + name));
     }
@@ -185,18 +165,11 @@ public class ModBlockStateProvider extends BlockStateProvider {
      * A {@link DecorativePipeBlock}: a centre cube, plus one arm model placed once per
      * connected side.
      *
-     * <p><b>Multipart, not a variant per state.</b> Six booleans is sixty-four combinations,
-     * and a variant map would need all sixty-four written out. Multipart instead states each
-     * part's condition independently and lets the game assemble whichever apply, so the whole
-     * block is seven parts and adding a seventh connection would be one more.
+     * <p><b>Multipart, not a variant per state</b>: six booleans is sixty-four combinations, and
+     * a variant map would need all sixty-four written out.
      *
-     * <p>One arm model, rotated. It is authored pointing north, so {@code rotationY} covers the
-     * other three horizontals and {@code rotationX} tips it up and down — 270 is up because a
+     * <p>One arm model, authored pointing north, rotated into place — 270 is up because a
      * positive X rotation tips north towards the floor.
-     *
-     * <p>Core and arm share one 4..12 cross-section, so a straight run is a single unbroken
-     * rectangular box rather than a string of hubs and stubs, and the model agrees exactly with
-     * the {@code VoxelShape} an apothem of {@code 0.25F} produces.
      */
     private void pipe(RegistryObject<Block> block) {
         String name = block.getId().getPath();
@@ -209,15 +182,11 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .element().from(4, 4, 4).to(12, 12, 12)
                 .allFaces((direction, face) -> face.texture("#pipe")).end();
 
-        // The same 4..12 cross-section as the core, butted against it rather than overlapping.
-        // That is what makes a run of pipe read as one unbroken rectangular box: the arm's
-        // sides are in the same planes as the core's and pick up straight where they stop, so
-        // there is no step and no collar at a joint. Default UVs come from the element's own
-        // coordinates, so the texture carries across the seam as well.
+        // The same cross-section as the core, butted against it rather than overlapping, so a
+        // run reads as one unbroken box with no step or collar at a joint.
         //
-        // No south face. It would be exactly coincident with the core's north face and the two
-        // would z-fight; omitting it leaves the core's face alone in that plane, hidden behind
-        // the arm where nothing can see it.
+        // No south face: it would be exactly coincident with the core's north face and the two
+        // would z-fight.
         ModelFile arm = models().withExistingParent(name + "_arm", mcLoc("block/block"))
                 .texture("particle", texture).texture("pipe", texture)
                 .element().from(4, 4, 0).to(12, 12, 4)
@@ -239,9 +208,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
         arm(builder, arm, PipeBlock.UP, 270, 0);
         arm(builder, arm, PipeBlock.DOWN, 90, 0);
 
-        // Held and dropped as a straight north–south length — one box, since that is what a
-        // connected run now looks like. The bare core on its own reads as a small cube rather
-        // than as a pipe.
+        // Held as a straight length: the bare core alone reads as a small cube, not a pipe.
         simpleBlockItem(block.get(), models().withExistingParent(name + "_inventory", mcLoc("block/block"))
                 .texture("particle", texture).texture("pipe", texture)
                 .element().from(4, 4, 0).to(12, 12, 16)
@@ -270,21 +237,14 @@ public class ModBlockStateProvider extends BlockStateProvider {
      * the block is {@link net.minecraft.world.level.block.RenderShape#INVISIBLE} and none of
      * this is rendered as geometry.
      *
-     * <p>They still have to exist, for two things a block entity renderer does not provide:
+     * <p>They still have to exist for two things a block entity renderer does not provide.
+     * Break and landing <b>particles</b> take their texture from the model the blockstate
+     * points at, hence a model with a {@code particle} texture and no elements. And the
+     * <b>item</b> model is a separate thing unaffected by the render shape, so it stays an
+     * ordinary cube — an altar invisible in the inventory would be unplaceable.
      *
-     * <ul>
-     *   <li><b>Particles.</b> Break and landing particles take their texture from the model the
-     *       blockstate points at. Without one they come out as missing-texture chequerboard.
-     *       Hence a model with a {@code particle} texture and no elements — no faces to draw,
-     *       one texture to sample.</li>
-     *   <li><b>The item.</b> An item model is a separate thing from a block model and is not
-     *       affected by the render shape, so this stays an ordinary cube. It has to: an altar
-     *       that was invisible in the inventory would be unplaceable in practice.</li>
-     * </ul>
-     *
-     * <p>Two particle models rather than one, keyed on {@link BossSummonerBlock#ARMED}, so a
-     * spent altar breaks in its own darker colours. That is also what keeps the blockstate
-     * honest about having two states, which the renderer reads to pick its texture.
+     * <p>Two particle models keyed on {@link BossSummonerBlock#ARMED}, so a spent altar breaks
+     * in its own darker colours and the blockstate stays honest about having two states.
      */
     private void summoner(RegistryObject<Block> block) {
         String name = block.getId().getPath();
@@ -299,8 +259,6 @@ public class ModBlockStateProvider extends BlockStateProvider {
                 .partialState().with(BossSummonerBlock.ARMED, false)
                 .modelForState().modelFile(spentParticles).addModel();
 
-        // The armed tile, as a plain cube. This is the only place the 16x16 altar textures are
-        // still drawn as geometry.
         simpleBlockItem(block.get(), models().cubeAll(name + "_inventory", modLoc("block/" + name)));
     }
 

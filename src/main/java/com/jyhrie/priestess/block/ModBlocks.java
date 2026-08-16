@@ -58,73 +58,49 @@ public class ModBlocks {
     public static final RegistryObject<Block> PERMAFROST = registerBlock("permafrost",
             () -> new Block(BlockBehaviour.Properties.copy(Blocks.PACKED_MUD)));
 
-    // ── Plants ────────────────────────────────────────────────────────────────
-    // The first flora in the mod. Both of these are vanilla block classes doing vanilla work:
-    // there is nothing about a flower that Terra needs to do differently, and a subclass that
-    // only calls super is a file to maintain for no behaviour.
-    //
-    // Neither is placed by worldgen and neither is compostable yet. Both are additions on top
-    // of a flower that exists, is obtainable and behaves correctly — see docs/WORLDGEN.md for
-    // where a vegetation feature would go.
+    // Neither plant is placed by worldgen and neither is compostable yet.
 
     /**
-     * A small flower. Everything that makes it one comes from {@link FlowerBlock} and from
-     * copying POPPY: it breaks instantly and in one hit, it needs a block it can root in, it
-     * is a suspicious stew ingredient, and it takes the random XZ offset that stops a meadow
-     * of them sitting on a visible grid — {@code copy} carries that offset over with the rest
-     * of the material, so it does not have to be asked for.
+     * A small flower — everything that makes it one comes from {@link FlowerBlock} and from
+     * copying POPPY, including the random XZ offset that stops a meadow of them sitting on a
+     * visible grid.
      *
-     * <p>Regeneration is the oxeye daisy's effect, chosen because a white flower that mends
-     * something reads right and because no progression hangs on it. Seven seconds is a bowl
-     * of stew's worth rather than a potion's. It is passed as a supplier because Forge
-     * deprecated taking the effect directly — an effect is a registry entry, and holding one
-     * at block-construction time is holding it before the registry is necessarily filled.
+     * <p>The effect is passed as a supplier because Forge deprecated taking it directly: an
+     * effect is a registry entry, and holding one at block-construction time is holding it
+     * before the registry is necessarily filled.
      */
     public static final RegistryObject<Block> WHITEFLOWER = registerBlock("whiteflower",
             () -> new FlowerBlock(() -> MobEffects.REGENERATION, 7,
                     BlockBehaviour.Properties.copy(Blocks.POPPY)));
 
     /**
-     * Fallen whiteflower petals — the ground cover, in the mould of vanilla's pink petals.
-     * One to four petals per block, facing whichever way the player was, and bone meal adds
-     * one more; all of that is {@link PinkPetalsBlock}, which hardcodes nothing pink and so
-     * serves any petal.
-     *
-     * <p>The layer of grass and stone underneath is what the litter is dressing, so it copies
-     * PINK_PETALS: no collision, instant break, and the plant sound.
+     * Fallen whiteflower petals. All the behaviour is {@link PinkPetalsBlock}, which hardcodes
+     * nothing pink and so serves any petal.
      */
     public static final RegistryObject<Block> WHITEFLOWER_PETALS = registerBlock("whiteflower_petals",
             () -> new PinkPetalsBlock(BlockBehaviour.Properties.copy(Blocks.PINK_PETALS)));
 
     /**
-     * The potted flower. Registered straight into {@code BLOCKS} rather than through
-     * {@link #registerBlock} because it must <em>not</em> have a BlockItem: a potted plant is
-     * made by using the flower on a pot, and an item for it would be a second way to get one
-     * that vanilla does not offer and that no recipe or loot table would explain.
+     * Registered straight into {@code BLOCKS} rather than through {@link #registerBlock},
+     * because it must <em>not</em> have a BlockItem: a potted plant is made by using the flower
+     * on a pot.
      *
      * <p>Forge's three-argument constructor is the whole of "the vanilla pot accepts this
-     * flower" — passing the empty pot registers the plant into that pot's content map, so
-     * there is nothing to add on the vanilla side. It resolves {@code WHITEFLOWER} while it
-     * runs, which is safe only because that block is declared above this one and so is
-     * registered first.
+     * flower" — passing the empty pot registers the plant into that pot's content map. It
+     * resolves {@code WHITEFLOWER} while it runs, which is safe only because that block is
+     * declared above and so registered first.
      */
     public static final RegistryObject<Block> POTTED_WHITEFLOWER = BLOCKS.register("potted_whiteflower",
             () -> new FlowerPotBlock(() -> (FlowerPotBlock) Blocks.FLOWER_POT, WHITEFLOWER,
                     BlockBehaviour.Properties.copy(Blocks.POTTED_POPPY)));
 
-    // ── Boss summoners ────────────────────────────────────────────────────────
-    // One altar per boss. Right-click with the matching catalyst and the boss stands up out
-    // of it; it stays spent until that boss is dead. See BossSummonerBlock.
+    // LODESTONE: blast-resistant enough that a creeper cannot delete a fight you were about to
+    // have. See BossSummonerBlock.
     //
-    // Copied from LODESTONE: stone-like, needs a pickaxe, and blast-resistant enough that a
-    // creeper cannot delete a fight you were about to have. They light while armed, which is
-    // the only way to see the state from more than a few blocks away.
-
-    // noOcclusion() is load-bearing, not tidiness. These are drawn by a block entity renderer
-    // and their baked model is RenderShape.INVISIBLE, but occlusion is decided separately from
-    // rendering: left occluding, a neighbouring block culls the face it shares with the altar,
-    // and because the altar draws nothing in that plane you see straight through the wall. Every
-    // BER-rendered vanilla block — chests included — does this for the same reason.
+    // noOcclusion() is load-bearing. These are drawn by a block entity renderer with an
+    // INVISIBLE baked model, but occlusion is decided separately from rendering: left
+    // occluding, a neighbour culls the face it shares with the altar, and because the altar
+    // draws nothing in that plane you see straight through the wall. Chests do this too.
 
     public static final RegistryObject<Block> JESSELTON_PROJECTOR = registerBlock("jesselton_projector",
             () -> new JesseltonProjectorBlock(BlockBehaviour.Properties.copy(Blocks.LODESTONE)
@@ -136,20 +112,17 @@ public class ModBlocks {
                     .lightLevel(BossSummonerBlock::glow)
                     .noOcclusion()));
 
-    // ── Dungeon-gated build sets ──────────────────────────────────────────────
-    // Blocks that cannot be mined until their dungeon is cleared. Everything about the gate
-    // comes from SealedBlock/SealedPillarBlock and the Dungeon passed to them — the tag, the
-    // blast and piston immunity, and the wither tag are all derived from that one argument.
-    // The properties below describe only the material. See docs/DUNGEON_BLOCKS.md.
+    // Blocks that cannot be mined until their dungeon is cleared. Everything about the gate —
+    // the tag, the blast and piston immunity, the wither tag — comes from SealedBlock and the
+    // Dungeon passed to it; the properties below describe only the material. See
+    // docs/DUNGEON_BLOCKS.md.
 
     /**
-     * Rhine Lab's Arts Lab wing, gated behind <b>Dorothy's Vision</b> — chapter order decides
-     * that, not the building the blocks are named after. A dungeon gating its own build set
-     * would be a locked door with the key behind it.
+     * Gated behind <b>Dorothy's Vision</b>, which chapter order decides rather than the
+     * building the blocks are named after — a dungeon gating its own build set would be a
+     * locked door with the key behind it.
      *
-     * <p>DEEPSLATE_TILES is the base: pickaxe-only and hard enough that digging one out is a
-     * decision, without being so slow that a cleared lab is tedious to renovate. Shared by all
-     * five, so the gate cannot be undercut by one of them being softer.
+     * <p>Shared by all five, so the gate cannot be undercut by one of them being softer.
      */
     private static BlockBehaviour.Properties artsLab() {
         return BlockBehaviour.Properties.copy(Blocks.DEEPSLATE_TILES);
@@ -171,20 +144,14 @@ public class ModBlocks {
             registerBlock("rhine_lab_arts_lab_tile",
                     () -> new SealedBlock(Dungeon.DOROTHYS_VISION, artsLab()));
 
-    // A pillar rather than a plain block: one that cannot be laid on its side is a pillar you
-    // have to build the room around, and the axis state costs nothing.
     public static final RegistryObject<Block> RHINE_LAB_ARTS_LAB_PILLAR =
             registerBlock("rhine_lab_arts_lab_pillar",
                     () -> new SealedPillarBlock(Dungeon.DOROTHYS_VISION, artsLab()));
 
     /**
-     * The Sal Viento catacombs, gated behind <b>Under Tides</b> — the dungeon Bishop Quintus
-     * ends, which is the only thing down there that clears anything.
-     *
-     * <p>DEEPSLATE_BRICKS rather than the Arts Lab's tiles: same tier, so neither build set is
-     * the cheap way into the other, but a masonry sound and a coarser look. Both catacombs
-     * blocks share it — the overgrown one is the same stone with something living on it, not
-     * a softer stone.
+     * Gated behind <b>Under Tides</b>. DEEPSLATE_BRICKS rather than the Arts Lab's tiles: the
+     * same tier, so neither build set is the cheap way into the other, but a masonry sound and
+     * a coarser look.
      */
     private static BlockBehaviour.Properties catacombs() {
         return BlockBehaviour.Properties.copy(Blocks.DEEPSLATE_BRICKS);
@@ -198,14 +165,11 @@ public class ModBlocks {
             registerBlock("sal_viento_catacombs_overgrown_stone",
                     () -> new SealedBlock(Dungeon.UNDER_TIDES, catacombs()));
 
-    // ── Decoration: pipes and vents ───────────────────────────────────────────
-    // Never gated. The lockdown holds the walls that *are* the gate; dressing a dungeon with
-    // fittings a player cannot take down would put plumbing behind a boss for no reason.
+    // Never gated: the lockdown holds the walls that *are* the gate.
     //
-    // Every pipe joins every other pipe and every vent, whatever the material — that is one
-    // priestess:pipes tag and one priestess:pipe_attachments tag doing the work, not any code
-    // here. A vent is an ordinary full cube; it needs no behaviour, because a pipe decides its
-    // own connections by looking outward and a vent never looks back.
+    // Every pipe joins every other pipe and every vent, whatever the material — that is the
+    // priestess:pipes and priestess:pipe_attachments tags doing the work, not any code here.
+    // A vent needs no behaviour, because a pipe decides its own connections by looking outward.
 
     /** Half the pipe's thickness, so 0.25 is an eight-pixel pipe. Shared, so the sets match. */
     private static final float PIPE_APOTHEM = 0.25F;
@@ -224,31 +188,28 @@ public class ModBlocks {
         return registerBlock(name, () -> new Block(BlockBehaviour.Properties.copy(material)));
     }
 
-    // Sal Viento's catacombs: the plumbing that runs through the Under Tides masonry.
     public static final RegistryObject<Block> SAL_VIENTO_CATACOMBS_PIPE =
             pipe("sal_viento_catacombs_pipe", Blocks.COPPER_BLOCK);
 
-    // RMA70-12 — the lighter reagent line. Copper-grade, so it reads as the softer of the two.
     public static final RegistryObject<Block> RMA70_12_DECORATIVE_PIPE =
             pipe("rma70_12_decorative_pipe", Blocks.COPPER_BLOCK);
     public static final RegistryObject<Block> RMA70_12_DECORATIVE_VENT =
             vent("rma70_12_decorative_vent", Blocks.COPPER_BLOCK);
 
-    // RMA70-24 — the heavier one. Iron-grade against -12's copper, so the pair are told apart
-    // by sound and by mining time as well as by colour.
+    // Iron-grade against -12's copper, so the pair are told apart by sound and mining time as
+    // well as by colour.
     public static final RegistryObject<Block> RMA70_24_DECORATIVE_PIPE =
             pipe("rma70_24_decorative_pipe", Blocks.IRON_BLOCK);
     public static final RegistryObject<Block> RMA70_24_DECORATIVE_VENT =
             vent("rma70_24_decorative_vent", Blocks.IRON_BLOCK);
 
-    // D32 Steel — structural, the heaviest of the four.
     public static final RegistryObject<Block> D32_STEEL_DECORATIVE_PIPE =
             pipe("d32_steel_decorative_pipe", Blocks.IRON_BLOCK);
     public static final RegistryObject<Block> D32_STEEL_DECORATIVE_VENT =
             vent("d32_steel_decorative_vent", Blocks.IRON_BLOCK);
 
-    // Iridescent Alloy — the refined one, and the only set that carries a light level. A dim
-    // one: it should catch the eye in an unlit corridor without lighting the room.
+    // The only set carrying a light level, and a dim one: it should catch the eye in an unlit
+    // corridor without lighting the room.
     public static final RegistryObject<Block> IRIDESCENT_ALLOY_DECORATIVE_PIPE =
             registerBlock("iridescent_alloy_decorative_pipe",
                     () -> new DecorativePipeBlock(PIPE_APOTHEM,

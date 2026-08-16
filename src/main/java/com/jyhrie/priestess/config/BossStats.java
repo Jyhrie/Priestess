@@ -5,13 +5,10 @@ import net.minecraftforge.common.ForgeConfigSpec;
 /**
  * The three bosses — {@code config/priestess/boss.toml}.
  *
- * <p>One file per tier because they are tuned at different times: a boss is balanced against a
- * whole kit while designing its fight, and having its numbers on the same page as sixteen trash
- * mobs helped nobody. See {@link Stats} for the six keys, the bounds, and how any of this
- * reaches a live entity.
+ * <p>See {@link Stats} for the six keys, the bounds, and how any of this reaches a live entity.
  *
- * <p><b>COMMON</b>, so it belongs to the installation rather than to a world: one edit retunes
- * every save. The cost is that it is not synced — on a server each side reads its own copy, and
+ * <p><b>COMMON</b>, so it belongs to the installation rather than a world and one edit retunes
+ * every save. The cost is that it is not synced — on a server each side reads its own copy and
  * only the server's decides anything. See {@code docs/STATS.md}.
  */
 public final class BossStats {

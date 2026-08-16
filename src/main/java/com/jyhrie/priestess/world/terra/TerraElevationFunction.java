@@ -8,16 +8,13 @@ import net.minecraft.world.level.levelgen.DensityFunction;
  * Exposes the Terra map's elevation channel to the density-function graph, so terrain
  * height is driven by the same data as biome choice.
  *
- * <p>This is the piece that makes a hand-authored map work at all. Biomes from a map plus
- * terrain from noise would put Iberian beaches halfway up a mountain and float the
- * Clariside above sea level; both have to read the same elevation, and they do — this
- * function and {@link TerraMapBiomeSource} both call
- * {@link TerraMap#elevationAt(double, double)}.
+ * <p>Biomes from a map plus terrain from noise would put Iberian beaches halfway up a
+ * mountain, so both have to read the same elevation: this function and
+ * {@link TerraMapBiomeSource} both call {@link TerraMap#elevationAt(double, double)}.
  *
- * <p>Output is the map's [0,1] elevation rescaled to [-1,1], which is the range every
- * spline in the density-function graph expects. The splines in {@code ModNoiseSettings}
- * turn it into an actual height; the band edges there are the ones in {@link TerraSlot},
- * doubled and shifted to match this rescaling.
+ * <p>Output is the map's [0,1] elevation rescaled to [-1,1], the range every spline in the
+ * density-function graph expects. The band edges in {@code ModNoiseSettings} are
+ * {@link TerraSlot}'s, doubled and shifted to match.
  *
  * <p>Purely two-dimensional, so wrap it in {@code flatCache} at the point of use — the
  * router does — and it is sampled once per column instead of once per cell.

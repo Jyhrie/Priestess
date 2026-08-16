@@ -22,58 +22,46 @@ import java.util.Map;
  * times, but they are one mechanism from here: each hands over a {@link Stats.Block}, and a
  * Block knows both how to write itself onto an entity and whether its own file has been read.
  *
- * <h2>Why it is not done where the attributes are declared</h2>
- * Because it cannot be. An {@code AttributeSupplier} is built <b>once</b> during mod loading,
- * from the {@code attributes()} method on each mob class, and handed to the entity type. Reading
- * the config there would be a race against config loading — and, worse, would bake the answer in
- * for the process's lifetime, so editing a file would need a restart to take.
+ * <p>It cannot be done where the attributes are declared: an {@code AttributeSupplier} is built
+ * once during mod loading, which races config load and then freezes for the process. So the
+ * {@code attributes()} methods keep their numbers as the honest answer to "what is this mob
+ * without a config", and this overwrites them per entity afterwards. The cost is two copies of
+ * every number, and the trap worth naming: <b>changing a number in an {@code attributes()}
+ * method alone will not change the game.</b>
  *
- * <p>So the {@code attributes()} methods keep their numbers and stay the honest answer to "what
- * is this mob without a config", and this overwrites the six of them per entity afterwards. Two
- * copies of every number is the cost, and it is worth naming: <b>changing a number in an
- * {@code attributes()} method alone will not change the game</b>, because this runs after it.
- * The defaults in the config classes are the ones that decide anything.
+ * <p>{@code EntityJoinLevelEvent} is the one point every entity passes through — spawn egg,
+ * {@code /summon}, a structure placing a boss directly (which never calls
+ * {@code finalizeSpawn}), or a chunk loaded off disk — and all of them arrive <em>after</em>
+ * NBT is read. That is what makes the config authoritative rather than advisory.
  *
- * <h2>Why {@code EntityJoinLevelEvent}</h2>
- * It is the one point every entity passes through, however it got there. A spawn egg, a
- * {@code /summon}, a structure placing a boss directly — which never calls {@code finalizeSpawn},
- * the trap {@code MbJesseltonWilliams} documents against — and a chunk being loaded off disk all
- * arrive here, and all of them arrive <em>after</em> NBT has been read. That last part is what
- * makes the config authoritative rather than advisory: an attribute base value saved with a mob
- * would otherwise win, and editing a file would do nothing for any mob that already exists.
+ * <p>Anything applied as a <em>modifier</em> rather than a base value survives untouched, which
+ * is why {@code SvTheFirstToTalk} enrages with one: a mob's runtime state has to outlive this.
  *
- * <p>The exception is anything applied as a <em>modifier</em> rather than a base value, which
- * survives untouched. That is deliberate, and it is why {@code SvTheFirstToTalk} enrages with a
- * modifier: a mob's own runtime state has to outlive this.
- *
- * <h2>Adding a mob</h2>
- * A {@code Block} in whichever of the three config classes matches its tier, and a line in
- * {@link #blocks()}. A mob with no entry here simply keeps whatever its {@code attributes()}
- * method gave it, which is a working mob and not a broken one — so forgetting costs a missing
- * config section and nothing else.
+ * <p>To add a mob: a {@code Block} in whichever config class matches its tier, and a line in
+ * {@link #blocks()}. A mob with no entry keeps whatever its {@code attributes()} method gave
+ * it, so forgetting costs a missing config section and nothing else.
  */
 @Mod.EventBusSubscriber(modid = Priestess.MOD_ID)
 public final class EntityStats {
 
     /**
      * Built on first use rather than in a static initialiser, because the {@code EntityType}
-     * keys come out of {@code DeferredRegister} suppliers that cannot be resolved until
-     * registration has run.
+     * keys come from {@code DeferredRegister} suppliers that cannot resolve until registration
+     * has run.
      */
     private static Map<EntityType<?>, Stats.Block> blocks;
 
     @SubscribeEvent
     public static void onEntityJoin(EntityJoinLevelEvent event) {
-        // Server only. Attributes are the server's to decide, and it syncs the ones the client
-        // needs on its own the moment the entity starts being tracked.
+        // Server only: it syncs the attributes the client needs when tracking starts.
         if (event.getLevel().isClientSide() || !(event.getEntity() instanceof LivingEntity living)) {
             return;
         }
 
         Stats.Block block = blocks().get(living.getType());
         if (block != null) {
-            // No config-loaded check here: the three files load independently, so the question
-            // is per-Block rather than global, and applyTo answers it for its own file.
+            // No config-loaded check: the three files load independently, so the question is
+            // per-Block, and applyTo answers it for its own file.
             block.applyTo(living);
         }
     }

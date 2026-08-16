@@ -1,4 +1,4 @@
-// 1.20.1	2026-08-14T23:46:16.3667231	Item Models: priestess
+// 1.20.1	2026-08-16T13:13:54.3631686	Item Models: priestess
 ea78bca90811fcb024d7c3e5b9120715629debf8 assets/priestess/models/item/aegir_greatspear.json
 08a06ca849bae639191477d8150812949c54b61e assets/priestess/models/item/blueprint_originium_refinement.json
 ae93b084ac3095b8fd104c7b0bd8c6329f120d2a assets/priestess/models/item/corrupted_neural_shard.json
@@ -28,3 +28,4 @@ d57b6b58ff55072b50a5f5091d4b2b23c83b9ba6 assets/priestess/models/item/laevatain_
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/priestess/models/item/sv_the_first_to_talk_spawn_egg.json
 6b8b2200ece52594162647a81b887b1bcec8fb81 assets/priestess/models/item/tarnished_dog_tags.json
 95cac1bd178acc3bb2a2825f7c7e15e1fad39d8b assets/priestess/models/item/template.json
+662e8e90af1a8fd956e4fd2509a53a7021fe7cec assets/priestess/models/item/template_weapon.json

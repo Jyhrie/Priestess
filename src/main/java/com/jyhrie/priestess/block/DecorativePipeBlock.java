@@ -25,42 +25,28 @@ import net.minecraft.world.level.material.Fluids;
  * A pipe that is only a pipe to look at: it has no inventory, moves nothing, and does nothing
  * but join up with its neighbours and be thinner than a block.
  *
- * <p>Everything about the shape comes from vanilla's {@link PipeBlock}, which already owns the
- * six {@code north/east/south/west/up/down} booleans, the {@code apothem} that decides how
- * thick the pipe is, and a {@code getShape} that assembles the right {@code VoxelShape} for any
- * combination of the six. What it deliberately leaves to subclasses is <em>when</em> those
- * booleans are true, which is the only interesting part and is all this class adds.
+ * <p>The shape is all vanilla's {@link PipeBlock}, which owns the six direction booleans, the
+ * {@code apothem}, and the {@code getShape} that assembles a {@code VoxelShape} from them. What
+ * it leaves to subclasses is <em>when</em> those booleans are true, which is all this adds.
+ * Connections are recomputed in {@link #updateShape}, so nothing has to tick and nothing is
+ * stored beyond the blockstate.
  *
- * <h2>What it connects to</h2>
- * Anything in {@link #PIPES}, so every pipe in the mod joins every other pipe and a datapack
- * can add its own to the tag without touching code; and any <b>sturdy face</b>, so a pipe run
- * into a wall ends in a collar against it rather than stopping in mid-air. Drop the
- * {@code isFaceSturdy} half of {@link #connectsTo} if you would rather pipes ignored walls.
- *
- * <p>Connections are recomputed in {@link #updateShape}, which the game calls on the block next
- * to any change, so a pipe re-joins and re-parts itself as things are built and broken around
- * it. Nothing has to tick and nothing is stored beyond the six booleans already in the
- * blockstate.
- *
- * <h2>Three things that are easy to leave out</h2>
+ * <p>Three things are easy to leave out and all three bite:
  * <ul>
- *   <li><b>{@code noOcclusion()}</b> in the block's properties — see {@code ModBlocks}. Without
- *       it the game treats the pipe as a solid cube for culling and neighbouring block faces
- *       vanish where they touch it.</li>
- *   <li><b>Waterlogging.</b> A block smaller than its cube that cannot hold water deletes the
- *       water it is placed in, which every player reads as a bug.</li>
- *   <li><b>{@link #rotate} and {@link #mirror}.</b> Terra's dungeons are jigsaw structures and
- *       are placed rotated; without these, a rotated pipe keeps the connections it was saved
- *       with and points the wrong way until something updates next to it.</li>
+ *   <li><b>{@code noOcclusion()}</b> in the block's properties (see {@code ModBlocks}) —
+ *       without it the game culls neighbouring faces where they touch the pipe.</li>
+ *   <li><b>Waterlogging</b> — a block smaller than its cube that cannot hold water deletes the
+ *       water it is placed in.</li>
+ *   <li><b>{@link #rotate} and {@link #mirror}</b> — dungeons are jigsaw structures placed
+ *       rotated, and without these a rotated pipe keeps the connections it was saved with.</li>
  * </ul>
  */
 public class DecorativePipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
 
     /**
-     * Every block that counts as a pipe for the purpose of joining up — one tag across all
-     * materials, so an RMA70 pipe meets a D32 Steel one without either knowing the other
-     * exists. Populated in {@code ModBlockTagsProvider}; a pipe left out of it will never
-     * connect to anything, which is the first thing to check when a run sits as loose stubs.
+     * One tag across all materials, so an RMA70 pipe meets a D32 Steel one. Populated in
+     * {@code ModBlockTagsProvider} — a pipe left out of it never connects to anything, which
+     * is the first thing to check when a run sits as loose stubs.
      */
     public static final TagKey<Block> PIPES =
             TagKey.create(Registries.BLOCK, new ResourceLocation(Priestess.MOD_ID, "pipes"));
@@ -97,8 +83,6 @@ public class DecorativePipeBlock extends PipeBlock implements SimpleWaterloggedB
         builder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN, WATERLOGGED);
     }
 
-    // ── Connecting ────────────────────────────────────────────────────────────
-
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Level level = context.getLevel();
@@ -132,8 +116,6 @@ public class DecorativePipeBlock extends PipeBlock implements SimpleWaterloggedB
         return neighbour.is(PIPES) || neighbour.is(PIPE_ATTACHMENTS);
     }
 
-    // ── Water ─────────────────────────────────────────────────────────────────
-
     @Override
     public FluidState getFluidState(BlockState state) {
         return state.getValue(WATERLOGGED)
@@ -141,7 +123,6 @@ public class DecorativePipeBlock extends PipeBlock implements SimpleWaterloggedB
                 : super.getFluidState(state);
     }
 
-    // ── Rotation ──────────────────────────────────────────────────────────────
     // Only the four horizontal booleans move; up and down are unchanged by either operation.
 
     @Override

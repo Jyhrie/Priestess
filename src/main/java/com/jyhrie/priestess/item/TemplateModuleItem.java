@@ -16,18 +16,15 @@ import java.util.UUID;
 /**
  * Template — the first Module, and the one every later Module is meant to be a copy of.
  *
- * <p>It wears correctly and does nothing, which is deliberate on both counts. Doing nothing
- * keeps it the same kind of thing as the rest of the mod's items: named, obtainable, and
- * waiting on the chapter that gives it a purpose. Wearing correctly is the part worth copying,
- * because none of it is guessable — see docs/CURIOS.md.
+ * <p>It wears correctly and does nothing. The wearing is the part worth copying, because none
+ * of it is guessable — see docs/CURIOS.md.
  *
  * <p><b>Which slot this fits is not decided here.</b> It comes from the {@code curios:module}
  * item tag in {@link com.jyhrie.priestess.datagen.ModItemTagsProvider}. A curio class with no
  * tag entry is an ordinary inventory item that cannot be equipped anywhere, and nothing warns
  * you about it.
  *
- * <p>{@link ICurioItem} gives every method a default, so implementing it costs nothing and you
- * override only what you want. The hooks worth knowing about:
+ * <p>{@link ICurioItem} gives every method a default, so override only what you want:
  *
  * <table border="1">
  *   <caption>ICurioItem hooks</caption>
@@ -45,8 +42,7 @@ public class TemplateModuleItem extends Item implements ICurioItem {
     }
 
     /**
-     * Attributes applied while worn. Empty, because Template is a shape rather than a piece of
-     * balance — a real Module fills this in, e.g.
+     * Attributes applied while worn. Empty here; a real Module fills this in, e.g.
      *
      * <pre>{@code
      * modifiers.put(Attributes.ARMOR,

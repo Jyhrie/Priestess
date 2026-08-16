@@ -18,22 +18,16 @@ import java.util.stream.Stream;
 /**
  * Picks biomes from Terra's map rather than from climate noise.
  *
- * <p>A position resolves in exactly one lookup: which {@link TerraRegion} the pixel belongs
- * to. That zone names one biome and that is the answer, at every height. The
- * {@link Climate.Sampler} handed in by the chunk generator is ignored entirely — there is
- * no climate model here, the map <em>is</em> the model.
+ * <p>A position resolves in one lookup: which {@link TerraRegion} the pixel belongs to. That
+ * zone names one biome and that is the answer, at every height. The {@link Climate.Sampler}
+ * handed in by the chunk generator is ignored entirely — the map <em>is</em> the model.
+ * Elevation only shapes terrain height, through {@code ModNoiseSettings}.
  *
- * <p>Elevation is not consulted. It used to select one of eight {@link TerraSlot} biomes
- * per zone, which meant a painted zone could generate biomes nobody had zoned for; now
- * elevation only shapes terrain height, through the {@code mapHeight} spline in
- * {@code ModNoiseSettings}.
- *
- * <h2>The table is serialised, the layout is not</h2>
- * The codec writes out the biomes as one flat list in {@code TerraRegion.values()} order.
- * That keeps the dimension JSON self-describing and datapack-overridable without needing to
- * encode the enum names, at the cost that reordering the enum invalidates an existing
- * dimension JSON — so re-run {@code gradlew runData} after any such reorder. The size check
- * in the constructor is what stops that mistake being silent.
+ * <p>The codec writes the biomes as one flat list in {@code TerraRegion.values()} order,
+ * which keeps the dimension JSON datapack-overridable without encoding the enum names — at
+ * the cost that reordering the enum invalidates an existing dimension JSON. Re-run
+ * {@code gradlew runData} after any such reorder; the constructor's size check is what stops
+ * that mistake being silent.
  */
 public class TerraMapBiomeSource extends BiomeSource {
 

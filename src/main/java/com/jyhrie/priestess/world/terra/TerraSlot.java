@@ -4,25 +4,16 @@ package com.jyhrie.priestess.world.terra;
  * The eight terrain classes a point on the map can fall into, chosen purely by the
  * elevation channel of {@code elevation.png}.
  *
- * <p>These thresholds are the contract between three things that must agree or the world
- * comes out wrong:
- * <ul>
- *   <li>{@code tools/generate_terra_map.py}, which paints elevations into those bands,</li>
- *   <li>this enum, which turns an elevation back into a terrain class for biome choice,</li>
- *   <li>the {@code mapHeight} spline in {@code ModNoiseSettings}, whose knots sit on these
- *       same edges so that the ground actually generates at the height the class implies.</li>
- * </ul>
- * Move an edge here and you must move it in the other two, or you get beaches halfway up
- * a mountain.
+ * <p>These thresholds are a contract between {@code tools/generate_terra_map.py}, this enum,
+ * and the {@code mapHeight} spline in {@code ModNoiseSettings}. Move an edge here and you
+ * must move it in the other two, or you get beaches halfway up a mountain.
  *
- * <p>The waterline is at elevation 0.37, which is inside {@link #SHORE}. That is
- * deliberate: a shore is half surf and half dry sand.
+ * <p>The waterline is at elevation 0.37, inside {@link #SHORE}, because a shore is half surf
+ * and half dry sand.
  *
- * <p>Note the two height columns. The "base y" is what {@code mapHeight} alone puts the
- * surface at — that is what these thresholds are aligned to. The ground you actually
- * stand on then has ridge relief and detail noise added, which in the mountains is worth
- * another 60 blocks: the peaks reach y 305, not y 244. Keep that in mind if you raise the
- * top of the {@code mapHeight} spline, because the world ceiling is y 320.
+ * <p>Base y is what {@code mapHeight} alone gives, and is what these thresholds are aligned
+ * to; ridge relief and detail noise then add up to another 60 blocks in the mountains. Watch
+ * that if you raise the top of the spline — the world ceiling is y 320.
  */
 public enum TerraSlot {
 
@@ -49,8 +40,6 @@ public enum TerraSlot {
 
     /** The slot a normalised elevation in [0,1] falls into. */
     public static TerraSlot of(double elevation) {
-        // Walk down from the top: the first floor we clear is the answer. Eight entries,
-        // so a loop beats a branch tree for readability and costs nothing measurable.
         for (int i = COUNT - 1; i > 0; i--) {
             if (elevation >= VALUES[i].floor) {
                 return VALUES[i];

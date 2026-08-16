@@ -15,15 +15,10 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 /**
  * Draws both of Devil's Devastation's projectiles.
  *
- * <p>One class for both, for the same reason {@link com.jyhrie.priestess.client.PriestessGeoRenderer}
- * is one class for fourteen mobs: they differ only in which {@link GeoModel} they hand up.
- *
- * <h2>Why it aims itself</h2>
- * These entities are moved by hand — {@code DevilsProjectile.tick} steps the position and
- * never calls {@code super.tick()} — so nothing ever writes their yaw and pitch fields, and
- * the default renderer would draw every one of them facing due south while it flew sideways.
- * {@link #applyRotations} derives the facing from the velocity vector instead, which is the
- * only place that information exists.
+ * <p>These entities are moved by hand — {@code DevilsProjectile.tick} steps the position and
+ * never calls {@code super.tick()} — so nothing writes their yaw and pitch, and the default
+ * renderer would draw them facing due south while flying sideways. {@link #applyRotations}
+ * derives the facing from the velocity vector, the only place that information exists.
  */
 public class DevilsProjectileRenderer<T extends DevilsProjectile> extends GeoEntityRenderer<T> {
 

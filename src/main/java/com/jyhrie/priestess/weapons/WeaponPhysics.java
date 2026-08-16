@@ -6,26 +6,22 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Movement a weapon does to something that is not the player holding it.
  *
- * <p>Shared scaffolding, the same as {@link WeaponTiers} and {@link WeaponText}: it lives at the
- * package root because all three of Aegir Greatspear's abilities pull, and two of them do it
- * from an entity rather than from the item. Putting it on the item instead would make the
- * projectile and the whirlpool import the weapon that threw them.
+ * <p>At the package root rather than on the item, because two of Aegir Greatspear's three
+ * abilities pull from an entity — putting it on the item would make the projectile and the
+ * whirlpool import the weapon that threw them.
  */
 public final class WeaponPhysics {
 
     /**
      * Drags {@code target} toward a point.
      *
-     * <p><b>{@code hurtMarked} is the load-bearing line.</b> A velocity written on the server is
-     * not sent to clients on its own — {@code ServerEntity} only pushes a velocity packet for an
-     * entity whose {@code hurtMarked} flag is set, which vanilla sets when something is knocked
-     * back. Without it the server moves the mob and the client keeps rendering it where it was,
-     * so the pull happens but nobody watching can see it until the next position sync snaps the
-     * mob across the room.
+     * <p><b>{@code hurtMarked} is the load-bearing line.</b> {@code ServerEntity} only pushes a
+     * velocity packet for an entity whose {@code hurtMarked} flag is set, so without it the
+     * server moves the mob while the client keeps rendering it where it was, until the next
+     * position sync snaps it across the room.
      *
-     * <p>This <em>adds</em> to the existing velocity rather than replacing it, so a pull does not
-     * cancel a mob's fall or its knockback. That is what keeps repeated pulls feeling like a
-     * current rather than like teleportation.
+     * <p>Adds to the existing velocity rather than replacing it, so a pull does not cancel a
+     * mob's fall or knockback.
      *
      * @param strength blocks per tick of velocity added, before any resistance the mob has
      */

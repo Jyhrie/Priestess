@@ -27,25 +27,16 @@ import net.minecraft.world.level.Level;
 /**
  * Spitter — mostly maw, and the only thing in Sal Viento that hurts you from across a room.
  *
- * <h2>How it shoots</h2>
- * Two halves borrowed from opposite ends of the mod. Vanilla's {@link RangedAttackGoal}
- * handles the positioning and the timing — close to within range, stop, fire on an interval,
- * chase again if you leave — and {@code ArtsBeam} lands the hit. Nothing new was written for
- * either half, and no projectile entity exists, which is the same trade
- * {@code ArtsBeam} argues for at length: hitscan, so the counterplay is cover rather than
- * dodging.
+ * <p>Vanilla's {@link RangedAttackGoal} handles positioning and timing, and {@code ArtsBeam}
+ * lands the hit — hitscan, so the counterplay is cover rather than dodging. It overrides
+ * {@link GeoMonster#registerGoals} rather than extending it, because the shared set opens with
+ * a {@code MeleeAttackGoal}.
  *
- * <p>This is why it overrides {@link GeoMonster#registerGoals} rather than extending it —
- * the shared set opens with a {@code MeleeAttackGoal}, and a mob that walks into melee has
- * no use for a spit. Same escape hatch {@code MbImprisonedSniper} takes, and the same reason.
- *
- * <h2>It borrows Originium acid</h2>
- * The spit lands as {@code priestess:originium_acid}, which is a placeholder and reads as
- * one: that damage type belongs to a dead Originium Slug, not to something from under the
- * sea, and its death message says so ("dissolved in Originium acid"). It was picked because
- * it already exists, is tagged the way a corrosive cloud should be — no impact, bypasses
- * shields — and had no user at all after the slug's burst was cut. A Sal Viento damage type
- * is what it eventually wants; naming one is a design call, so it was left alone.
+ * <p><b>The damage type is a placeholder.</b> The spit lands as
+ * {@code priestess:originium_acid}, whose death message says "dissolved in Originium acid" —
+ * wrong for something from under the sea. It was picked because it already exists, is tagged
+ * the way a corrosive cloud should be, and had no other user. A Sal Viento damage type is what
+ * it wants.
  */
 public class SvSpitter extends GeoMonster implements RangedAttackMob {
 
@@ -59,19 +50,13 @@ public class SvSpitter extends GeoMonster implements RangedAttackMob {
         super(type, level);
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code MobStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code MobStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0)
-                // Slow. It is meant to be reachable — a fast mob that outranges you is a mob
-                // with no answer.
+                // Slow, so it stays reachable: a fast mob that outranges you has no answer.
                 .add(Attributes.MOVEMENT_SPEED, 0.20)
-                // Never used: it has no melee goal. Kept non-zero only so that anything which
-                // later gives it one does not find a mob that cannot hurt anybody.
+                // Unused — it has no melee goal — but kept non-zero in case something adds one.
                 .add(Attributes.ATTACK_DAMAGE, 2.0)
                 .add(Attributes.FOLLOW_RANGE, 28.0)
                 .add(Attributes.ARMOR, 2.0)
@@ -92,11 +77,7 @@ public class SvSpitter extends GeoMonster implements RangedAttackMob {
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
-    /**
-     * Called by {@link RangedAttackGoal} when its interval is up and the target is in range
-     * and visible. {@code velocity} is how far into the band the shot fell; it is ignored,
-     * because a hitscan beam has no flight to scale.
-     */
+    /** {@code velocity} is ignored, because a hitscan beam has no flight to scale. */
     @Override
     public void performRangedAttack(LivingEntity target, float velocity) {
         ArtsBeam.fire(this, target, ModDamageTypes.ORIGINIUM_ACID,

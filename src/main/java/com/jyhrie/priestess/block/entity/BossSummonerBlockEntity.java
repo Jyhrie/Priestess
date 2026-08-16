@@ -25,30 +25,17 @@ import java.util.UUID;
  * The memory behind a {@link BossSummonerBlock}: which boss it let out, and whether that
  * boss is still walking around.
  *
- * <h2>How it knows the fight is over</h2>
- * It polls. Once a second it asks the level for the entity it summoned, and when the answer
- * has been "nothing" {@value #MISSES_BEFORE_REARM} times running it re-arms the altar.
+ * <p>It polls once a second rather than listening for the death, because a death hook only
+ * catches deaths: a boss that was {@code /kill}ed, world-edited away, or lost with a rolled-back
+ * chunk never dies as far as an event is concerned, and each of those would brick the altar
+ * forever. "Is it there" has no failure mode that survives the next second.
  *
- * <p>Polling rather than listening for the death: a death hook only catches deaths. A boss
- * that was {@code /kill}ed, removed by a world edit, or lost with a chunk that got rolled
- * back never dies as far as an event is concerned, and every one of those would leave an
- * altar bricked forever with no way to fix it short of breaking the block. Asking "is it
- * there" instead of "did it die" cannot get stuck, because the question has no failure mode
- * that survives the next second.
- *
- * <h2>The grace period, and the one case it does not cover</h2>
- * {@link ServerLevel#getEntity} only sees loaded entities, so a boss in an unloaded chunk
- * reads as gone. That is what {@value #MISSES_BEFORE_REARM} consecutive misses is for — it
- * costs five seconds after a real kill, which is if anything an improvement, and it rides
- * out a chunk that is briefly between owners.
- *
- * <p>What it cannot cover is the altar ticking while the boss's chunk stays unloaded for
- * longer than that. In practice this does not arise: both bosses spawn on top of their altar
- * and neither can leave it — the Failed Vision cannot move at all and Jesselton is leashed to
- * 40 blocks — so anything close enough to keep the altar ticking is keeping the boss loaded
- * too. If a later boss roams further, this is the assumption that breaks, and the fix is to
- * record the boss's position alongside its UUID and only count a miss when that position is
- * loaded.
+ * <p>{@link ServerLevel#getEntity} only sees loaded entities, so a boss in an unloaded chunk
+ * reads as gone — hence {@value #MISSES_BEFORE_REARM} consecutive misses before re-arming.
+ * What that does not cover is the altar ticking while the boss's chunk stays unloaded for
+ * longer. It does not arise today because both bosses spawn on their altar and neither can
+ * leave it; if a later boss roams further, record its position alongside the UUID and only
+ * count a miss when that position is loaded.
  */
 public class BossSummonerBlockEntity extends BlockEntity implements GeoBlockEntity {
 
@@ -67,13 +54,9 @@ public class BossSummonerBlockEntity extends BlockEntity implements GeoBlockEnti
     private int misses;
 
     /**
-     * GeckoLib's per-instance animation state. Client-side rendering only — the server
-     * builds one of these too and never looks at it, which is how GeckoLib is designed and
-     * costs a field.
-     *
-     * <p>The altar is a {@link GeoBlockEntity} because it is drawn by a block entity
-     * renderer rather than by a baked block model; see {@code BossSummonerBlock.getRenderShape}
-     * and {@code docs/BOSS_SPAWNERS.md}.
+     * Client-side rendering only; the server builds one too and never looks at it, which is
+     * how GeckoLib is designed. The altar is a {@link GeoBlockEntity} because it is drawn by a
+     * block entity renderer rather than a baked model — see {@code docs/BOSS_SPAWNERS.md}.
      */
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -118,9 +101,8 @@ public class BossSummonerBlockEntity extends BlockEntity implements GeoBlockEnti
         bossId = null;
         misses = 0;
         setChanged();
-        // Re-arming is a state change, which detaches the ticker — see
-        // BossSummonerBlock.getTicker. This is the last thing that happens here for that
-        // reason: nothing after it would run.
+        // Re-arming detaches the ticker (see BossSummonerBlock.getTicker), so this has to be
+        // last — nothing after it would run.
         level.setBlock(pos, state.setValue(BossSummonerBlock.ARMED, true), Block.UPDATE_ALL);
         level.playSound(null, pos, SoundEvents.RESPAWN_ANCHOR_CHARGE, SoundSource.BLOCKS, 1.0F, 1.4F);
         if (level instanceof ServerLevel serverLevel) {
@@ -145,21 +127,13 @@ public class BossSummonerBlockEntity extends BlockEntity implements GeoBlockEnti
         bossId = tag.hasUUID(NBT_BOSS) ? tag.getUUID(NBT_BOSS) : null;
     }
 
-    // ── GeckoLib ──────────────────────────────────────────────────────────────
-
     /**
-     * No animations, and a controller anyway.
+     * No animations, and a controller anyway — the core's spin is written as a bone rotation
+     * by the renderer rather than keyframed, but GeckoLib still wants a controller registered.
      *
-     * <p>The altar's movement — the core turning above the rim — is done by the renderer
-     * writing a bone rotation directly rather than by a keyframed clip, because a constant
-     * spin is one line of arithmetic and an {@code .animation.json} is a file to keep in step
-     * with the model. GeckoLib still wants a controller registered, so this one exists and
-     * returns {@code CONTINUE} forever.
-     *
-     * <p>Giving the altar real clips — a summon flourish, a shudder as it re-arms — means
-     * writing {@code assets/priestess/animations/block/boss_summoner.animation.json}, pointing
+     * <p>Real clips mean writing
+     * {@code assets/priestess/animations/block/boss_summoner.animation.json}, pointing
      * {@code BossSummonerModel.getAnimationResource} at it, and triggering them from here.
-     * See {@code docs/BOSS_SPAWNERS.md}.
      */
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {

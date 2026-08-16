@@ -27,11 +27,7 @@ public class SvCrawler extends GeoMonster {
         super(type, level);
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code MobStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code MobStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 12.0)

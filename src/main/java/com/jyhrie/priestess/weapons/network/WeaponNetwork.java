@@ -9,14 +9,11 @@ import net.minecraftforge.network.simple.SimpleChannel;
 /**
  * The weapons package's own network channel.
  *
- * <p>Separate from anything else the mod might send, because this compartment is meant to be
- * removable — a channel registered here disappears with the folder. {@code DungeonSync} has
- * its own arrangements and the two never meet.
+ * <p>Separate from anything else the mod sends, so it disappears with the folder.
  *
- * <p>Protocol version is pinned but both accept-predicates return true, so a client and server
- * that disagree still connect. That is the right call for a cosmetic-plus-projectiles channel:
- * the failure mode of a mismatch is a swing that does not throw anything, not a corrupt world,
- * and refusing the connection outright would be worse.
+ * <p>Both accept-predicates return true, so a client and server on different versions still
+ * connect. The failure mode of a mismatch here is a swing that throws nothing, not a corrupt
+ * world, so refusing the connection outright would be worse.
  */
 public final class WeaponNetwork {
 

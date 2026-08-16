@@ -13,12 +13,10 @@ import net.minecraft.world.phys.Vec3;
  * A hitscan Arts attack: it lands the instant it is fired and draws itself as a line of
  * particles.
  *
- * <p>Every ranged attacker in Columbia uses this rather than a projectile entity, and that
- * is a deliberate call. A projectile would need its own entity type, its own renderer and
- * its own network tracking, three files each, for something the player experiences as
- * "the ghost pointed at me and I took damage". Arts in Arknights are not arrows; they
- * arrive. The cost is that there is nothing to dodge once it is fired, so the counterplay
- * has to be line of sight and cover — which is why every caller checks
+ * <p>Every ranged attacker uses this rather than a projectile entity, which would need its own
+ * type, renderer and network tracking for something the player experiences as "it pointed at
+ * me and I took damage". The cost is that there is nothing to dodge once it fires, so the
+ * counterplay has to be line of sight and cover — which is why every caller checks
  * {@link Mob#hasLineOfSight} first and why the dungeons are built with pillars in them.
  *
  * <p>Damage is attributed to the mob, so kills are credited and the death message names it.
@@ -52,8 +50,8 @@ public final class ArtsBeam {
         Vec3 step = along.scale(1.0 / steps);
         Vec3 at = from;
         for (int i = 0; i <= steps; i++) {
-            // Count 1 with zero speed and zero spread: the particle has to sit exactly on
-            // the line, or a wide beam reads as a cloud and stops pointing at anything.
+            // Count 1, zero speed, zero spread: any spread and the beam reads as a cloud and
+            // stops pointing at anything.
             level.sendParticles(particle, at.x, at.y, at.z, 1, 0.0, 0.0, 0.0, 0.0);
             at = at.add(step);
         }

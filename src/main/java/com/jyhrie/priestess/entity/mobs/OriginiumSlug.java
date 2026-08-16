@@ -19,44 +19,24 @@ import net.minecraft.world.level.pathfinder.BlockPathTypes;
 /**
  * Originium Slug — vermin. Weak, fast, and currently nothing more than that.
  *
- * <h2>Stripped back on purpose</h2>
- * This mob used to carry two mechanics and now carries none:
- * <ul>
- *   <li><b>Machine-eating.</b> It was drawn to any block exposing Forge's energy capability,
- *       sat on it and ate the charge — a tax on leaving a base running unattended, and one
- *       that worked against every tech mod without naming one. Cut, along with the
- *       {@code Machines} helper that found and drained them.</li>
- *   <li><b>The death burst.</b> Killing one corroded everything within three blocks and
- *       infected players with Oripathy, so a tight nest chained. Cut.</li>
- * </ul>
- *
- * <p>What is left is a plain melee monster: it walks at you, it hits you, it dies. That is
- * deliberate — the mechanics are coming back in some form, and an empty mob is a cleaner
- * thing to hang them off than a half-removed one.
- *
- * <p>It also no longer spawns anywhere. There is no {@code SpawnPlacements} rule and no
- * spawner entry in {@code ModBiomes}, so like the three Medium-bearers it is a spawn egg and
- * nothing else until the wastes are given a population again.
+ * <p>Stripped back on purpose. It used to eat charge out of any block exposing Forge's energy
+ * capability, and to corrode and infect everything within three blocks on death; both were
+ * cut, and the mechanics are meant to come back in some form. It no longer spawns anywhere
+ * either — no {@code SpawnPlacements} rule and no {@code ModBiomes} entry.
  */
 public class OriginiumSlug extends Monster {
 
     public OriginiumSlug(EntityType<? extends OriginiumSlug> type, Level level) {
         super(type, level);
-        // Vermin, not a hazard to navigate around: a slug that made players path around it
-        // would be a much bigger deal than one worth 8 health.
         this.setPathfindingMalus(BlockPathTypes.WATER, 8.0F);
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code MobStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code MobStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 8.0)
-                // Faster than a player walking, slower than one sprinting: they catch you if
-                // you stand still and swarm you if you dawdle, but you can always leave.
+                // Faster than a walking player, slower than a sprinting one: you can always
+                // leave.
                 .add(Attributes.MOVEMENT_SPEED, 0.32)
                 .add(Attributes.ATTACK_DAMAGE, 2.0)
                 .add(Attributes.FOLLOW_RANGE, 24.0)

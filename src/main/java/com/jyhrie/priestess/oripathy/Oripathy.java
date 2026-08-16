@@ -19,16 +19,10 @@ import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
  * <p>Stored as a capability on the Player, so it saves with the player file and survives
  * logout. {@link OripathyEvents} handles carrying it through death and dimension changes.
  *
- * <p>Almost nothing raises oripathy on its own yet — this is the substrate. There are two
- * ways in, and which one you pick matters:
- *
- * <ul>
- *   <li>{@link #infect(Player, int)} — a <b>wound</b>. Something got in. Open Wounds makes
- *       every one of these worse. This is what content that infects people should call.
- *   <li>{@link #add(Player, int)} — the raw number, unmodified. For ambient exposure, for
- *       treatment (a negative delta), for the command, and for the acute drain — none of
- *       which are wounds, and none of which Open Wounds should touch.
- * </ul>
+ * <p>Two ways in, and which one you pick matters: {@link #infect(Player, int)} is a
+ * <b>wound</b>, which Open Wounds makes worse, and is what content that infects people should
+ * call. {@link #add(Player, int)} is the raw number — ambient exposure, treatment, the command,
+ * the acute drain — none of which Open Wounds should touch.
  */
 public class Oripathy {
 
@@ -101,13 +95,9 @@ public class Oripathy {
     }
 
     /**
-     * Hands back one tick's worth. Called every tick, so the fall after a flare-up is
-     * visibly gradual rather than a single step.
-     *
-     * <p>The step is divided against the ticks <i>remaining</i>, not the original duration.
-     * That makes it self-correcting: whatever integer division loses on one tick is picked up
-     * by the next, and the final tick pays off the remainder exactly, so a 225-over-100-ticks
-     * payout lands on 225 rather than on 200.
+     * Hands back one tick's worth. The step divides against the ticks <i>remaining</i> rather
+     * than the original duration, which makes it self-correcting: whatever integer division
+     * loses on one tick the next picks up, and the final tick pays the remainder exactly.
      */
     public void tickRelief() {
         if (reliefOwed <= 0 || reliefTicks <= 0) {
@@ -117,7 +107,6 @@ public class Oripathy {
         int step = reliefTicks == 1 ? reliefOwed : reliefOwed / reliefTicks;
         reliefTicks--;
         reliefOwed -= step;
-        // Clamped like any other change: relief cannot take a player below MIN.
         add(-step);
         if (reliefOwed <= 0 || reliefTicks <= 0) {
             cancelRelief();
@@ -144,7 +133,7 @@ public class Oripathy {
         }
     }
 
-    // --- Static access. Use these rather than touching the capability directly. ---
+    // Use these rather than touching the capability directly.
 
     public static int of(Player player) {
         return player.getCapability(CAPABILITY).map(Oripathy::get).orElse(MIN);
@@ -165,17 +154,13 @@ public class Oripathy {
     }
 
     /**
-     * A wound: oripathy driven in from outside, by a mob, a block, a hit. Open Wounds adds
-     * a flat bonus on top of every one of these — that is the whole point of it — so every
-     * source that infects a player should come through here rather than through
-     * {@link #add(Player, int)}.
+     * A wound: oripathy driven in from outside. Open Wounds adds a flat bonus on top of every
+     * one of these, so every source that infects a player should come through here rather than
+     * {@link #add(Player, int)}. The bonus is not part of the amount asked for, which matters
+     * for Acute Oripathy: the dose drains back out, the bonus does not.
      *
-     * <p>The bonus is not part of the amount the caller asked for, which matters for Acute
-     * Oripathy: the dose drains back out, the Open Wounds bonus on top of it does not.
-     *
-     * @param amount the wound's own dose, before Open Wounds. Non-positive amounts do nothing;
-     *               a wound that heals you is not a thing, and negatives here would be
-     *               <i>increased</i> by Open Wounds, which is backwards.
+     * @param amount the wound's own dose, before Open Wounds. Non-positive amounts do nothing —
+     *               a negative here would be <i>increased</i> by Open Wounds.
      */
     public static void infect(Player player, int amount) {
         if (amount <= 0) {
@@ -202,9 +187,8 @@ public class Oripathy {
     }
 
     /**
-     * The whole state as NBT — the value and any relief still owed. Used by
-     * {@link OripathyEvents#copyOnClone} to move everything onto a rebuilt Player, so that
-     * dying mid-flare-up cannot strand a payout and leave the dose permanent.
+     * The whole state as NBT. {@link OripathyEvents#copyOnClone} moves it onto a rebuilt
+     * Player, so dying mid-flare-up cannot strand a payout and leave the dose permanent.
      */
     static CompoundTag snapshot(Player player) {
         return player.getCapability(CAPABILITY).map(Oripathy::save).orElseGet(CompoundTag::new);

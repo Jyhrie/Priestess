@@ -18,27 +18,20 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 /**
  * A piece of animated geometry that exists to be looked at.
  *
- * <p>It deals no damage, collides with nothing and moves nowhere: it is spawned at a position
- * and a facing, plays one animation, and removes itself. <b>Every ability that uses one has
- * already resolved its damage by the time this is spawned</b>, which is the point — what hits
- * and what you see are separate, so the visual can be retimed or replaced without touching
- * balance, and a dropped packet costs a player nothing but a missing flourish.
+ * <p>It deals no damage and moves nowhere: spawned at a position and a facing, it plays one
+ * animation and removes itself. <b>Every ability that uses one has already resolved its damage
+ * by the time this is spawned</b> — what hits and what you see are separate, so a dropped
+ * packet costs a player nothing but a flourish.
  *
- * <p>One class serves all three of Laevatain's effects, the same way {@code DevilsProjectile}
- * serves two projectiles. They differ only in geometry, texture and keyframes, and
- * {@code WeaponVfxModel} derives all three paths from the entity type's registry name — so
- * adding a fourth is an {@code ENTITY_TYPES.register} line, three asset files, and nothing
- * else. The animation inside every one of those files is named <b>{@code play}</b>, which is
- * what lets a single {@link RawAnimation} drive them all.
+ * <p>One class serves every effect. They differ only in assets, and {@code WeaponVfxModel}
+ * derives all three paths from the entity type's registry name, so adding one is a register
+ * line plus three files. Every clip is named <b>{@code play}</b>, which is what lets a single
+ * {@link RawAnimation} drive them all.
  *
- * <h2>Lifetime</h2>
- * Held server-side only and never synced. The server discards the entity and the removal
- * reaches the client through ordinary entity tracking, so the client only has to play the
- * animation and wait — it never needs to know how long the thing lives.
- *
- * <p>It does have to <em>match</em>, though: the lifetime passed to {@link #spawn} is in ticks
- * and the {@code animation_length} in the JSON is in seconds, at 20 ticks to the second. Too
- * short and the mesh vanishes mid-swing; too long and it hangs in the air on its last frame.
+ * <p>Lifetime is server-side only and never synced, but it must <em>match</em> the asset: the
+ * value passed to {@link #spawn} is in ticks and {@code animation_length} is in seconds at 20
+ * ticks each. Too short and the mesh vanishes mid-swing; too long and it hangs on its last
+ * frame.
  */
 public class WeaponVfx extends Entity implements GeoEntity {
 
@@ -56,8 +49,7 @@ public class WeaponVfx extends Entity implements GeoEntity {
     }
 
     /**
-     * Places one in the world. Server-side only — spawned on the client it is a ghost that
-     * disappears on the next sync.
+     * Places one in the world. Server-side only — spawned on the client it is a ghost.
      *
      * <p>{@code moveTo} rather than {@code setPos} plus {@code setYRot}: it writes the previous
      * rotation fields too, so the first frame renders at the angle asked for instead of
@@ -75,9 +67,8 @@ public class WeaponVfx extends Entity implements GeoEntity {
     }
 
     /**
-     * {@code super.tick()} is called for one reason: {@code baseTick} is what advances
-     * {@code tickCount}, and GeckoLib drives the animation clock off it. Skip it and the mesh
-     * renders frozen on frame zero for its whole life.
+     * {@code super.tick()} advances {@code tickCount}, which GeckoLib drives the animation
+     * clock off. Skip it and the mesh renders frozen on frame zero for its whole life.
      */
     @Override
     public void tick() {
@@ -87,12 +78,9 @@ public class WeaponVfx extends Entity implements GeoEntity {
         }
     }
 
-    // ── Plumbing ──────────────────────────────────────────────────────────────
-
     @Override
     protected void defineSynchedData() {
-        // Nothing is synced. Position and rotation ride the spawn packet; lifetime is the
-        // server's business alone.
+        // Position and rotation ride the spawn packet; lifetime is the server's business.
     }
 
     /** Nothing to save — one of these never survives long enough for a chunk to be written. */
@@ -126,7 +114,7 @@ public class WeaponVfx extends Entity implements GeoEntity {
     }
 
     /**
-     * Transition length 0 is load-bearing. GeckoLib's default blends into a clip over several
+     * Transition length 0 is load-bearing: GeckoLib's default blends into a clip over several
      * ticks, which on an eight-tick effect is most of the animation spent easing in.
      */
     @Override

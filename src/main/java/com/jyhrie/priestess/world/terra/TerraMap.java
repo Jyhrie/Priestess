@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Terra's geography, loaded from two PNGs in the mod jar.
+ * Terra's geography, loaded from three PNGs in the mod jar.
  *
  * <pre>
  *     data/priestess/terra/regions.png     one flat colour per region
@@ -22,106 +22,52 @@ import java.util.Map;
  *     data/priestess/terra/relief.png      greyscale, 0 = flat, 255 = broken crag
  * </pre>
  *
- * <p>Elevation and relief are deliberately two maps and not one. Elevation says how high
- * the ground is; relief says how much it rises and falls once it gets there. Deriving the
- * second from the first — which is what this used to do — means a high plateau and a
- * rugged lowland are both unpaintable, and it makes brightening a mountain on the
- * elevation map quietly make it bumpier as well as taller.
+ * <p>Terra has a real geography that a multi-noise biome source cannot express — it would
+ * say "Iberia is wherever it is cold and coastal", giving infinitely many Iberias and no
+ * mountain range that crosses a border. This class trades infinite variety for one correct
+ * world. Elevation and relief are separate maps so that a high plateau and a rugged lowland
+ * are both paintable.
  *
- * <h2>Why a fixed map at all</h2>
- * Terra has a real geography — Ægir is south of Iberia, the Foehn Hotlands are south of
- * Sargon, a mountain range runs from northern Kazimierz through Kjerag to the Sargonian
- * desert. A multi-noise biome source cannot express any of that: it says "Iberia is
- * wherever it is cold and coastal", so you get infinitely many Iberias and no ranges that
- * cross a border. This class trades infinite variety for one correct world.
+ * <p>Loading is straight off the classpath rather than through the {@code ResourceManager},
+ * because worldgen runs on many threads and starts before a datapack-backed lookup is
+ * convenient to reach. The cost is that a datapack cannot override the map.
  *
- * <h2>Loading</h2>
- * Straight off the classpath, not through the {@code ResourceManager}. Worldgen runs on
- * many threads and starts before a datapack-backed lookup would be convenient to reach;
- * the jar is always there. The cost is that a datapack cannot override the map — repaint
- * the PNGs and rebuild instead.
- *
- * <h2>Smoothing</h2>
- * A pixel covers many blocks, so sampled raw the world would be a grid of enormous
- * squares. Two things prevent that:
- * <ul>
- *   <li>every lookup is <em>domain-warped</em> by noise, at two scales, so borders wander
- *       across the pixel grid instead of following it;</li>
- *   <li>elevation is sampled <em>bilinearly</em>, so terrain height is continuous and the
- *       ground slopes between pixels rather than stepping.</li>
- * </ul>
- * Regions are sampled nearest-neighbour — a region is categorical, you cannot average
- * Iberia and Victoria — but they use the <em>same</em> warp as elevation, which is what
- * keeps a coastline in the region map on top of the coastline in the elevation map.
+ * <p>A pixel covers many blocks, so two things stop the world being a grid of squares:
+ * every lookup is domain-warped by noise at two scales, and elevation is sampled
+ * bilinearly. Regions are nearest-neighbour — a region is categorical — but use the
+ * <em>same</em> warp as elevation, which keeps the region map's coastline on top of the
+ * elevation map's.
  */
 public final class TerraMap {
 
     private static final Logger LOG = LogUtils.getLogger();
 
     /**
-     * How wide Terra is, in blocks. <b>This is the scale knob — set the world size you
-     * want and everything else follows.</b>
+     * How wide Terra is, in blocks — the scale knob. Blocks-per-pixel is derived
+     * ({@code WORLD_WIDTH_BLOCKS / regions.png width}), so map resolution and world size
+     * are independent choices and repainting at a higher resolution costs only memory.
+     * Only the width is given; height follows the image's aspect ratio, so Terra can never
+     * be stretched.
      *
-     * <p>Blocks-per-pixel is <em>derived</em>, not configured:
-     * {@code blocksPerPixel = WORLD_WIDTH_BLOCKS / regions.png width}. So the map's
-     * resolution and the world's size are independent choices:
-     *
-     * <table border="1">
-     *   <caption>Examples</caption>
-     *   <tr><th>regions.png</th><th>WORLD_WIDTH_BLOCKS</th><th>blocks/px</th><th>World</th></tr>
-     *   <tr><td>1024 x 640</td><td>131,072</td><td>128</td><td>131,072 x 81,920</td></tr>
-     *   <tr><td>4092 x 4092</td><td>32,768</td><td>8</td><td>32,768 x 32,768 &mdash; today</td></tr>
-     *   <tr><td>4092 x 4092</td><td>65,536</td><td>16</td><td>65,536 x 65,536</td></tr>
-     *   <tr><td>2048 x 1280</td><td>131,072</td><td>64</td><td>131,072 x 81,920</td></tr>
-     * </table>
-     *
-     * <p><b>Changing this moves {@link #ORIGIN_AT_BLOCK_X}.</b> The origin is written in
-     * unshifted block coordinates, which are a function of this constant — halve the world
-     * and every block coordinate on the map halves with it, so an origin left alone now
-     * points at a different pixel and spawn quietly relocates. Scale the two together.
-     *
-     * <p>Only the <em>width</em> is given. Height comes from the image's aspect ratio, so
-     * a square image gives a square world and Terra can never be accidentally stretched
-     * by asking for a world shape the map does not have.
-     *
-     * <p>Repainting at a higher resolution therefore costs nothing but memory and detail:
-     * the world stays the same size, each pixel just covers less ground. Note the memory
-     * though — the two arrays are one byte per pixel each, so 1024x640 is 1.25 MiB but
-     * 4096x4096 is 33 MiB, with a transient spike of maybe four times that while the
-     * images decode.
+     * <p><b>Changing this moves {@link #ORIGIN_AT_BLOCK_X}</b>, which is written in
+     * unshifted block coordinates. Halve the world and every block coordinate halves with
+     * it, so an origin left alone points at a different pixel and spawn relocates.
      */
     public static final int WORLD_WIDTH_BLOCKS = 32_768;
 
     /**
      * Origin shift: the point on the map that should become block (0, 0), given in the
-     * <em>unshifted</em> block coordinates it sits at today. Zero means "the centre of
-     * the map", which is where Kazimierz is.
+     * <em>unshifted</em> block coordinates it sits at today. Zero means the centre of the
+     * map. Read a coordinate out of the region report {@code runData} prints and put it
+     * here to make players arrive somewhere else.
      *
-     * <p>This is the knob for "spawn somewhere else". Read a coordinate out of the
-     * region report that {@code runData} prints — say Iberia at {@code -12544, 25344} —
-     * put those two numbers here, and Iberia is where players now arrive.
+     * <p>It shifts the whole world rather than moving a region relative to its neighbours,
+     * and it is applied on read, so the PNGs never need regenerating. The generator knows
+     * nothing about it.
      *
-     * <p>It shifts the whole world, it does not move a region relative to its
-     * neighbours: the map, its warp and its terrain all translate together, so the world
-     * is the same world seen through different coordinates. What does change is the
-     * block extent of the map, which becomes
-     * {@code [-width/2 - shift, +width/2 - shift]} — so with a large shift the far edge
-     * is nearer the origin on one side and further on the other.
-     *
-     * <p>The generator knows nothing about this. It writes pixels; the shift is applied
-     * when they are read, so you do not need to regenerate the PNGs after changing it.
-     *
-     * <p>Set to Columbia, because that is where the chapter starts: the player's ship comes
-     * down in the Columbian wastes, and block (0, 0) should be the ground they land on. It
-     * was the centre of the map — Kazimierz — until Movement I existed to arrive
-     * in. These two numbers came out of the region report {@code runData} prints; move them
-     * to another row of that table and the whole world is addressed from there instead.
-     *
-     * <p>They are block coordinates, so they are only meaningful at one
-     * {@link #WORLD_WIDTH_BLOCKS}: these were {@code -10_240, -3_072} at the old
-     * 65,536-block width and were halved with it, which lands on the same map pixel and
-     * therefore the same square yard of Columbia. Rescale the world and rescale these, or
-     * take a fresh pair out of the region report.
+     * <p>Set to Columbia, where the chapter starts. Being block coordinates, these are only
+     * meaningful at one {@link #WORLD_WIDTH_BLOCKS} — rescale the world and rescale these,
+     * or take a fresh pair out of the region report.
      */
     public static final int ORIGIN_AT_BLOCK_X = -5_120;
     public static final int ORIGIN_AT_BLOCK_Z = -1_536;
@@ -131,30 +77,23 @@ public final class TerraMap {
     private static final String RELIEF_PATH = "/data/priestess/terra/relief.png";
 
     /**
-     * What relief.png falls back to when it is missing: grey 80, about ±15 blocks — the
-     * "ordinary rolling country" value. A missing relief map is a warning and a uniformly
-     * rolling world, not a crash, because it is the one of the three that a world can be
-     * perfectly playable without.
+     * What relief.png falls back to when missing: about ±15 blocks, ordinary rolling
+     * country. A missing relief map warns rather than crashing, because it is the one of
+     * the three a world is perfectly playable without.
      */
     private static final int DEFAULT_RELIEF_GREY = 80;
 
     /**
-     * The blocks-per-pixel the warp constants were tuned at. Everything is expressed
-     * relative to this, so the warp keeps the same size <em>in map pixels</em> whatever
-     * scale you run at.
-     *
-     * <p>Without it the warp is a fixed distance in blocks, which is only correct at one
-     * scale. Shrink the world to a quarter and a warp tuned to nudge borders by two
-     * pixels starts throwing them eight, which shreds any region only a few pixels
-     * across — Laterano and Dossoles are exactly that small. Do not change this constant;
-     * change {@link #WORLD_WIDTH_BLOCKS} and let the ratio do the work.
+     * The blocks-per-pixel the warp constants were tuned at. Everything is relative to
+     * this so the warp keeps the same size <em>in map pixels</em> at any scale; otherwise a
+     * warp tuned to nudge borders two pixels starts throwing them eight on a smaller world,
+     * shredding regions only a few pixels across. Change {@link #WORLD_WIDTH_BLOCKS}
+     * instead and let the ratio do the work.
      */
     private static final double TUNED_AT_BLOCKS_PER_PIXEL = 128.0;
 
-    // Warp strength, at the tuned scale: +/-210 blocks (1.6 px) broad, +/-46 (0.4 px)
-    // fine. The broad term moves whole coastlines around; the fine term breaks up what
-    // is left of the pixel edges at walking scale. Scaled per-instance in the
-    // constructor, once blocksPerPixel is known.
+    // At the tuned scale: +/-210 blocks (1.6 px) broad, +/-46 (0.4 px) fine. The broad term
+    // moves whole coastlines; the fine term breaks up pixel edges at walking scale.
     private static final double TUNED_BROAD_WARP_BLOCKS = 210.0;
     private static final double TUNED_BROAD_WARP_WAVELENGTH = 1400.0;
     private static final double TUNED_FINE_WARP_BLOCKS = 46.0;
@@ -168,8 +107,6 @@ public final class TerraMap {
     private final byte[] elevation;    // 0..255, unsigned
     private final byte[] relief;       // 0..255, unsigned
 
-    // Derived from WORLD_WIDTH_BLOCKS and the image size, so they cannot be set to
-    // something inconsistent with each other.
     private final double blocksPerPixel;
     private final double broadWarpBlocks;
     private final double broadWarpScale;
@@ -216,16 +153,14 @@ public final class TerraMap {
                     RELIEF_PATH, DEFAULT_RELIEF_GREY * 48 / 255);
         }
 
-        // Colour -> region is resolved once per distinct colour, not once per pixel: a
-        // 1024x640 map is 655k pixels but only a couple of dozen colours.
+        // Resolved once per distinct colour, not once per pixel: a 1024x640 map is 655k
+        // pixels but only a couple of dozen colours.
         Map<Integer, TerraRegion> resolved = new HashMap<>();
         int unknownColours = 0;
 
-        // Elevation is read straight off the raster, NOT through getRGB. A greyscale PNG
-        // decodes to a linear grey colour space, and getRGB converts that to sRGB on the
-        // way out — which silently applies a gamma curve. Elevation 0.16 came back as
-        // 0.44, so the deep ocean generated as hill country. getSample returns the byte
-        // that is actually in the file.
+        // Read off the raster, NOT through getRGB. A greyscale PNG decodes to a linear grey
+        // colour space and getRGB converts it to sRGB on the way out, silently applying a
+        // gamma curve — elevation 0.16 came back as 0.44, generating deep ocean as hills.
         var elevationRaster = elevationImage.getRaster();
         var reliefRaster = reliefImage == null ? null : reliefImage.getRaster();
 
@@ -252,8 +187,8 @@ public final class TerraMap {
             }
         }
 
-        // Fixed seeds. The map is deliberately the same in every world — that is the
-        // point of it — so the warp must not depend on the world seed either.
+        // Fixed seeds: the map is the same in every world, so the warp must not depend on
+        // the world seed either.
         this.warpX = new ImprovedNoise(new XoroshiroRandomSource(0x7E44A1L));
         this.warpZ = new ImprovedNoise(new XoroshiroRandomSource(0x1C93F5L));
         this.warpFineX = new ImprovedNoise(new XoroshiroRandomSource(0x5AB20DL));
@@ -293,17 +228,13 @@ public final class TerraMap {
         }
     }
 
-    // ── Sampling ──────────────────────────────────────────────────────────────
-
     /**
      * Warped pixel-space x for a block position.
      *
-     * <p>The origin shift is applied first, to the position used for <em>everything</em>
-     * including the warp lookup. That is what makes the shift a pure translation: warp
-     * the shifted position and the noise pattern travels with the map, so the world is
-     * identical, just addressed differently. Warping the unshifted position instead
-     * would leave the warp field standing still while the map slid under it, quietly
-     * reshaping every coastline.
+     * <p>The origin shift is applied first, to the position used for the warp lookup too.
+     * That is what makes the shift a pure translation — warping the unshifted position
+     * would leave the warp field standing still while the map slid under it, reshaping
+     * every coastline.
      */
     private double pixelX(double blockX, double blockZ) {
         double mapX = blockX + ORIGIN_AT_BLOCK_X;
@@ -329,16 +260,11 @@ public final class TerraMap {
     /**
      * The region at a block position.
      *
-     * <p>Past the edge of the map the lookup clamps to the nearest edge pixel, so the
-     * world simply continues with whatever is painted on that edge. That is why the map
-     * paints its own frontiers: the Infy Icefield runs off the top and the Foehn Hotlands
-     * off the bottom, which canon calls "borders between Terra's civilized world and
-     * terra incognita", while the left and right edges are ocean.
-     *
-     * <p>Clamping rather than special-casing also keeps the world edge clean. Returning a
-     * fixed frontier region for out-of-bounds looks correct but is not: the lookup is
-     * domain-warped, so positions near the edge flip back and forth across it and the
-     * boundary comes out as a shimmering two-pixel band.
+     * <p>Past the edge of the map the lookup clamps to the nearest edge pixel, so the world
+     * continues with whatever is painted there — which is why the map paints its own
+     * frontiers. Clamping rather than returning a fixed frontier region also keeps the edge
+     * clean: the lookup is domain-warped, so positions near the edge would otherwise flip
+     * back and forth across it and shimmer.
      */
     public TerraRegion regionAt(int blockX, int blockZ) {
         int px = clampX(Mth.floor(pixelX(blockX, blockZ)));
@@ -352,11 +278,9 @@ public final class TerraMap {
     }
 
     /**
-     * Normalised relief in [0,1] at a block position, bilinearly interpolated.
-     *
-     * <p>Bilinear rather than nearest-neighbour matters more here than it does for
-     * elevation: a hard step in relief is a place where the hills stop mid-slope, which
-     * reads as a seam. Painted gradients stay gradients all the way into the world.
+     * Normalised relief in [0,1] at a block position, bilinearly interpolated. Bilinear
+     * matters more here than for elevation: a hard step in relief stops the hills mid-slope,
+     * which reads as a seam.
      */
     public double reliefAt(double blockX, double blockZ) {
         return sample(relief, blockX, blockZ);
@@ -369,15 +293,15 @@ public final class TerraMap {
 
     /**
      * Bilinear lookup into one of the greyscale channels, through the shared domain warp.
-     * Both channels use the same warp, which is what keeps a relief edge sitting exactly
-     * on the coastline it was painted against.
+     * Both channels use the same warp, which keeps a relief edge sitting exactly on the
+     * coastline it was painted against.
      */
     private double sample(byte[] channel, double blockX, double blockZ) {
         double px = pixelX(blockX, blockZ);
         double pz = pixelZ(blockX, blockZ);
 
-        // Sample at pixel centres, so the interpolation is symmetric about each pixel
-        // rather than biased half a pixel north-west.
+        // Sample at pixel centres, so interpolation is symmetric about each pixel rather
+        // than biased half a pixel north-west.
         double fx = px - 0.5;
         double fz = pz - 0.5;
         int x0 = Mth.floor(fx);

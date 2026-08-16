@@ -642,10 +642,36 @@ AEGIR_GREATSPEAR = [
     "#.              ",
 ]
 
+# The template weapon's own sprite. A plain slab-sided blade with no taper and a stubby
+# crossguard: it is meant to look unfinished at a glance, because anything holding it is
+# scaffolding that has not been renamed yet. Grey, so it cannot be mistaken for either of the
+# two above in a creative tab.
+TEMPLATE_WEAPON = [
+    "           #####",
+    "          #####.",
+    "         #####. ",
+    "        #####.  ",
+    "       #####.   ",
+    "      #####.    ",
+    "     #####.     ",
+    "    #####.      ",
+    "   #####.       ",
+    "  #####.        ",
+    " ##.#..         ",
+    "###..           ",
+    " #.#.           ",
+    "..#.            ",
+    " #.             ",
+    "..              ",
+]
+
 BIG_WEAPONS = [
     # name,               base,               accent,              seed, glyph
     ("laevatain",         (0x3A, 0x1C, 0x14), (0xFF, 0x8A, 0x28), 401, LAEVATAIN),
     ("aegir_greatspear",  (0x14, 0x2A, 0x3E), (0x8A, 0xE0, 0xFF), 402, AEGIR_GREATSPEAR),
+    # Remove this entry the moment a real weapon stops being a copy of the template — it exists
+    # only so the scaffolding itself is holdable and testable in game.
+    ("template_weapon",   (0x2E, 0x2E, 0x32), (0x9A, 0x9A, 0xA4), 403, TEMPLATE_WEAPON),
 ]
 
 # ── VFX planes ────────────────────────────────────────────────────────────────

@@ -11,17 +11,14 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 /**
  * {@link PriestessMobRenderer}'s opposite number for the GeckoLib mobs.
  *
- * <p>Same argument, different hierarchy. GeckoLib renders from its own {@code GeoModel}
- * through a class tree that never meets {@code MobRenderer}, so the two cannot be one class —
- * but within GeckoLib the mobs still differ in only three values, which name, how big and
- * how large a shadow, and those are arguments rather than files.
+ * <p>GeckoLib renders through a class tree that never meets {@code MobRenderer}, so the two
+ * cannot be one class — but within GeckoLib the mobs differ in only three values, and those
+ * are arguments rather than files.
  *
- * <p>{@code DvAwakenRenderer} stays its own class and does not use this one: its scale is tied
- * to a hitbox constant that has to be documented next to it, and its model has no bone named
- * {@code head}, so it cannot take the head tracking this switches on.
+ * <p>{@code DvAwakenRenderer} does not use this: its scale is tied to a hitbox constant, and
+ * its model has no bone named {@code head}, so it cannot take the head tracking below.
  *
- * <h2>Where the files have to live</h2>
- * {@link DefaultedEntityGeoModel} derives all three resource paths from {@code name}, so
+ * <p>{@link DefaultedEntityGeoModel} derives all three resource paths from {@code name}, so
  * passing {@code "dv_replica"} means exactly:
  * <ul>
  *   <li>{@code assets/priestess/geo/entity/dv_replica.geo.json}</li>
@@ -32,12 +29,9 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
  * lazily, only when a controller asks for a clip by name, and {@code GeoMonster} registers
  * none.
  *
- * <h2>Head tracking</h2>
- * On, via the two-argument {@code DefaultedEntityGeoModel} constructor, which makes GeckoLib
- * look up a bone literally named {@code head} and point it wherever the mob is looking. Every
- * model this renders has one. A model without it renders with the head locked forward rather
- * than crashing, but that is a bug in the model, not a supported option — keep the bone
- * called {@code head}.
+ * <p>Head tracking is on, via the two-argument {@code DefaultedEntityGeoModel} constructor,
+ * which makes GeckoLib look up a bone literally named {@code head}. A model without one renders
+ * with the head locked forward rather than crashing, so keep the bone called {@code head}.
  */
 public class PriestessGeoRenderer<T extends Mob & GeoEntity> extends GeoEntityRenderer<T> {
 

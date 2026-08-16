@@ -54,21 +54,14 @@ public class ModLootTableProvider {
             this.dropSelf(ModBlocks.DEAD_SEABED.get());
             this.dropSelf(ModBlocks.PERMAFROST.get());
             this.dropSelf(ModBlocks.WHITEFLOWER.get());
-            // A pot drops the pot and the plant as two separate items, which is the whole of
-            // what dropPottedContents writes — and it reads the flower back off the block, so
-            // there is nothing here to keep in step with ModBlocks.
             this.dropPottedContents(ModBlocks.POTTED_WHITEFLOWER.get());
             this.add(ModBlocks.WHITEFLOWER_PETALS.get(), petals(ModBlocks.WHITEFLOWER_PETALS.get()));
-            // The altars drop themselves armed, whatever state they were broken in — the
-            // block entity's boss goes with the block, so a spent altar picked up and put
-            // back down is a fresh one. That is the forgiving reading, and the alternative
-            // is an item that silently remembers a fight you already won.
+            // The altars drop themselves armed whatever state they were broken in, so a spent
+            // one picked up and put back down is fresh.
             this.dropSelf(ModBlocks.JESSELTON_PROJECTOR.get());
             this.dropSelf(ModBlocks.DOROTHYS_TERMINAL.get());
-            // Gated blocks drop themselves like any other decorative block. The gate is not in
-            // the loot table — a sealed block's break is cancelled outright, so there is no
-            // drop to suppress, and once the dungeon is cleared the blocks are ordinary
-            // building material a player is meant to be able to keep.
+            // The gate is not in the loot table: a sealed block's break is cancelled outright,
+            // so there is no drop to suppress.
             this.dropSelf(ModBlocks.RHINE_LAB_ARTS_LAB_CHISELED_WALL.get());
             this.dropSelf(ModBlocks.RHINE_LAB_ARTS_LAB_PLATED_WALL.get());
             this.dropSelf(ModBlocks.RHINE_LAB_ARTS_LAB_CONCRETE_WALL.get());
@@ -88,14 +81,10 @@ public class ModLootTableProvider {
         }
 
         /**
-         * Petals drop one item per petal in the block, so breaking a block of four gives four
-         * back and the ground cover is not a way to delete items.
-         *
-         * <p>One entry carrying four conditional {@code set_count}s rather than four entries,
-         * which is the shape of vanilla's own pink petals table: the entry is always the same
-         * item, and only the count depends on the state. The explosion decay is what makes a
-         * blown-up patch drop less, and it has to wrap the finished table rather than the
-         * entry — it is a table-level function in vanilla's version too.
+         * One item per petal, so the ground cover is not a way to delete items. One entry with
+         * four conditional {@code set_count}s rather than four entries, as vanilla's pink
+         * petals table does. The explosion decay has to wrap the finished table rather than
+         * the entry — it is a table-level function in vanilla's version too.
          */
         private LootTable.Builder petals(Block block) {
             LootPoolSingletonContainer.Builder<?> entry = LootItem.lootTableItem(block);
@@ -119,23 +108,19 @@ public class ModLootTableProvider {
     /**
      * Chest loot for the dungeons.
      *
-     * <p>Only one table, and only because the chapter has to be able to end. Mansfield and
-     * Dorothy's Vision point their chests at vanilla dungeon and stronghold tables: their
-     * loot in the GDD is Columbian circuitry and riot gear, which do not exist yet, and
-     * inventing stand-in items for them would be inventing content rather than scaffolding
-     * it.
+     * <p>Only one table, because the chapter has to be able to end. Mansfield and Dorothy's
+     * Vision point their chests at vanilla dungeon and stronghold tables; their intended loot
+     * does not exist yet.
      *
-     * <p>The Blueprint is different. It is the gate on the next chapter, so it has to come
-     * from somewhere, and until there is a Rhine Lab Archival Mainframe to reboot it comes
-     * out of a chest in the Director's Office. When the mainframe exists, this pool is what
-     * gets deleted.
+     * <p>The Blueprint gates the next chapter, so it has to come from somewhere. Until there is
+     * a Rhine Lab Archival Mainframe to reboot, it comes out of a chest — and when that exists,
+     * this pool is what gets deleted.
      */
     public static class ChestLoot implements net.minecraft.data.loot.LootTableSubProvider {
         @Override
         public void generate(BiConsumer<ResourceLocation, LootTable.Builder> output) {
             output.accept(RHINE_DIRECTORS_OFFICE, LootTable.lootTable()
-                    // Its own pool with exactly one roll, so the blueprint is never competing
-                    // with the flavour loot below for a slot.
+                    // Its own pool, so the blueprint never competes with the flavour loot.
                     .withPool(LootPool.lootPool()
                             .setRolls(ConstantValue.exactly(1.0F))
                             .add(LootItem.lootTableItem(ModItems.BLUEPRINT_ORIGINIUM_REFINEMENT.get())))

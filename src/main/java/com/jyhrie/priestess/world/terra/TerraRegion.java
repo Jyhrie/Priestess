@@ -10,51 +10,32 @@ import java.util.Map;
 /**
  * Every zone of Terra: one colour in {@code data/priestess/terra/regions.png}, one biome.
  *
- * <h2>The colour is the contract</h2>
- * The {@code colour} field must exactly match the colour that zone is painted in. Use an
- * editor with a pencil tool rather than a brush, because anti-aliased edges produce colours
- * that are in no zone. ({@link TerraMap} tolerates that by snapping unknown colours to the
- * nearest known one and logging a warning, but a hard-edged map is what you want — and a
- * clean load reports zero unrecognised colours, which is the check worth watching.)
+ * <p>The {@code colour} field must exactly match the colour that zone is painted in. Paint
+ * with a pencil tool rather than a brush — anti-aliased edges produce colours that are in no
+ * zone. A clean load reports zero unrecognised colours.
  *
- * <h2>One colour, one biome, no exceptions</h2>
- * This table used to give each zone eight biomes indexed by elevation, so a zone's coast,
- * flats and peaks were different biomes. That is gone. The map defines where the biomes
- * are, full stop: what you paint is what generates, at every height.
+ * <p>One colour, one biome, at every height: what you paint is what generates. So a zone
+ * does not produce a coastline on its own — paint a nation across a bay and the water in
+ * that bay is the nation's biome. Elevation still drives terrain height and the surface
+ * rules key off height within a zone; what it no longer does is choose the biome.
  *
- * <p>The consequence to keep in mind is that a zone no longer produces a coastline on its
- * own. Paint a nation across a bay and the water in that bay is the nation's biome, not
- * ocean. Coasts, beaches and named seas become their own colours when you paint them.
- *
- * <p>Elevation has not stopped mattering — it still drives terrain height through the
- * {@code mapHeight} spline, and the surface rules in {@code ModNoiseSettings} still key off
- * height within a zone, so a zone can go bare rock above its treeline without that being a
- * separate biome. What elevation no longer does is choose the biome.
- *
- * <h2>Adding a zone</h2>
- * Register the biome in {@link ModBiomes}, add the row here, give it a surface rule in
- * {@code ModNoiseSettings}, then re-run {@code gradlew runData}. A zone painted on the map
- * with no row here is a warning at load and a nearest-colour guess in the world; a row here
- * with no paint on the map is dead weight in the serialised table.
+ * <p>To add a zone: register the biome in {@link ModBiomes}, add the row here, give it a
+ * surface rule in {@code ModNoiseSettings}, then re-run {@code gradlew runData}.
  */
 public enum TerraRegion {
 
     /**
-     * Everything outside the continent, painted flat black — 72% of the map, and 95% of
-     * that is below the waterline.
-     *
-     * <p>It needs a row of its own even though it is "just" the sea. Black is not a colour
-     * any nation is painted in, so without one {@link #byNearestColour} hands the entire
-     * world ocean to whichever zone happens to be darkest.
+     * Everything outside the continent, painted flat black. It needs a row of its own even
+     * though it is "just" the sea: black is not a colour any nation is painted in, so
+     * without one {@link #byNearestColour} hands the world ocean to whichever zone happens
+     * to be darkest.
      */
     OCEAN(0x000000, ModBiomes.OCEAN),
 
-    // ── The north ─────────────────────────────────────────────────────────────
     /** The Infy Icefield: the frontier north of Sami and Ursus, and terra incognita past it. */
     INFY(0xFFFFFF, ModBiomes.INFY_ICEFIELD),
     SAMI(0x98CAFF, ModBiomes.SAMI),
 
-    // ── Ursus, split three ways ───────────────────────────────────────────────
     /** Northern Ursus, against the ice. */
     URSUS_COLD(0x6B0A0A, ModBiomes.URSUS_COLD),
     /** The Ursine steppe: cold, open, and too dry for forest. */
@@ -62,40 +43,32 @@ public enum TerraRegion {
     /** Southern Ursus, where birch gets in among the pine. */
     URSUS_WARM(0xFF3232, ModBiomes.URSUS_WARM),
 
-    // ── The range ─────────────────────────────────────────────────────────────
-    // One massif painted as two zones. The elevation map says which is which: Kjerag sits
-    // almost entirely above 0.86 while Mount Karlan wraps around it lower down, so Karlan
-    // is the body of the mountain and Kjerag is the summit country on top of it.
+    // One massif painted as two zones, told apart by the elevation map: Kjerag sits almost
+    // entirely above 0.86 and Karlan wraps around it lower down.
 
     /** The high basin at the top of the range from northern Kazimierz to Sargon. */
     KJERAG(0x165A74, ModBiomes.KJERAG),
     /** Mount Karlan itself: the flanks Kjerag sits on, and the long climb up to it. */
     MOUNT_KARLAN(0x558496, ModBiomes.MOUNT_KARLAN),
 
-    // ── The heartland and the west ────────────────────────────────────────────
     KAZIMIERZ(0x4EFF61, ModBiomes.KAZIMIERZ),
     COLUMBIA(0x837CFF, ModBiomes.COLUMBIA),
     /** Cold, and dead along the coast — Ægir saw to that. Inland it is sour heath. */
     IBERIA_LAND(0x2E1AFF, ModBiomes.IBERIA_LAND),
 
-    // ── The east ──────────────────────────────────────────────────────────────
     YAN(0xFF9D00, ModBiomes.YAN),
     /** Northern Higashi: cedar under snow. */
     HIGASHI_COLD(0x9E5252, ModBiomes.HIGASHI_COLD),
     /** Southern Higashi: terraced paddy and wet heat. */
     HIGASHI_WARM(0x760006, ModBiomes.HIGASHI_WARM),
 
-    // ── The south ─────────────────────────────────────────────────────────────
     /** The Sarkaz homeland: fought over until nothing green was left. */
     KAZDEL(0x2D0000, ModBiomes.KAZDEL),
 
-    // ── Unpainted ─────────────────────────────────────────────────────────────
     /**
-     * Ground no nation has been painted onto yet. It wears a deliberately garish biome so
-     * that unfinished map reads as unfinished from inside the world, and it is also where
-     * {@link #byNearestColour} sends a colour it does not recognise — the right answer for
-     * both cases that can arise from, a zone you have not got to yet and a soft-brush
-     * artefact on a border.
+     * Ground no nation has been painted onto yet, wearing a garish biome so that unfinished
+     * map reads as unfinished from inside the world. Also where {@link #byNearestColour}
+     * sends a colour it does not recognise.
      */
     TEMPORARY(0xD1FF00, ModBiomes.TEMPORARY_LAYER);
 
@@ -115,7 +88,6 @@ public enum TerraRegion {
         return biome;
     }
 
-    // ── Colour lookup ─────────────────────────────────────────────────────────
     private static final Map<Integer, TerraRegion> BY_COLOUR = new HashMap<>();
 
     static {

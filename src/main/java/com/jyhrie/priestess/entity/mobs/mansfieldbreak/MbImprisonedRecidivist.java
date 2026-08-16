@@ -26,21 +26,14 @@ public class MbImprisonedRecidivist extends GeoMonster {
 
     public MbImprisonedRecidivist(EntityType<? extends MbImprisonedRecidivist> type, Level level) {
         super(type, level);
-        // Worth stopping for. Roughly a third of a vanilla boss's bar, for a mob that is
-        // meant to be the hardest thing in the dungeon that is not Jesselton.
         this.xpReward = 12;
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code MobStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code MobStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 45.0)
-                // Slower than the Pugilist, and slower than a walking player, so it can
-                // always be disengaged from in the open. The threat is meeting one indoors.
+                // Slower than a walking player, so the threat is meeting one indoors.
                 .add(Attributes.MOVEMENT_SPEED, 0.21)
                 .add(Attributes.ATTACK_DAMAGE, 8.0)
                 .add(Attributes.FOLLOW_RANGE, 32.0)

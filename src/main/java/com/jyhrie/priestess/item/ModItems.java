@@ -17,13 +17,8 @@ public class ModItems {
     // Standalone items go here; ModBlocks also registers its BlockItems into this
     // same DeferredRegister. See "Adding an item" in README.md.
 
-    // ── Movement I keys (Columbia) ────────────────────────────────────────────
-    // The three things the chapter is actually about. Each is a one-off: stack size 1, and
-    // dropped by code rather than by a loot table so the roll can never come up empty (see
-    // MbJesseltonWilliams.dropCustomDeathLoot). They do nothing on their own yet — nothing
-    // consumes them, because the machinery that would is a later chapter's problem — but
-    // they exist, they are named, and they are obtainable, which is what makes the
-    // progression something you can walk through rather than something written down.
+    // Movement I's three keys. Each is a one-off, dropped by code rather than by a loot table
+    // so the roll can never come up empty. Nothing consumes them yet.
 
     /** Drops from Jesselton Williams. Chapter 2's proof of completion. */
     public static final RegistryObject<Item> MANSFIELD_MASTER_KEY = ITEMS.register("mansfield_master_key",
@@ -41,35 +36,18 @@ public class ModItems {
             ITEMS.register("blueprint_originium_refinement",
                     () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
 
-    // ── Medium and Dreamland ──────────────────────────────────────────────────
-    // The pair the next stretch of progression is built out of, and the first two items in
-    // the mod that are not one-offs by fiat. Neither does anything yet — nothing consumes
-    // them, the same as the chapter keys above — but both are obtainable, which is the bar.
-
-    /**
-     * Drops from Failure, Replica and Bionic. Stackable, because it is a material rather
-     * than a token: three mobs pay it out and there is no story in holding exactly one.
-     */
+    /** Drops from Failure, Replica and Bionic. Stackable: it is a material, not a token. */
     public static final RegistryObject<Item> MEDIUM = ITEMS.register("medium",
             () -> new Item(new Item.Properties().rarity(Rarity.UNCOMMON)));
 
-    /**
-     * Drops from "Awaken". A one-off like the chapter keys — stack size 1, dropped in code
-     * so the roll can never come up empty (see {@code DvAwaken.dropCustomDeathLoot}).
-     */
+    /** Drops from "Awaken". A one-off like the chapter keys. */
     public static final RegistryObject<Item> DREAMLAND = ITEMS.register("dreamland",
             () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
 
-    // ── Summoning catalysts ───────────────────────────────────────────────────
-    // The things a boss altar wants. One is consumed per summon, which is what stops an
-    // altar being an infinite boss farm: the altar re-arms itself when the boss dies, so
-    // the only limit on fighting a boss twice is finding another of these.
-    //
-    // Deliberately NOT the items the bosses drop. Gating Jesselton behind the Master Key he
-    // himself drops is a lock whose key is inside it; these are separate, findable things.
-    // Nothing places them in the world yet — that is the dungeons' job and they are still
-    // Python-generated placeholders — so for now they are a creative-tab item and a
-    // /give, which is exactly what the spawn eggs above are for too.
+    // Summoning catalysts. One is consumed per summon, which is what stops an altar being an
+    // infinite boss farm. Deliberately NOT the items the bosses drop — gating Jesselton behind
+    // the Master Key he drops is a lock whose key is inside it. Nothing places them in the
+    // world yet.
 
     /** This world's Jesselton's, taken off him when they locked him in. Aims the projector. */
     public static final RegistryObject<Item> TARNISHED_DOG_TAGS = ITEMS.register("tarnished_dog_tags",
@@ -79,29 +57,22 @@ public class ModItems {
     public static final RegistryObject<Item> CORRUPTED_NEURAL_SHARD = ITEMS.register("corrupted_neural_shard",
             () -> new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
 
-    // ── Modules ───────────────────────────────────────────────────────────────
-    // Wearables, in the Module slot this mod adds to Curios. Template is the first and is
-    // exactly what its name says: a working example to copy, which wears and does nothing.
-    // See docs/CURIOS.md — registering it here is only a third of the job, and the two other
-    // thirds are the ones that fail silently.
+    // Wearables, in the Module slot this mod adds to Curios. Registering one here is only a
+    // third of the job and the other two thirds fail silently — see docs/CURIOS.md.
 
     /** The reference Module. Equips, occupies the slot, has no effect. */
     public static final RegistryObject<Item> TEMPLATE = ITEMS.register("template",
             () -> new TemplateModuleItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
 
-    // ── Spawn eggs ────────────────────────────────────────────────────────────
-    // Every mob gets one. They are a test tool first — a boss that can only be seen by
-    // walking to the one prison in the world is a boss you cannot tune — and they cost
-    // nothing, because the egg model is a vanilla template and needs no texture.
-    //
-    // The two colours are the shell and the spots, in that order.
+    // Every mob gets one: a boss you can only reach by walking to the one prison in the world
+    // is a boss you cannot tune. The two colours are the shell and the spots.
 
     public static final RegistryObject<Item> ORIGINIUM_SLUG_SPAWN_EGG =
             ITEMS.register("originium_slug_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.ORIGINIUM_SLUG, 0x4A5A66, 0x5FC8E8, new Item.Properties()));
 
-    // The three Medium-bearers have no home in the world yet, so for them the egg is not a
-    // test tool — it is the only way to meet one at all.
+    // The three Medium-bearers have no home in the world yet, so the egg is the only way to
+    // meet one at all.
     public static final RegistryObject<Item> DV_FAILURE_SPAWN_EGG =
             ITEMS.register("dv_failure_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.DV_FAILURE, 0x3A4A3E, 0xA8C060, new Item.Properties()));
@@ -114,8 +85,7 @@ public class ModItems {
             ITEMS.register("dv_bionic_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.DV_BIONIC, 0x3E4652, 0xE87A2E, new Item.Properties()));
 
-    // Mansfield's inmates. Prison denim over three shades of the same idea, with the Sniper
-    // marked out in bowstring pale so you can tell which egg is the ranged one.
+    // Prison denim, with the Sniper marked out in bowstring pale so the ranged one is obvious.
     public static final RegistryObject<Item> MB_IMPRISONED_PUGILIST_SPAWN_EGG =
             ITEMS.register("mb_imprisoned_pugilist_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.MB_IMPRISONED_PUGILIST, 0x3E4A5C, 0x8C9AA8, new Item.Properties()));
@@ -132,9 +102,8 @@ public class ModItems {
             ITEMS.register("mb_jesselton_williams_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.MB_JESSELTON_WILLIAMS, 0x2A2438, 0xB8262E, new Item.Properties()));
 
-    // Sal Viento. Abyssal blues and greens with a bioluminescent spot, so the whole dungeon's
-    // eggs read as one shelf; the two big ones take gold and violet to stand out from the
-    // five trash mobs above them.
+    // Abyssal blues and greens so Sal Viento's eggs read as one shelf; the miniboss and boss
+    // take gold and violet to stand out from the five above them.
     public static final RegistryObject<Item> SV_RUNNER_SPAWN_EGG =
             ITEMS.register("sv_runner_spawn_egg",
                     () -> new ForgeSpawnEggItem(ModEntities.SV_RUNNER, 0x1E4A50, 0x4AD8C8, new Item.Properties()));

@@ -29,34 +29,24 @@ public class DvFailure extends GeoMonster {
         super(type, level);
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code MobStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code MobStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
-                // Dies to a stone sword in three hits. It is a tax on standing still, not a
-                // fight, and the danger is only ever how many of them there are.
+                // Three hits from a stone sword: a tax on standing still, not a fight.
                 .add(Attributes.MAX_HEALTH, 24.0)
-                // Faster than a player walking, slower than one sprinting — the same deal the
-                // slug offers, so you can always leave.
+                // Faster than a walking player, slower than a sprinting one, so you can leave.
                 .add(Attributes.MOVEMENT_SPEED, 0.30)
                 .add(Attributes.ATTACK_DAMAGE, 4.0)
                 .add(Attributes.FOLLOW_RANGE, 24.0)
                 .add(Attributes.ARMOR, 0.0)
-                // Knocks back freely. Being able to shove a wall of these apart is the
-                // counterplay to their only real threat.
+                // Shoving a wall of these apart is the counterplay to their only real threat.
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.0);
     }
 
     /**
-     * The Medium, dropped in code rather than from a loot table.
-     *
-     * <p>There are no entity loot tables in the mod at all — the bosses drop their keys the
-     * same way, for the same reason: what a mob leaves behind is a fact about the mob, and
-     * putting it here means it is decided in the file you are already reading when you tune
-     * the mob. Looting is honoured by hand, which is the cost of that.
+     * Dropped in code rather than from a loot table; there are no entity loot tables in the
+     * mod at all, so what a mob leaves behind is decided in the file you tune it in. The cost
+     * is honouring Looting by hand.
      */
     @Override
     protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHitByPlayer) {

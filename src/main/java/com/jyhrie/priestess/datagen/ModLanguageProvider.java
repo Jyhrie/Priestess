@@ -17,10 +17,9 @@ public class ModLanguageProvider extends LanguageProvider {
     protected void addTranslations() {
         add("creativetab.priestess_tab", "Priestess");
 
-        // Death messages. The key comes from the DamageType's message id, not from its
-        // registry name. Every type needs a plain form and, where a mob can cause it, a
-        // ".player" form — vanilla falls back to the plain one, so a missing .player is a
-        // sentence that never names the ghost that killed you.
+        // The key comes from the DamageType's message id, not its registry name. Vanilla
+        // falls back to the plain form, so a missing ".player" is a sentence that never names
+        // the thing that killed you.
         add("death.attack.oripathy", "%1$s was crystallised by Oripathy");
         add("death.attack.spectral_arts", "%1$s was cut down by spectral Arts");
         add("death.attack.spectral_arts.player", "%1$s was cut down by %2$s");
@@ -34,7 +33,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("effect.priestess.open_wounds", "Open Wounds");
         add("effect.priestess.acute_oripathy", "Acute Oripathy");
 
-        // ── Mobs ──────────────────────────────────────────────────────────────
         add(ModEntities.ORIGINIUM_SLUG.get(), "Originium Slug");
         add(ModEntities.DV_FAILURE.get(), "Failure");
         add(ModEntities.DV_REPLICA.get(), "Replica");
@@ -48,15 +46,13 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModEntities.SV_CRAWLER.get(), "Crawler");
         add(ModEntities.SV_PIERCER.get(), "Piercer");
         add(ModEntities.SV_THE_FIRST_TO_TALK.get(), "The First to Talk");
-        // The prefix already carries "Sal Viento" in the id; the display name spells it out,
-        // because a player reading a boss bar has never seen the id.
+        // The display name spells out "Sal Viento": a player reading a boss bar has never
+        // seen the id.
         add(ModEntities.SV_BISHOP_QUINTUS.get(), "Sal Viento Bishop Quintus");
         add(ModEntities.MB_JESSELTON_WILLIAMS.get(), "Jesselton Williams");
-        // The quotes are part of the name, not punctuation around it — it is called
-        // "Awaken", quotation marks and all, everywhere it is written.
+        // The quotes are part of the name, not punctuation around it.
         add(ModEntities.DV_AWAKEN.get(), "\"Awaken\"");
 
-        // ── Items ─────────────────────────────────────────────────────────────
         add(ModItems.MANSFIELD_MASTER_KEY.get(), "Mansfield Master Key");
         add(ModItems.DOROTHYS_NEURAL_PROCESSOR.get(), "Dorothy's Neural Processor");
         add(ModItems.BLUEPRINT_ORIGINIUM_REFINEMENT.get(), "Blueprint: Originium Refinement");
@@ -66,12 +62,9 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModItems.DREAMLAND.get(), "Dreamland");
         add(ModItems.TEMPLATE.get(), "Template");
 
-        // ── Modules ───────────────────────────────────────────────────────────
-        // Curios ships these two keys for its own slot types but cannot know about ours.
-        // "identifier" labels the slot in the GUI; "modifiers" is the header above the
-        // attribute list in a worn item's tooltip. Missing either shows the raw key on screen.
-        // Both live in the curios namespace, like the slot's item tag, because Curios is what
-        // looks them up. See docs/CURIOS.md.
+        // Curios ships these two keys for its own slot types but cannot know about ours, and
+        // missing either shows the raw key on screen. Both live in the curios namespace, like
+        // the slot's item tag, because Curios is what looks them up. See docs/CURIOS.md.
         add("curios.identifier.module", "Module");
         add("curios.modifiers.module", "When worn as a module:");
 
@@ -92,13 +85,21 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModItems.SV_BISHOP_QUINTUS_SPAWN_EGG.get(), "Sal Viento Bishop Quintus Spawn Egg");
         add(ModItems.DV_AWAKEN_SPAWN_EGG.get(), "\"Awaken\" Spawn Egg");
 
-        // ── Weapons ───────────────────────────────────────────────────────────
-        // Ported in — see docs/LETHALITY WEAPONS.md. The name is painted over by the item's
-        // own animated gradient, so this string supplies the letters and never the colour.
+        // Every key TemplateWeaponItem.appendHoverText asks for has to exist here or the
+        // tooltip renders the raw key — the most common thing to forget when copying it.
+        add(ModWeapons.TEMPLATE_WEAPON.get(), "Template Weapon");
+        add("tooltip.priestess.template.flavour", "§8« Scaffolding. Copy me, do not ship me. »");
+        add("tooltip.priestess.template.left", "§6Left Click");
+        add("tooltip.priestess.template.left_detail", "§e -Nothing yet.");
+        add("tooltip.priestess.template.right", "§6Right Click");
+        add("tooltip.priestess.template.right_detail", "§e -Nothing yet.");
+
+        // The name is painted over by the item's own animated gradient, so this string
+        // supplies the letters and never the colour.
         add(ModWeapons.DEVILS_DEVASTATION.get(), "Devil's Devastation");
 
         // §-codes are Lethality's own styling, kept as written. The prompt says Shift because
-        // the item checks Shift; Lethality's said Ctrl, which was a typo against its own code.
+        // the item checks Shift; Lethality's said Ctrl, a typo against its own code.
         add("tooltip.priestess.hold_shift", "§7Hold §fShift§7 for details");
         add("tooltip.priestess.devils_devastation.flavour", "§8« ...And you shall burn them all. »");
         add("tooltip.priestess.devils_devastation.on_swing", "§6On Swing —");
@@ -107,9 +108,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("tooltip.priestess.devils_devastation.on_hit", "§6On Hit —");
         add("tooltip.priestess.devils_devastation.on_hit_detail", "§e -Sets the target alight.");
 
-        // Laevatain. Not ported — original, and the one weapon in the mod whose three click
-        // inputs are three named abilities, so the tooltip names all three. The §-codes follow
-        // the convention set above: §6 for the heading, §e for the detail, §8 for flavour.
+        // §-code convention: §6 heading, §e detail, §8 flavour.
         add(ModWeapons.LAEVATAIN.get(), "Laevatain");
         add("tooltip.priestess.laevatain.flavour", "§8« Everything burns. I only decide when. »");
         add("tooltip.priestess.laevatain.left", "§6Laevatain §7— Left Click");
@@ -122,8 +121,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("tooltip.priestess.laevatain.shift_right_detail",
                 "§e -Charge, then a 60° cone 10 blocks deep. Fire erupts beneath every mob caught.");
 
-        // Aegir Greatspear. Original, and the counterpart to Laevatain: three named abilities on
-        // the same three inputs, all of which pull rather than burn. Same §-code convention.
         add(ModWeapons.AEGIR_GREATSPEAR.get(), "Aegir Greatspear");
         add("tooltip.priestess.aegir_greatspear.flavour", "§8« The sea does not chase. It waits, and takes. »");
         add("tooltip.priestess.aegir_greatspear.left", "§3Waterless Parting of the Great Ocean §7— Left Click");
@@ -136,7 +133,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("tooltip.priestess.aegir_greatspear.shift_right_detail",
                 "§b -Opens a whirlpool where you aim. It pulls for 8 seconds and grinds for 5 a second.");
 
-        // ── Blocks ────────────────────────────────────────────────────────────
         add(ModBlocks.IBERIAN_SAND.get(), "Iberian Sand");
         add(ModBlocks.IBERIAN_SANDSTONE.get(), "Iberian Sandstone");
         add(ModBlocks.SIESTA_SAND.get(), "Siesta Sand");
@@ -147,8 +143,8 @@ public class ModLanguageProvider extends LanguageProvider {
 
         add(ModBlocks.WHITEFLOWER.get(), "Whiteflower");
         add(ModBlocks.WHITEFLOWER_PETALS.get(), "Whiteflower Petals");
-        // No item ever carries this name — the potted block has no BlockItem — but vanilla
-        // names its potted blocks too, and a missing key is what a debug screen shows you.
+        // No item carries this name — the potted block has no BlockItem — but a missing key
+        // is what a debug screen shows you.
         add(ModBlocks.POTTED_WHITEFLOWER.get(), "Potted Whiteflower");
 
         add(ModBlocks.JESSELTON_PROJECTOR.get(), "Jesselton's Projector");
@@ -173,23 +169,20 @@ public class ModLanguageProvider extends LanguageProvider {
         add(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_PIPE.get(), "Iridescent Alloy Decorative Pipe");
         add(ModBlocks.IRIDESCENT_ALLOY_DECORATIVE_VENT.get(), "Iridescent Alloy Decorative Vent");
 
-        // ── Dungeons ──────────────────────────────────────────────────────────
-        // Names for the dungeons themselves, used by the lockdown and clear messages. The
-        // key is Dungeon.getSerializedName(), so these must track that enum.
+        // The key is Dungeon.getSerializedName(), so these must track that enum.
         add("dungeon.priestess.mansfield_break", "Mansfield State Prison");
         add("dungeon.priestess.dorothys_vision", "Dorothy's Vision");
         add("dungeon.priestess.rhine_lab", "Rhine Lab HQ");
         add("dungeon.priestess.under_tides", "Under Tides");
 
-        // Action-bar lines. %s is the dungeon. Phrased about the block rather than the place,
-        // because a gated block can be standing anywhere — including a player's own basement.
+        // Action-bar lines; %s is the dungeon. Phrased about the block rather than the place,
+        // because a gated block can be standing anywhere.
         add("message.priestess.dungeon.sealed_block", "This will not give until %s is cleared.");
         add("message.priestess.dungeon.cleared", "%s is open.");
         add("message.priestess.flight.grounded", "Something here will not let you leave the ground.");
 
-        // ── Boss summoners ────────────────────────────────────────────────────
-        // Action-bar lines, so a refused summon says why without opening the chat log.
-        // %s is the boss for "spent" and the required item for "wrong_item".
+        // Action-bar lines, so a refused summon says why without opening the chat log. %s is
+        // the boss for "spent" and the required item for "wrong_item".
         add("message.priestess.summoner.spent", "%s is already abroad.");
         add("message.priestess.summoner.wrong_item", "It wants %s.");
         add("message.priestess.summoner.no_room", "There is not enough room here.");

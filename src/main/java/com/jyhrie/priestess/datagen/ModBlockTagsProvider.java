@@ -21,25 +21,16 @@ import java.util.stream.Stream;
 /**
  * Block tags — including the ones that <em>are</em> a mechanic.
  *
- * <h2>{@code sealed_by/<dungeon>} and {@code minecraft:wither_immune}</h2>
- * Derived, not declared. Every registered block implementing {@link DungeonSealed} is put in
- * its own dungeon's tag and in vanilla's wither tag, so the dungeon named in the block's
- * constructor is the single source of truth and there is no list here to fall out of step with
- * {@code ModBlocks}. See {@link Dungeon#sealedBlocks()}, {@code DungeonLockdown} and
- * {@code docs/DUNGEON_BLOCKS.md}.
+ * <p>{@code sealed_by/<dungeon>} and {@code minecraft:wither_immune} are derived, not declared:
+ * every registered {@link DungeonSealed} block goes into its own dungeon's tag, so the dungeon
+ * named in the block's constructor is the single source of truth. See
+ * {@link Dungeon#sealedBlocks()} and {@code docs/DUNGEON_BLOCKS.md}. They are ordinary additive
+ * datapack files, so a pack can gate its own blocks behind a Priestess dungeon.
  *
- * <p>They are additive datapack files like any other, so a pack can gate its own blocks behind
- * a Priestess dungeon without touching this mod.
- *
- * <h2>{@code mineable/*} and the tool tier</h2>
- * <b>Not</b> derived, because these describe the material and not the gate — a sealed block is
- * not necessarily stone, and guessing would be wrong the first time one isn't. Listed per build
- * set below.
- *
- * <p>Not decoration either. These blocks copy deepslate, which sets
- * {@code requiresCorrectToolForDrops}, and a block with that flag and no {@code mineable} tag
- * is mineable by nothing at all — slow no-tool speed, and then no drop whatever you hit it
- * with.
+ * <p>{@code mineable/*} and the tool tier are <b>not</b> derived, because they describe the
+ * material rather than the gate. They are also not decoration: these blocks copy deepslate,
+ * which sets {@code requiresCorrectToolForDrops}, and a block with that flag and no
+ * {@code mineable} tag is mineable by nothing at all.
  */
 public class ModBlockTagsProvider extends BlockTagsProvider {
 
@@ -49,9 +40,8 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
     }
 
     /**
-     * Pickaxe, iron tier. Both gated build sets are deepslate-grade masonry, so they share it —
-     * anything lower would let a player who has just opened a gate strip the place with the
-     * stone pickaxe they walked in with.
+     * Pickaxe, iron tier — anything lower would let a player who has just opened a gate strip
+     * the place with the stone pickaxe they walked in with.
      */
     private static final List<RegistryObject<Block>> IRON_PICKAXE = List.of(
             ModBlocks.RHINE_LAB_ARTS_LAB_CHISELED_WALL,
@@ -82,23 +72,19 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
         for (RegistryObject<Block> entry : ModBlocks.BLOCKS.getEntries()) {
             if (entry.get() instanceof DungeonSealed sealed) {
                 tag(sealed.sealedBy().sealedBlocks()).add(entry.get());
-                // The wither deletes what it flies into — no player, no explosion to resist.
                 // The other ways past a gate are closed in DungeonSealed.seal; this one is a
                 // tag because that is where vanilla looks.
                 tag(BlockTags.WITHER_IMMUNE).add(entry.get());
             }
         }
 
-        // Plants. Three small tags rather than any code, and between them they are everything
-        // that makes a flower behave like one to the rest of the game: #small_flowers is what
-        // vanilla's #flowers and #sword_efficient are built out of, so joining it is what makes
-        // bees pollinate the whiteflower and a sword cut it down. The petals get #sword_efficient
-        // directly — vanilla lists pink petals there by name, because the ground cover is not a
-        // small flower and inherits none of it.
+        // Three small tags are everything that makes a flower behave like one to the rest of
+        // the game. #small_flowers is what vanilla's #flowers and #sword_efficient are built
+        // out of, so joining it is what makes bees pollinate the whiteflower. The petals need
+        // #sword_efficient directly, being ground cover rather than a small flower.
         tag(BlockTags.SMALL_FLOWERS).add(ModBlocks.WHITEFLOWER.get());
         tag(BlockTags.SWORD_EFFICIENT).add(ModBlocks.WHITEFLOWER_PETALS.get());
-        // What tells vanilla the pot is a pot — it is how the flower pot's own break and pick
-        // behaviour finds the full ones.
+        // How the flower pot's own break and pick behaviour finds the full ones.
         tag(BlockTags.FLOWER_POTS).add(ModBlocks.POTTED_WHITEFLOWER.get());
 
         for (RegistryObject<Block> entry : IRON_PICKAXE) {
@@ -106,14 +92,11 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
             tag(BlockTags.NEEDS_IRON_TOOL).add(entry.get());
         }
 
-        // What a DecorativePipeBlock joins up with. One tag for every material, which is the
-        // whole of "they all connect to each other" — a pipe missing from it still places and
-        // still looks like a pipe, it simply never connects, which is the first thing to check
-        // when a run sits in a row as separate stubs.
+        // A pipe missing from this tag still places and still looks like a pipe, it simply
+        // never connects — the first thing to check when a run sits as separate stubs.
         for (RegistryObject<Block> entry : PIPES) {
             tag(DecorativePipeBlock.PIPES).add(entry.get());
         }
-        // The vents: not pipes, but the blocks a run is meant to end at.
         for (RegistryObject<Block> entry : VENTS) {
             tag(DecorativePipeBlock.PIPE_ATTACHMENTS).add(entry.get());
         }

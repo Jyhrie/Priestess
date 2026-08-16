@@ -39,13 +39,9 @@ import java.util.List;
 /**
  * Laevatain. Surtr's greatsword — three fire abilities on the three click inputs.
  *
- * <p>Unlike everything else in this package this weapon is <b>not ported from anywhere</b>. It
- * is original content built to {@code docs/WEAPONS.md}, and it lives here because the
- * scaffolding a weapon needs — {@link WeaponTiers}, {@link WeaponText}, the swing packet — is
- * all here. See {@link ModWeapons} for what that costs the package's "delete it and nothing
- * breaks" contract.
+ * <p>Original content rather than ported, but it lives here because the scaffolding a weapon
+ * needs — {@link WeaponTiers}, {@link WeaponText}, the swing packet — is all here.
  *
- * <h2>The three abilities</h2>
  * <table border="1">
  *   <caption>inputs</caption>
  *   <tr><th>Input</th><th>Name</th><th>Effect</th><th>Cooldown</th></tr>
@@ -57,53 +53,33 @@ import java.util.List;
  *       underfoot</td><td>10 s</td></tr>
  * </table>
  *
- * <h2>Why the cooldowns are not all vanilla cooldowns</h2>
- * {@code ItemCooldowns} is keyed by <em>item</em>, so it holds exactly one timer and these need
- * three independent ones — a 10 s Twilight must not lock out a 1.2 s swing. Only the sweep uses
- * the vanilla cooldown, which is also the one the hotbar sweep animation is honestly about;
- * the two abilities keep their ready-times in the stack's NBT as game-time stamps. Stack tags
- * sync to the client on their own, so both sides can answer "is it ready" without a packet.
+ * <p>{@code ItemCooldowns} is keyed by <em>item</em>, so it holds one timer where these need
+ * three — a 10 s Twilight must not lock out a 1.2 s swing. Only the sweep uses it; the other
+ * two keep their ready-times in stack NBT as game-time stamps, which sync to the client on
+ * their own so both sides can answer "is it ready" without a packet.
  */
 public class LaevatainItem extends ConfiguredSwordItem {
 
-    // ── The sword ─────────────────────────────────────────────────────────────
-    //
-    // Damage, swing speed and all three ability damages live in
-    // config/priestess/weapon.toml — see WeaponStats and ConfiguredSwordItem. What is left
-    // here is the geometry, the burn durations and the timings, which are shape rather than
-    // balance.
-    //
-    // At the default -1.6 offset from the player's base 4.0 the sword swings 0.8333 times a
-    // second: one swing per 1.2 seconds, slower than any vanilla sword, with the damage and
-    // the sweep paying for it.
-
-    // ── Laevatain, the sweep ──────────────────────────────────────────────────
+    // Damage and swing speed live in config/priestess/weapon.toml. What is here is geometry
+    // and timing, which are shape rather than balance.
 
     private static final double SWEEP_RANGE = 5.0;
     private static final double SWEEP_ARC_DEGREES = 120.0;
 
     private static final int SWEEP_BURN_SECONDS = 4;
 
-    // ── Molten Giant, the line ────────────────────────────────────────────────
-
     /**
-     * Ticks of drawing for a full-strength cast, shared by both abilities.
-     *
-     * <p>One number rather than two <b>because the item model can only have one</b>: the
-     * {@code pull} predicate that drives the drawing animation is a single function of the
-     * stack and cannot know which ability is being charged. Giving the two different charge
-     * times would make the visible draw lie about one of them. Public for that predicate, which
-     * lives in {@code WeaponsClient}.
+     * Ticks of drawing for a full-strength cast, shared by both abilities — one number rather
+     * than two because the model's {@code pull} predicate is a single function of the stack
+     * and cannot know which ability is charging. Public for that predicate, in
+     * {@code WeaponsClient}.
      */
     public static final int CHARGE_TICKS = 20;
 
     /**
-     * Which ability is being drawn, written when the draw starts and read back on release.
-     *
-     * <p>Both abilities are on the same button and both draw like a bow, so release has to be
-     * told which one it is finishing. It cannot work it out: the shift key may have been let go
-     * at any point during the draw, and checking it again at release would fire Molten Giant
-     * from a Twilight charge.
+     * Which ability is being drawn. Release cannot work it out for itself — shift may have
+     * been let go at any point during the draw, so checking the key again would fire Molten
+     * Giant from a Twilight charge.
      */
     private static final String TAG_CHARGING = "LaevatainCharging";
     private static final int CHARGING_NONE = 0;
@@ -117,24 +93,15 @@ public class LaevatainItem extends ConfiguredSwordItem {
     private static final float MOLTEN_GIANT_MIN_CHARGE = 0.25F;
 
     /**
-     * The struck volume: a <b>2 × 2 × 5</b> box laid along the crosshair, so 5 blocks of reach
-     * with a 2-block square cross-section centred on the aim line.
-     *
-     * <p>It is an <em>oriented</em> box, not an {@link AABB} — a plain bounding box is
-     * axis-aligned and would swell to the diagonal whenever the player faced anything but due
-     * north, quietly making the ability much wider on some headings than others. See
-     * {@link #fireLine} for how the test is done instead.
-     *
-     * <p>The whole volume resolves in the tick it is cast: nothing travels down it and there is
-     * nothing to dodge once it is out, which is what the 3-second cooldown pays for.
+     * A 2 × 2 × 5 box laid along the crosshair. <em>Oriented</em>, not an {@link AABB} — an
+     * axis-aligned box would swell to its diagonal on any heading but due north, making the
+     * ability wider in some directions than others. See {@link #fireLine}.
      */
     private static final double MOLTEN_GIANT_LENGTH = 5.0;
     private static final double MOLTEN_GIANT_HALF_WIDTH = 1.0;
     private static final double MOLTEN_GIANT_HALF_HEIGHT = 1.0;
 
     private static final int MOLTEN_GIANT_BURN_SECONDS = 8;
-
-    // ── Twilight, the charged cone ────────────────────────────────────────────
 
     private static final String TAG_TWILIGHT_READY = "LaevatainTwilightReady";
     private static final int TWILIGHT_COOLDOWN_TICKS = 200;         // 10 s
@@ -146,11 +113,9 @@ public class LaevatainItem extends ConfiguredSwordItem {
     private static final double TWILIGHT_ARC_DEGREES = 60.0;
     private static final int TWILIGHT_BURN_SECONDS = 10;
 
-    // ── VFX lifetimes ─────────────────────────────────────────────────────────
-    // Ticks, and each one must equal the animation_length of the matching
-    // assets/priestess/animations/*.animation.json, which is authored in seconds at 20 ticks
-    // to the second. Change one and change the other: too short and the mesh disappears
-    // mid-swing, too long and it hangs in the air on its final frame.
+    // Each must equal the animation_length of the matching *.animation.json, authored in
+    // seconds at 20 ticks to the second. Too short and the mesh vanishes mid-swing, too long
+    // and it hangs in the air on its final frame.
 
     /** laevatain_slash.animation.json — 0.4 s. */
     private static final int SLASH_VFX_TICKS = 8;
@@ -170,11 +135,7 @@ public class LaevatainItem extends ConfiguredSwordItem {
         return Rarity.EPIC;
     }
 
-    /**
-     * The animated name: white-hot at the edge through gold and orange into deep ember and back.
-     * Fewer stops than Devil's Devastation's palette and all of them fire — this is one metal at
-     * one temperature, not a whole spectrum. See {@link WeaponText#gradient}.
-     */
+    /** White-hot through gold and orange into deep ember and back. See {@link WeaponText#gradient}. */
     @Override
     public Component getName(ItemStack stack) {
         return WeaponText.gradient(Component.translatable(this.getDescriptionId(stack)), 0.3F, 2.0F,
@@ -221,25 +182,14 @@ public class LaevatainItem extends ConfiguredSwordItem {
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         target.setSecondsOnFire(SWEEP_BURN_SECONDS);
-        // Note the absence of `target.invulnerableTime = 0` here, unlike DevilsDevastationItem
-        // which clears it deliberately. A mob the player actually connected with is still inside
-        // its hurt-immunity window when the sweep resolves, and vanilla `hurt` ignores a second
-        // hit that is not *larger* than the one on the clock — so the aimed target takes the
-        // melee hit and the sweep passes over it, while everything around it takes the sweep.
-        // That is vanilla's own sweeping-edge rule, borrowed rather than reimplemented, and it
-        // is why sweepDamageFraction is documented as belonging at or below 1.0.
         return super.hurtEnemy(stack, target, attacker);
     }
-
-    // ── Left click: Laevatain ─────────────────────────────────────────────────
 
     /**
      * The sweep. Called on the server from the swing packet, never directly — a swing is a
      * client-side event and only the server may deal damage, so {@code WeaponSwingEvents} →
-     * {@code SwingSlashC2S} → here is the whole chain.
-     *
-     * <p>Checks both hands because the sword works off-hand, and no-ops for any hand not
-     * holding one.
+     * {@code SwingSlashC2S} → here is the whole chain. Checks both hands because the sword
+     * works off-hand.
      */
     public static void sweep(Level level, Player user) {
         for (InteractionHand hand : InteractionHand.values()) {
@@ -251,9 +201,8 @@ public class LaevatainItem extends ConfiguredSwordItem {
                 return;
             }
 
-            // One swing's worth of ticks, so the sweep lands at exactly the rate the sword
-            // swings rather than as fast as the player can click. At this weapon's attack
-            // speed that is 24 ticks — the 1.2 seconds the sword advertises.
+            // One swing's worth of ticks, so the sweep lands at the rate the sword swings
+            // rather than as fast as the player can click.
             AttributeInstance attribute = user.getAttribute(Attributes.ATTACK_SPEED);
             float attackSpeed = attribute != null ? (float) attribute.getValue() : 4.0F;
             user.getCooldowns().addCooldown(stack.getItem(), (int) (20.0F / attackSpeed));
@@ -266,13 +215,9 @@ public class LaevatainItem extends ConfiguredSwordItem {
                     target.setSecondsOnFire(SWEEP_BURN_SECONDS);
                 }
 
-                // The slash: a flat plane, always parallel to the ground.
-                //
-                // Pitch is pinned to zero and the offset is taken from a *flattened* look
-                // vector, so neither the plane's angle nor its height answers to the
-                // crosshair. Looking at the sky and looking at your boots put the same
-                // horizontal disc in the same place, which is honest — the sweep this draws
-                // tests a flat 120° fan and never cared about pitch either.
+                // Pitch is pinned to zero and the offset taken from a flattened look vector,
+                // so the plane matches the hit test, which is a flat 120° fan that never
+                // cared about pitch either.
                 Vec3 flatForward = user.getLookAngle().multiply(1.0, 0.0, 1.0);
                 flatForward = flatForward.lengthSqr() < 1.0E-6
                         ? new Vec3(0.0, 0.0, 1.0)       // looking straight up or down
@@ -287,14 +232,7 @@ public class LaevatainItem extends ConfiguredSwordItem {
         }
     }
 
-    // ── Right click: Molten Giant, and Twilight (shift) ───────────────────────
-
-    /**
-     * Both abilities draw like a bow, so this only ever <em>starts</em> a charge. Which one is
-     * decided here and written to the stack, because {@link #releaseUsing} cannot ask: the
-     * player may well have let go of shift during the draw, and reading the key again at
-     * release would fire the wrong ability.
-     */
+    /** Only ever <em>starts</em> a charge; which ability is written to the stack. */
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -307,11 +245,9 @@ public class LaevatainItem extends ConfiguredSwordItem {
     }
 
     /**
-     * Shift-right-clicking a <em>block</em> never reaches {@link #use} — holding shift is
-     * exactly what suppresses block interaction, so the click arrives here instead. Twilight is
-     * a ground-level ability and would be unusable while looking at terrain without this.
-     *
-     * <p>Everything else returns PASS and falls through to {@code use}.
+     * Shift-right-clicking a <em>block</em> never reaches {@link #use} — holding shift is what
+     * suppresses block interaction, so the click arrives here instead. Twilight is a
+     * ground-level ability and would be unusable while looking at terrain without this.
      */
     @Override
     public InteractionResult useOn(UseOnContext context) {
@@ -323,10 +259,7 @@ public class LaevatainItem extends ConfiguredSwordItem {
                 CHARGING_TWILIGHT, TAG_TWILIGHT_READY).getResult();
     }
 
-    /**
-     * Starts a draw. Nothing is spent here — the cooldown is only taken in
-     * {@link #releaseUsing}, and only if the charge got far enough to fire.
-     */
+    /** Nothing is spent here; the cooldown is taken on release, and only if it fires. */
     private static InteractionResultHolder<ItemStack> beginCharge(Level level, Player player,
                                                                   InteractionHand hand, ItemStack stack,
                                                                   int which, String readyTag) {
@@ -348,18 +281,14 @@ public class LaevatainItem extends ConfiguredSwordItem {
         return 72000;   // effectively "until released"
     }
 
-    /**
-     * Whichever ability was drawn fires here. {@code remaining} counts <em>down</em>, which is
-     * why the charge is duration minus remaining.
-     */
+    /** {@code remaining} counts <em>down</em>, which is why the charge is duration minus it. */
     @Override
     public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int remaining) {
         if (!(entity instanceof Player player)) {
             return;
         }
 
-        // Cleared whatever happens next, so a draw that fires nothing cannot leave a stale
-        // value behind for the next release to act on.
+        // Cleared whatever happens next, so a draw that fires nothing leaves nothing stale.
         int which = stack.getOrCreateTag().getInt(TAG_CHARGING);
         stack.getOrCreateTag().putInt(TAG_CHARGING, CHARGING_NONE);
 
@@ -384,12 +313,7 @@ public class LaevatainItem extends ConfiguredSwordItem {
         }
     }
 
-    /**
-     * The line, on release. The box itself resolves in one go — the whole 2 × 2 × 5 lands in the
-     * tick it is cast rather than a projectile travelling out and hitting things in the order it
-     * reaches them. Charge buys damage, not reach: the box is the same size at any draw, so a
-     * rushed cast covers the ground the player aimed at and simply hits for less.
-     */
+    /** Charge buys damage, not reach: the box is the same size at any draw. */
     private static void castMoltenGiant(Level level, Player player, ItemStack stack, float charge) {
         if (!ready(stack, level, TAG_MOLTEN_GIANT_READY)) {
             return;
@@ -405,28 +329,21 @@ public class LaevatainItem extends ConfiguredSwordItem {
     }
 
     /**
-     * The 2 × 2 × 5 box in front of the player, resolved in one go.
-     *
-     * <p>Every candidate is rewritten into the player's own frame — forward along the crosshair,
-     * right and up across it — and kept if it lands inside the box on all three axes. That is
-     * what makes the volume an oriented box rather than an axis-aligned one, so it is the same
-     * shape on every heading.
-     *
-     * <p>The box is shortened at the first solid block, so it does not reach through a wall.
+     * Candidates are rewritten into the player's own frame and kept if they land inside the
+     * box on all three axes, which is what makes the volume oriented rather than
+     * axis-aligned. Shortened at the first solid block so it does not reach through a wall.
      */
     private static void fireLine(Level level, Player user, ItemStack stack, float charge) {
         Vec3 origin = user.getEyePosition();
         Vec3 forward = user.getLookAngle();
 
-        // Right is the horizontal perpendicular; taken against world up, which is degenerate
-        // only when looking exactly at the zenith or nadir — there, any perpendicular will do.
+        // Degenerate only at the exact zenith or nadir, where any perpendicular will do.
         Vec3 right = forward.cross(new Vec3(0.0, 1.0, 0.0));
         right = right.lengthSqr() < 1.0E-6 ? new Vec3(1.0, 0.0, 0.0) : right.normalize();
         Vec3 up = right.cross(forward).normalize();
 
-        // Stop at terrain. Clipping down the centre line is an approximation — a mob tucked
-        // behind a corner but inside the box still gets hit — and the right trade for a 5-block
-        // ability, since the alternative is a per-target line-of-sight check.
+        // Clipping down the centre line only, so a mob tucked behind a corner but inside the
+        // box still gets hit. The alternative is a per-target line-of-sight check.
         double length = MOLTEN_GIANT_LENGTH;
         Vec3 far = origin.add(forward.scale(length));
         HitResult hit = level.clip(new ClipContext(origin, far,
@@ -438,8 +355,8 @@ public class LaevatainItem extends ConfiguredSwordItem {
         float damage = WeaponText.itemAttackDamage(stack)
                 * WeaponStats.LAEVATAIN_MOLTEN_GIANT_FRACTION.get().floatValue() * charge;
 
-        // Broad phase: an axis-aligned box big enough to contain the oriented one whatever the
-        // heading. Cheap, and the exact test below throws the corners back out.
+        // Broad phase: big enough to contain the oriented box on any heading. The exact test
+        // below throws the corners back out.
         AABB search = new AABB(origin, origin.add(forward.scale(length)))
                 .inflate(Math.max(MOLTEN_GIANT_HALF_WIDTH, MOLTEN_GIANT_HALF_HEIGHT));
 
@@ -462,23 +379,16 @@ public class LaevatainItem extends ConfiguredSwordItem {
             candidate.setSecondsOnFire(MOLTEN_GIANT_BURN_SECONDS);
         }
 
-        // The stab, laid along the crosshair from the eye. The mesh is built five blocks long
-        // in +Z, which is the box's full reach, so the two agree without a scale factor — a
-        // wall-shortened cast still draws the whole spike and lets it sink into the wall,
-        // which reads better than a spike that stops politely short.
+        // The mesh is built five blocks long in +Z, matching the box's full reach, so the two
+        // agree without a scale factor. A wall-shortened cast still draws the whole spike.
         WeaponVfx.spawn(level, ModWeapons.LAEVATAIN_STAB.get(), origin,
                 user.getYRot(), user.getXRot(), STAB_VFX_TICKS);
     }
 
-    // ── Shift + right click: Twilight ─────────────────────────────────────────
-
     /**
-     * The cone. Everything inside 10 blocks and 60° takes a hit, catches fire, and has an
-     * eruption of flame thrown up underneath it.
-     *
-     * <p><b>The eruption places no blocks.</b> It is particles plus {@code setSecondsOnFire} on
-     * the mobs themselves, so the ability burns what it catches and nothing else — no spread,
-     * no scorched terrain, and nothing left behind once the mob is dead.
+     * The cone. <b>The eruption places no blocks</b> — it is particles plus
+     * {@code setSecondsOnFire} on the mobs themselves, so there is no spread and no scorched
+     * terrain left behind.
      */
     private static void castTwilight(Level level, Player player, ItemStack stack, float charge) {
         if (!ready(stack, level, TAG_TWILIGHT_READY)) {
@@ -487,9 +397,8 @@ public class LaevatainItem extends ConfiguredSwordItem {
         startCooldown(stack, level, TAG_TWILIGHT_READY, TWILIGHT_COOLDOWN_TICKS);
 
         if (!level.isClientSide()) {
-            // The cone's reach and angle are fixed; only the damage answers to the charge, so a
-            // half-charged cast covers the same ground and hits for less rather than becoming a
-            // different, smaller ability the player has to re-aim.
+            // Reach and angle are fixed; only damage answers to the charge, so a half-charged
+            // cast covers the same ground rather than becoming an ability the player re-aims.
             float damage = WeaponText.itemAttackDamage(stack)
                     * WeaponStats.LAEVATAIN_TWILIGHT_FRACTION.get().floatValue() * charge;
             for (LivingEntity target : targetsInCone(level, player, TWILIGHT_RANGE, TWILIGHT_ARC_DEGREES)) {
@@ -505,15 +414,9 @@ public class LaevatainItem extends ConfiguredSwordItem {
     }
 
     /**
-     * The floor erupting under a caught mob: a column of flame standing up out of the ground
-     * where it is, plus a handful of lava flecks for weight the mesh cannot give.
-     *
-     * <p>Spawned at the mob's feet rather than parented to it, so the eruption stays where the
-     * ground opened even if the mob is knocked away from it — this is the floor doing
-     * something, not a status effect riding the target.
-     *
-     * <p>The yaw is the mob's own, which is as good as random and stops a row of them all
-     * erupting in identical alignment.
+     * Spawned at the mob's feet rather than parented to it, so the eruption stays where the
+     * ground opened even if the mob is knocked away. The yaw is the mob's own, which is as
+     * good as random and stops a row of them erupting in identical alignment.
      */
     private static void eruptUnder(Level level, LivingEntity target) {
         WeaponVfx.spawn(level, ModWeapons.LAEVATAIN_ERUPTION.get(), target.position(),
@@ -526,14 +429,9 @@ public class LaevatainItem extends ConfiguredSwordItem {
         }
     }
 
-    // ── Shared helpers ────────────────────────────────────────────────────────
-
     /**
-     * Every living thing inside {@code range} of the user and within {@code arcDegrees} of where
-     * they are looking. The arc is the full width, so 60 means 30 either side of the crosshair.
-     *
-     * <p>Compares against the cosine of the half-angle rather than taking an {@code acos} per
-     * candidate: the dot product of two unit vectors already <em>is</em> that cosine.
+     * Every living thing inside {@code range} and within {@code arcDegrees} of the crosshair.
+     * The arc is the full width, so 60 means 30 either side.
      */
     private static List<LivingEntity> targetsInCone(Level level, Player user,
                                                     double range, double arcDegrees) {
@@ -571,8 +469,7 @@ public class LaevatainItem extends ConfiguredSwordItem {
         for (int i = 0; i <= steps; i++) {
             double offset = -arcDegrees * 0.5 + (arcDegrees * i / steps);
             double radians = Math.toRadians(yaw + offset + 90.0);
-            // Drawn at chest height and at the arc's outer edge, which is the part of the
-            // shape a player needs to judge — the inside of a cone tells them nothing.
+            // The outer edge is the part of the shape a player needs to judge.
             double x = eye.x + Math.cos(radians) * range * 0.8;
             double z = eye.z + Math.sin(radians) * range * 0.8;
             serverLevel.sendParticles(flame(), x, eye.y - 0.6, z, 1, 0.0, 0.0, 0.0, 0.0);

@@ -9,9 +9,8 @@ import net.minecraft.world.level.Level;
  * The wide arm of Devil's Devastation's fan: three of these go out per swing, one down the
  * crosshair and one 25° to either side.
  *
- * <p>Carries half the sword's attack damage each and the longer of the two burns. All of the
- * behaviour is {@link DevilsProjectile}; this class is the entity type, the burn, and nothing
- * else.
+ * <p>All of the behaviour is {@link DevilsProjectile}; this class is the entity type and the
+ * burn.
  */
 public class DevilsScytheEntity extends DevilsProjectile {
 
@@ -28,12 +27,8 @@ public class DevilsScytheEntity extends DevilsProjectile {
 
     @Override
     protected void applyOnHit(LivingEntity target) {
-        // Lethality also stacks Terramity's Nyxium Fire here, at 300 ticks / amplifier 2.
-        // Terramity is not a dependency of this mod, so that half is stubbed — see
-        // docs/LETHALITY WEAPONS.md, "Terramity", for the one-line reinstatement.
-        //
-        // target.addEffect(new MobEffectInstance(
-        //         TerramityModMobEffects.NYXIUM_FIRE.get(), 300, 2), this.getOwner());
+        // Lethality also stacks Terramity's Nyxium Fire here; stubbed because Terramity is not
+        // a dependency. See docs/LETHALITY WEAPONS.md, "Terramity".
         target.setSecondsOnFire(BURN_SECONDS);
     }
 }

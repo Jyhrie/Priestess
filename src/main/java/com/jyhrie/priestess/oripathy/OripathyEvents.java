@@ -40,11 +40,10 @@ public class OripathyEvents {
     private static final int REFRESH_BELOW_TICKS = 100;
 
     /**
-     * Ambient exposure: 1 oripathy every 15 seconds, to everyone standing on Terra. Placeholder
-     * for the real passive model — a flat drip everywhere, with no regard for biome, depth or
-     * what you are wearing. It goes in through {@code Oripathy.add} rather than
-     * {@code Oripathy.infect}, because breathing the place in is not a wound and Open Wounds
-     * has nothing to bite on.
+     * Ambient exposure, to everyone standing on Terra. A placeholder for the real passive
+     * model: a flat drip with no regard for biome, depth or what you are wearing. It goes
+     * through {@code Oripathy.add} rather than {@code infect}, because breathing the place in
+     * is not a wound.
      */
     private static final int PASSIVE_INTERVAL_TICKS = 300;
     private static final int PASSIVE_GAIN = 1;
@@ -62,12 +61,10 @@ public class OripathyEvents {
     }
 
     /**
-     * Respawning — after death, and on the way back out of the End — builds a brand new
-     * Player, so the infection has to be copied across by hand or dying would cure it.
-     *
-     * <p>Ordinary dimension travel keeps the same Player and needs nothing here; it does
-     * still invalidate and revive its capabilities, which is why {@link OripathyProvider}
-     * must not hand out a handle it can never take back.
+     * Respawning builds a brand new Player, so the infection has to be copied across by hand
+     * or dying would cure it. Ordinary dimension travel keeps the same Player but still
+     * invalidates and revives its capabilities, which is why {@link OripathyProvider} must not
+     * hand out a handle it can never take back.
      */
     @SubscribeEvent
     public static void copyOnClone(PlayerEvent.Clone event) {
@@ -75,9 +72,8 @@ public class OripathyEvents {
         // The old player's capabilities are already invalidated by the time this fires.
         original.reviveCaps();
         int carried = Oripathy.of(original);
-        // The whole state, not just the number: an acute flare-up part way through paying
-        // itself back has to survive the End portal, or the player keeps a dose that was
-        // meant to be temporary.
+        // The whole state, not just the number: a flare-up part way through paying itself
+        // back has to survive, or the player keeps a dose that was meant to be temporary.
         CompoundTag state = Oripathy.snapshot(original);
         original.invalidateCaps();
 
@@ -85,11 +81,10 @@ public class OripathyEvents {
         Oripathy.restore(respawned, state);
 
         if (event.isWasDeath()) {
-            // Death ends the flare-up. Whatever it still owed is written off — the drop it
-            // was going to give you is meaningless next to having just died of the disease.
+            // Death ends the flare-up; whatever it still owed is written off.
             Oripathy.cancelRelief(respawned);
-            // Dying of oripathy is the one thing that lowers it: you come back at AFTER_DEATH
-            // instead of at the lethal threshold, which would kill you again on the next tick.
+            // AFTER_DEATH rather than the lethal threshold, which would kill you again next
+            // tick.
             if (carried >= Oripathy.LETHAL) {
                 Oripathy.set(respawned, Oripathy.AFTER_DEATH);
             }

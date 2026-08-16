@@ -39,12 +39,6 @@ import java.util.List;
 /**
  * Aegir Greatspear. Ægir's polearm — three abilities, and every one of them pulls.
  *
- * <p>Original content, not ported, and it lives here for the same reason {@link LaevatainItem}
- * does: the scaffolding a weapon needs — {@link WeaponTiers}, {@link WeaponText},
- * {@link WeaponPhysics}, the swing packet — is all in this package. See {@link ModWeapons} for
- * what that costs the "delete the folder" contract.
- *
- * <h2>The three abilities</h2>
  * <table border="1">
  *   <caption>inputs</caption>
  *   <tr><th>Input</th><th>Name</th><th>Effect</th><th>Cooldown</th></tr>
@@ -56,54 +50,32 @@ import java.util.List;
  *       sucking everything in and grinding it for 5 a second</td><td>30 s</td></tr>
  * </table>
  *
- * <h2>Where the cooldowns live</h2>
- * The same split {@link LaevatainItem} uses and for the same reason: {@code ItemCooldowns} is
- * keyed by <em>item</em> and holds exactly one timer, so a 30-second Maelstrom would otherwise
- * lock out the throw. The throw takes the vanilla cooldown — it is the one that should track
- * the swing rate and drive the hotbar sweep — and the two right-click abilities keep their
- * ready-times in the stack's NBT as game-time stamps. Stack tags sync to the client on their
- * own, so both sides can answer "is it ready" without a packet.
+ * <p>Cooldowns split the same way {@link LaevatainItem}'s do: {@code ItemCooldowns} is keyed
+ * by <em>item</em> and holds one timer, so a 30-second Maelstrom would otherwise lock out the
+ * throw. The throw takes the vanilla cooldown; the two right-click abilities keep their
+ * ready-times in stack NBT as game-time stamps.
  *
- * <h2>This weapon is main-hand only</h2>
- * Unlike the two weapons written before it, {@link #thrust} reads the main hand and no other.
- * Off-hand ability firing is not wanted, and a both-hands scan combined with a main-hand-only
- * client check is what lets one swing fire a <em>different</em> weapon held in the off hand.
+ * <p><b>Main-hand only</b>: {@link #thrust} reads the main hand and no other. A both-hands
+ * scan combined with a main-hand-only client check is what lets one swing fire a
+ * <em>different</em> weapon held in the off hand.
  */
 public class AegirGreatspearItem extends ConfiguredSwordItem {
 
-    // ── The spear ─────────────────────────────────────────────────────────────
-    //
-    // Damage, swing speed and all three ability damages live in
-    // config/priestess/weapon.toml — see WeaponStats and ConfiguredSwordItem. What is left here
-    // is the geometry and the timings, which are shape rather than balance.
-    //
-    // At the default -2.8 offset from the player's base 4.0 the spear swings 1.2 times a
-    // second — one swing per 0.83 seconds, and the 16-tick cooldown that `20 / attackSpeed`
-    // works out to below. Slower than a sword and faster than Laevatain: it is a reach weapon,
-    // and the throw is what it is really swinging.
-
-    // ── Left click: Tide-Piercer ──────────────────────────────────────────────
+    // Damage and swing speed live in config/priestess/weapon.toml. What is here is geometry
+    // and timing, which are shape rather than balance.
 
     private static final float TIDE_SPEED = 2.2F;
 
-    /**
-     * Spread in degrees. Zero: this is a spear thrown down the crosshair, and a lance that lands
-     * next to what you aimed at would make the pull feel arbitrary.
-     */
+    /** Spread in degrees. Zero, so the lance lands where the crosshair was. */
     private static final float TIDE_INACCURACY = 0.0F;
-
-    // ── Right click: Undertow ─────────────────────────────────────────────────
 
     private static final String TAG_UNDERTOW_READY = "AegirUndertowReady";
     private static final int UNDERTOW_COOLDOWN_TICKS = 200;      // 10 s
 
     /**
-     * The struck volume: <b>5 × 5 × 5</b>, laid along the crosshair — five blocks of reach on a
-     * five-block square cross-section centred on the aim line.
-     *
-     * <p>An <em>oriented</em> box, not an {@link AABB}. A plain bounding box is axis-aligned and
-     * would swell to its own diagonal whenever the player faced anything but due north, quietly
-     * making the ability half again as wide on some headings. See {@link #undertowTargets}.
+     * A 5 × 5 × 5 box laid along the crosshair. <em>Oriented</em>, not an {@link AABB} — an
+     * axis-aligned box would swell to its diagonal on any heading but due north, making the
+     * ability half again as wide in some directions. See {@link #undertowTargets}.
      */
     private static final double UNDERTOW_LENGTH = 5.0;
     private static final double UNDERTOW_HALF_WIDTH = 2.5;
@@ -111,8 +83,6 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
 
     /** Stronger than the throw's: this is the ability whose whole job is repositioning a group. */
     private static final double UNDERTOW_PULL_STRENGTH = 0.75;
-
-    // ── Shift + right click: Maelstrom ────────────────────────────────────────
 
     private static final String TAG_MAELSTROM_READY = "AegirMaelstromReady";
     private static final int MAELSTROM_COOLDOWN_TICKS = 600;     // 30 s
@@ -132,11 +102,7 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
         return Rarity.EPIC;
     }
 
-    /**
-     * The animated name: deep trench blue up through tidal green and cyan into white foam, and
-     * back down. The mirror image of {@link LaevatainItem}'s palette in structure and its
-     * opposite in temperature — one body of water at one depth, not a spectrum.
-     */
+    /** Foam down through open water into the deep trench and back. */
     @Override
     public Component getName(ItemStack stack) {
         return WeaponText.gradient(Component.translatable(this.getDescriptionId(stack)), 0.3F, 2.0F,
@@ -178,14 +144,11 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
         super.appendHoverText(stack, level, tooltip, flag);
     }
 
-    // ── Left click: Tide-Piercer ──────────────────────────────────────────────
-
     /**
      * Throws the lance. Called on the server from the swing packet, never directly — a swing is
      * a client-side event and only the server may spawn entities, so
-     * {@code WeaponSwingEvents} → {@code SwingSlashC2S} → here is the whole chain.
-     *
-     * <p><b>Main hand only</b>, deliberately; see the class note.
+     * {@code WeaponSwingEvents} → {@code SwingSlashC2S} → here is the whole chain. Main hand
+     * only; see the class note.
      */
     public static void thrust(Level level, Player user) {
         ItemStack stack = user.getMainHandItem();
@@ -196,9 +159,8 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
             return;
         }
 
-        // One swing's worth of ticks, so the throw lands at exactly the rate the spear swings
-        // rather than as fast as the player can click. At this weapon's attack speed that is
-        // 16 ticks — the 0.83 seconds the spear advertises.
+        // One swing's worth of ticks, so the throw lands at the rate the spear swings rather
+        // than as fast as the player can click.
         AttributeInstance attribute = user.getAttribute(Attributes.ATTACK_SPEED);
         float attackSpeed = attribute != null ? (float) attribute.getValue() : 4.0F;
         user.getCooldowns().addCooldown(stack.getItem(), (int) (20.0F / attackSpeed));
@@ -214,12 +176,7 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
         playSound(level, user, SoundEvents.TRIDENT_THROW, 1.1F, 0.8F, 1.0F);
     }
 
-    // ── Right click: Undertow, and Maelstrom (shift) ──────────────────────────
-
-    /**
-     * Neither ability charges, so this is the whole of the right-click path: pick one, fire it,
-     * take its cooldown.
-     */
+    /** Neither ability charges, so this is the whole right-click path. */
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -232,15 +189,12 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
     }
 
     /**
-     * Shift-right-clicking a <em>block</em> never reaches {@link #use} — holding shift is
-     * exactly what suppresses block interaction, so the click arrives here instead. Maelstrom is
-     * aimed at a spot on the ground and would be unusable while looking at terrain without this,
-     * which is to say unusable.
+     * Shift-right-clicking a <em>block</em> never reaches {@link #use} — holding shift is what
+     * suppresses block interaction, so the click arrives here instead. Maelstrom is aimed at a
+     * spot on the ground, so without this it would be unusable.
      *
-     * <p>The clicked location is used directly rather than re-raycast: the player picked a point
-     * on a face, and that point is a better answer than anything derived afterwards.
-     *
-     * <p>Everything else returns PASS and falls through to {@code use}.
+     * <p>The clicked location is used directly rather than re-raycast: the player picked a
+     * point on a face, and that beats anything derived afterwards.
      */
     @Override
     public InteractionResult useOn(UseOnContext context) {
@@ -252,11 +206,6 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
                 context.getClickLocation()).getResult();
     }
 
-    /**
-     * The box, resolved in the tick it is cast. Everything caught takes a hit and is dragged
-     * toward the player; nothing travels, so there is nothing to dodge once it is out, which is
-     * what the ten-second cooldown pays for.
-     */
     private static InteractionResultHolder<ItemStack> castUndertow(Level level, Player player,
                                                                    ItemStack stack) {
         if (!ready(stack, level, TAG_UNDERTOW_READY)) {
@@ -285,20 +234,17 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
     }
 
     /**
-     * Everything inside the oriented 5 × 5 × 5 box.
-     *
-     * <p>Every candidate is rewritten into the player's own frame — forward along the crosshair,
-     * right and up across it — and kept only if it lands inside the box on all three axes. That
-     * is what makes the volume oriented rather than axis-aligned, so it is the same shape on
-     * every heading.
+     * Candidates are rewritten into the player's own frame and kept only if they land inside
+     * the box on all three axes, which is what makes the volume oriented rather than
+     * axis-aligned.
      */
     private static List<LivingEntity> undertowTargets(Level level, Player user, Vec3 origin,
                                                       Vec3 forward, double length) {
         Vec3 right = rightOf(forward);
         Vec3 up = right.cross(forward).normalize();
 
-        // Broad phase: an axis-aligned box big enough to contain the oriented one whatever the
-        // heading. Cheap, and the exact test below throws the corners back out.
+        // Broad phase: big enough to contain the oriented box on any heading. The exact test
+        // below throws the corners back out.
         AABB search = new AABB(origin, origin.add(forward.scale(length)))
                 .inflate(Math.max(UNDERTOW_HALF_WIDTH, UNDERTOW_HALF_HEIGHT));
 
@@ -314,10 +260,7 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
         });
     }
 
-    /**
-     * The same white trail the thrown lance leaves, drawn as a volley filling the box, so an
-     * area effect the player cannot otherwise see still reads as one.
-     */
+    /** The same white trail the thrown lance leaves, so the box reads as a volley of it. */
     private static void drawUndertow(Level level, Vec3 origin, Vec3 forward, double length) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
@@ -325,9 +268,6 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
         Vec3 right = rightOf(forward);
         Vec3 up = right.cross(forward).normalize();
 
-        // A 3 × 3 grid of lances across the box's face, each drawn as a run of points down its
-        // length — the same END_ROD white AegirTide trails, so the ability looks like a volley
-        // of the left click rather than like a separate effect.
         for (int across = -1; across <= 1; across++) {
             for (int high = -1; high <= 1; high++) {
                 Vec3 lane = origin
@@ -342,11 +282,9 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
         }
     }
 
-    // ── Shift + right click: Maelstrom ────────────────────────────────────────
-
     /**
-     * Opens the vortex at {@code at}. The whirlpool is an entity and owns everything that
-     * happens next — see {@link AegirWhirlpool} — so this method is the cooldown and the sound.
+     * Opens the vortex at {@code at}. {@link AegirWhirlpool} owns everything that happens
+     * next, so this method is just the cooldown.
      */
     private static InteractionResultHolder<ItemStack> castMaelstrom(Level level, Player player,
                                                                     ItemStack stack, Vec3 at) {
@@ -370,24 +308,18 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
     private static Vec3 maelstromTarget(Level level, Player player) {
         Vec3 origin = player.getEyePosition();
         Vec3 far = origin.add(player.getLookAngle().scale(MAELSTROM_PLACE_RANGE));
-        // ClipContext.Fluid.NONE so aiming at the sea opens the vortex on the seabed rather
-        // than on the surface, which is the reading that matches what it is.
+        // Fluid.NONE so aiming at the sea opens the vortex on the seabed, not the surface.
         return level.clip(new ClipContext(origin, far,
                 ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player)).getLocation();
     }
 
-    // ── Shared helpers ────────────────────────────────────────────────────────
-
     /**
-     * The horizontal perpendicular to a look direction — the "right" axis of the player's own
-     * frame, which with {@code forward} and their cross product spans the oriented box.
+     * The horizontal perpendicular to a look direction. Degenerate only at the exact zenith or
+     * nadir, where any perpendicular will do.
      *
-     * <p>Taken against world up, which is degenerate only when looking exactly at the zenith or
-     * nadir; there, any perpendicular will do and world +X is as good as another.
-     *
-     * <p>A method rather than two lines inlined at each site because the result has to be
-     * <em>effectively final</em> to be read inside {@link #undertowTargets}' predicate lambda,
-     * and the guard above cannot be written as a single assignment without one.
+     * <p>A method rather than inlined because the result has to be <em>effectively final</em>
+     * to be read inside {@link #undertowTargets}' predicate lambda, and the degenerate guard
+     * cannot be written as a single assignment.
      */
     private static Vec3 rightOf(Vec3 forward) {
         Vec3 right = forward.cross(new Vec3(0.0, 1.0, 0.0));
@@ -395,11 +327,8 @@ public class AegirGreatspearItem extends ConfiguredSwordItem {
     }
 
     /**
-     * How far an ability reaches before terrain stops it.
-     *
-     * <p>Clipping down the centre line is an approximation — a mob tucked behind a corner but
-     * inside the box still gets caught — and the right trade for a five-block ability, since the
-     * alternative is a per-target line-of-sight check.
+     * How far an ability reaches before terrain stops it. Clipping down the centre line only,
+     * so a mob tucked behind a corner but inside the box still gets caught.
      */
     private static double reachBeforeTerrain(Level level, Player user, Vec3 origin,
                                              Vec3 forward, double maximum) {

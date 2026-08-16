@@ -15,14 +15,11 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 /**
  * Draws every animated ability effect — every {@link WeaponVfx}, and {@link AegirWhirlpool},
- * which is not one. See {@link WeaponVfxModel} for why the pair is generic rather than fixed to
- * {@code WeaponVfx}; the precedent for a generic renderer in this package is
- * {@link DevilsProjectileRenderer}.
+ * which is not one. See {@link WeaponVfxModel} for why the pair is generic.
  *
- * <p>Rotation is applied from the entity's own yaw and pitch, which were set once at spawn and
- * never change. {@code super.applyRotations} is deliberately <b>not</b> called: its job is the
- * body-yaw and death-spin handling a living entity needs, none of which applies here, and
- * letting it run would rotate the mesh a second time on top of this.
+ * <p>Rotation comes from the entity's own yaw and pitch, set once at spawn.
+ * {@code super.applyRotations} is deliberately <b>not</b> called: it does the body-yaw and
+ * death-spin handling a living entity needs, and would rotate the mesh a second time.
  */
 public class WeaponVfxRenderer<T extends Entity & GeoEntity> extends GeoEntityRenderer<T> {
 

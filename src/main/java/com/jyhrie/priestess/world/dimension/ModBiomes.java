@@ -16,36 +16,20 @@ import java.util.function.Consumer;
 /**
  * One biome per zone painted in {@code data/priestess/terra/regions.png}.
  *
- * <h2>The map is the whole placement model</h2>
- * A colour on the map <em>is</em> a biome. There is no climate noise, no elevation banding,
- * and no rule that quietly substitutes something else — paint a zone and that zone is what
- * generates, from the seabed to the summit. If you want a beach, an ocean or a snowline,
- * you paint it as its own colour.
+ * <p>A colour on the map <em>is</em> a biome, from the seabed to the summit. There is no
+ * climate noise and no elevation banding — if you want a beach, an ocean or a snowline, you
+ * paint it as its own colour. Elevation still drives terrain height through
+ * {@link ModNoiseSettings}, and the surface rules there key off height <em>within</em> a
+ * biome, so a zone can go bare rock above the treeline without being a different biome.
  *
- * <p>That is a deliberate trade. The previous model gave every zone eight biomes indexed by
- * elevation, which meant painting Infy also got you Ægir shelf on its coast and Kjerag on
- * its peaks — biomes you never asked for appearing on ground you never zoned. This costs
- * detail per zone and buys back the property that the map is literally what you get.
- *
- * <p>Elevation still matters, it just no longer picks biomes. {@code elevation.png} drives
- * the {@code mapHeight} spline in {@link ModNoiseSettings}, so terrain still rises and falls
- * exactly as painted; and the surface rules there key off height <em>within</em> a biome, so
- * a zone can still go bare rock above the treeline without that being a different biome.
- *
- * <h2>Adding a zone</h2>
- * Three edits, in this order, or the game will not start:
- * <ol>
- *   <li>register the biome here,</li>
- *   <li>add the colour and this key to {@link com.jyhrie.priestess.world.terra.TerraRegion},</li>
- *   <li>give it a surface rule in {@link ModNoiseSettings}, or it generates as bare stone.</li>
- * </ol>
- * Then re-run {@code gradlew runData}.
+ * <p>Adding a zone takes three edits, in this order, or the game will not start: register the
+ * biome here, add the colour and key to
+ * {@link com.jyhrie.priestess.world.terra.TerraRegion}, then give it a surface rule in
+ * {@link ModNoiseSettings} or it generates as bare stone. Then re-run {@code gradlew runData}.
  */
 public class ModBiomes {
 
-    // ── Keys ──────────────────────────────────────────────────────────────────
-    // One per colour in regions.png. Nothing else belongs in this list — a biome with no
-    // zone painted for it is a biome that cannot generate.
+    // One per colour in regions.png — a biome with no zone painted for it cannot generate.
 
     /** Everything outside the continent. Split into named seas once they are painted. */
     public static final ResourceKey<Biome> OCEAN = createKey("ocean");
@@ -79,8 +63,6 @@ public class ModBiomes {
 
     /** Everything that decides how a zone reads on screen. */
     private record Palette(int sky, int fog, int water, int waterFog, int grass, int foliage) {}
-
-    // ── Zone palettes ─────────────────────────────────────────────────────────
 
     /** The open sea: cold, deep and unlit, until the named oceans get painted in. */
     private static final Palette P_OCEAN       = new Palette(0x3A5A7C, 0x50708C, 0x1C3A54, 0x0E1E30, 0x6E8474, 0x627866);
@@ -119,56 +101,38 @@ public class ModBiomes {
     /** Kazdel: scorched, blood-dark, nothing green left. */
     private static final Palette P_KAZDEL      = new Palette(0x4A2B2B, 0x5C3535, 0x3A2020, 0x241414, 0x6B4A3A, 0x5A3E30);
 
-    /**
-     * The placeholder. Deliberately hideous, in the same acid yellow the zone is painted in
-     * {@code regions.png}, so that ground you have not assigned yet announces itself from a
-     * distance instead of being mistaken for a design decision.
-     */
+    /** Deliberately hideous, so ground you have not assigned yet announces itself. */
     private static final Palette P_TEMPORARY   = new Palette(0xD1FF00, 0xE4FF66, 0xD1FF00, 0xA0C000, 0xD1FF00, 0xD1FF00);
 
-    // ── Bootstrap ─────────────────────────────────────────────────────────────
     public static void bootstrap(BootstapContext<Biome> context) {
-        // Grouped coldest to hottest. The grouping carries no mechanical weight any more —
-        // the map places things, not a climate wedge — but temperature still decides whether
-        // water freezes and whether precipitation falls as snow, so it has to agree with the
-        // company a zone keeps. Below 0.15 freezes.
+        // Temperature no longer places anything, but it still decides whether water freezes
+        // and whether precipitation falls as snow. Below 0.15 freezes.
 
         //                                          precip   temp   downfall  palette
         context.register(OCEAN,         biome(context, true,  0.4F,  0.5F,  P_OCEAN));
 
-        // ── The north ─────────────────────────────────────────────────────────
         context.register(INFY_ICEFIELD, biome(context, true, -0.7F,  0.5F,  P_INFY));
         context.register(SAMI,          biome(context, true, -0.3F,  0.5F,  P_SAMI));
 
         context.register(URSUS_COLD,    biome(context, true, -0.1F,  0.7F,  P_URSUS_COLD));
-        // Above freezing, and dry: that low downfall is what makes it steppe, not forest.
+        // The low downfall is what makes it steppe, not forest.
         context.register(URSUS_DRY,     biome(context, true,  0.3F,  0.2F,  P_URSUS_DRY));
         context.register(URSUS_WARM,    biome(context, true,  0.4F,  0.7F,  P_URSUS_WARM));
 
-        // ── The range ─────────────────────────────────────────────────────────
         context.register(KJERAG,        biome(context, true, -0.6F,  0.5F,  P_KJERAG));
         // Colder than the slopes below it, so the summit keeps snow when Kjerag thaws.
         context.register(MOUNT_KARLAN,  biome(context, true, -0.9F,  0.4F,  P_KARLAN));
 
-        // ── The heartland and the west ────────────────────────────────────────
         context.register(KAZIMIERZ,     biome(context, true,  0.6F,  0.4F,  P_KAZIMIERZ));
-        // Columbia used to be the one biome with anything living in it — Originium Slugs,
-        // two to four at a time, at weight 40. That went when the slug was stripped back to
-        // a bare mob, so no biome in Terra has a natural spawn any more and this one takes
-        // the same no-spawns overload as every other. The two-argument form is still there
-        // and this is the call to give a Consumer back to when the wastes are repopulated.
         context.register(COLUMBIA,      biome(context, true,  0.45F, 0.8F,  P_COLUMBIA));
         context.register(IBERIA_LAND,   biome(context, true,  0.25F, 0.5F,  P_IBERIA));
 
-        // ── The east ──────────────────────────────────────────────────────────
         context.register(YAN,           biome(context, true,  0.1F,  0.7F,  P_YAN));
         context.register(HIGASHI_COLD,  biome(context, true,  0.0F,  0.8F,  P_HIGASHI_COLD));
         context.register(HIGASHI_WARM,  biome(context, true,  0.85F, 0.9F,  P_HIGASHI_WARM));
 
-        // ── The south ─────────────────────────────────────────────────────────
         context.register(KAZDEL,        biome(context, false, 1.6F,  0.0F,  P_KAZDEL));
 
-        // ── Not a climate ─────────────────────────────────────────────────────
         context.register(TEMPORARY_LAYER, biome(context, false, 0.7F, 0.5F, P_TEMPORARY));
     }
 
@@ -177,15 +141,13 @@ public class ModBiomes {
      * To populate one, add placed features to {@code generationBuilder} and spawner data
      * to {@code spawnBuilder}.
      *
-     * <p>For mobs specifically, use the overload below and see {@code docs/SPAWNING.md}: a
-     * spawner entry here is only half of a natural spawn, and the other half is a
-     * {@code SpawnPlacements} rule in {@code ModEntities}. Neither works alone and neither
-     * errors when the other is missing.
+     * <p>For mobs, use the overload below and see {@code docs/SPAWNING.md}: a spawner entry
+     * here is only half of a natural spawn, the other half being a {@code SpawnPlacements}
+     * rule in {@code ModEntities}. Neither works alone and neither errors when the other is
+     * missing.
      *
-     * @param temperature visual/behavioural temperature: below 0.15 water freezes and snow
-     *                    falls instead of rain. Nothing places the biome by this any more —
-     *                    the map does that — so it is purely how the zone behaves once you
-     *                    are standing in it.
+     * @param temperature below 0.15 water freezes and snow falls instead of rain. Nothing
+     *                    places the biome by this — the map does that.
      */
     private static Biome biome(BootstapContext<Biome> context, boolean hasPrecipitation,
                                float temperature, float downfall, Palette palette) {

@@ -30,29 +30,18 @@ import java.util.UUID;
 /**
  * The First to Talk — Sal Viento's miniboss, and the first thing down there that answers.
  *
- * <h2>What a miniboss is, in this mod</h2>
- * Mechanically it is a {@link BossMonster}: it has the bar, it never despawns, it cannot be
- * portalled out or shoved. What separates it from the two in {@code bosses/} is scale and
- * role — 120 health rather than 220 or 400, an ordinary melee fight rather than a
- * multi-phase one, and no progression item gated behind it. It is the fight that tells you
- * the dungeon has a floor beneath the one you are on, not the fight that ends it.
+ * <p>Mechanically a {@link BossMonster} — the bar, no despawn, no portalling or shoving. What
+ * separates it from the two in {@code bosses/} is scale and role: a smaller, single-phase
+ * fight with no progression item gated behind it. Hence its own package, which is a statement
+ * about where a mob sits in a movement rather than a flag or a subclass.
  *
- * <p>Hence its own package rather than a flag or a subclass. {@code minibosses/} is a
- * statement about where a mob sits in a movement, which is exactly what {@code bosses/}
- * and {@code mobs/} already are; adding a third tier costs one directory and no code.
+ * <p>At half health it speeds up. Deliberately small — a readable turn needing no new damage
+ * type, summons or second attack — and a placeholder for whatever a mob called The First to
+ * Talk should eventually do with its voice.
  *
- * <h2>The one thing it does</h2>
- * At half health it speeds up, to whatever {@code enragedMovementSpeed} says in
- * {@code config/priestess/miniboss.toml}. That is a deliberately small trick. It is a readable turn
- * that needs no new damage type, no summons and no second attack, and it leaves the interesting
- * half of the fight unspent: a mob called The First to Talk should eventually do something with
- * its voice, and this is a placeholder standing in that slot rather than filling it.
- *
- * <p>It is applied as an {@link AttributeModifier} and not by writing the base value, which used
- * to be the argument here — nothing removes it later, so a plain write was simpler. It cannot be
- * one any more: {@code EntityStats} rewrites base movement speed from the config every time this
- * joins the world, so a base write would be silently undone the first time its chunk reloaded.
- * A modifier sits on top of that and survives it, and saves and reloads for free.
+ * <p>The speed-up is an {@link AttributeModifier} rather than a base-value write, because
+ * {@code EntityStats} rewrites base movement speed from the config every time this joins the
+ * world; a base write would be undone the first time its chunk reloaded.
  */
 public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
 
@@ -62,9 +51,8 @@ public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
     private static final double BASE_SPEED = 0.26;
 
     /**
-     * Identifies the enrage's speed modifier, so the same one is never added twice and so it can
-     * be found again after a reload. Any fixed UUID does; this one was generated for the purpose
-     * and means nothing beyond being unique.
+     * Identifies the enrage's speed modifier, so it is never added twice and can be found again
+     * after a reload. Any fixed UUID does.
      */
     private static final UUID ENRAGE_SPEED_ID = UUID.fromString("6f2a1c84-9e33-4d1b-8a57-0c9d4f1e7b20");
 
@@ -78,11 +66,7 @@ public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
         this.xpReward = 120;
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/miniboss.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code MinibossStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code MinibossStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 120.0)
@@ -90,8 +74,8 @@ public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
                 .add(Attributes.ATTACK_DAMAGE, 9.0)
                 .add(Attributes.FOLLOW_RANGE, 40.0)
                 .add(Attributes.ARMOR, 4.0)
-                // Not 1.0. A miniboss should still flinch — full immunity is what marks the
-                // two real bosses out, and spending it here would flatten the difference.
+                // Not 1.0: a miniboss should still flinch. Full immunity is what marks the two
+                // real bosses out.
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.7);
     }
 
@@ -122,9 +106,8 @@ public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
 
         AttributeInstance speed = this.getAttribute(Attributes.MOVEMENT_SPEED);
         if (speed != null && speed.getModifier(ENRAGE_SPEED_ID) == null) {
-            // The difference from where it currently stands, so the total lands exactly on the
-            // configured enraged speed rather than on base plus some fixed bonus. Taken at the
-            // moment of enraging, which is the moment the number is meant to describe.
+            // The difference from where it stands, so the total lands exactly on the configured
+            // enraged speed rather than on base plus a fixed bonus.
             double delta = MinibossStats.FIRST_TO_TALK_ENRAGED_SPEED.get() - speed.getBaseValue();
             speed.addPermanentModifier(new AttributeModifier(ENRAGE_SPEED_ID, "Enraged",
                     delta, AttributeModifier.Operation.ADDITION));
@@ -135,12 +118,9 @@ public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
     }
 
     /**
-     * The enrage is derived from health, but the <em>flag</em> is not, so it has to be saved
-     * or a reload mid-fight replays the roar and re-applies a speed that is already applied.
-     *
-     * <p>This is the bug {@code docs/BOSSES.md} records against Jesselton, fixed here rather
-     * than repeated. His {@code announcedPhaseTwo} does not persist, so quitting and
-     * rejoining below half health gives him a second transition for free.
+     * The enrage is derived from health but the <em>flag</em> is not, so it has to be saved or
+     * a reload mid-fight replays the roar. This is the bug {@code docs/BOSSES.md} records
+     * against Jesselton, fixed here rather than repeated.
      */
     @Override
     public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
@@ -159,7 +139,7 @@ public class SvTheFirstToTalk extends BossMonster implements GeoEntity {
         }
     }
 
-    /** No controllers: the model has no animations yet. Same as every other GeckoLib mob here. */
+    /** No controllers: the model has no animations yet. */
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
     }

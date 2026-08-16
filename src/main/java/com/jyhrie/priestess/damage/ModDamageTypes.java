@@ -19,18 +19,12 @@ public class ModDamageTypes {
 
     public static final ResourceKey<DamageType> ORIPATHY = key("oripathy");
 
-    /**
-     * Jesselton's phase one: iron arts thrown across the cell block. Ordinary kinetic
-     * damage — armour is exactly what it is for, and buying that armour in the prison's
-     * riot-gear chests is the point of exploring it.
-     */
+    /** Jesselton's phase one: ordinary kinetic damage, which armour is exactly what it is for. */
     public static final ResourceKey<DamageType> SPECTRAL_ARTS = key("spectral_arts");
 
     /**
-     * Jesselton's phase two, and the Failed Vision's lasers. Armour-piercing: it is in the
-     * {@code minecraft:bypasses_armor} tag (see {@code ModDamageTypeTagsProvider}), which is
-     * the whole difference between the two phases — the gear that carried you through the
-     * first half stops helping halfway.
+     * Jesselton's phase two, and the Failed Vision's lasers. Its membership of
+     * {@code minecraft:bypasses_armor} is the whole difference between the two phases.
      */
     public static final ResourceKey<DamageType> VOID_ARTS = key("void_arts");
 
@@ -45,13 +39,11 @@ public class ModDamageTypes {
     }
 
     public static void bootstrap(BootstapContext<DamageType> context) {
-        // NEVER scaling: the infection does not care what difficulty you picked. No
-        // exhaustion either — it is lethal in one hit, there is no hunger cost to model.
-        // The message id drives the death message key: death.attack.oripathy.
+        // NEVER scaling: the infection does not care what difficulty you picked. The message
+        // id drives the death message key, death.attack.oripathy.
         context.register(ORIPATHY, new DamageType("oripathy", DamageScaling.NEVER, 0.0F, DamageEffects.HURT));
 
-        // The rest scale WHEN_CAUSED_BY_LIVING_NON_PLAYER, like every vanilla mob attack:
-        // these all come off a mob, so Hard should hurt more than Easy.
+        // The rest scale like every vanilla mob attack, so Hard hurts more than Easy.
         context.register(SPECTRAL_ARTS,
                 new DamageType("spectral_arts", DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0.1F));
         context.register(VOID_ARTS,

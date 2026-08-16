@@ -29,30 +29,22 @@ public class DvBionic extends GeoMonster {
         super(type, level);
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code MobStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code MobStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 60.0)
-                // Slower than a walking player, so it can always be disengaged from. Being
-                // unable to knock it back is only fair if you can leave.
+                // Slower than a walking player: being unable to knock it back is only fair if
+                // you can leave.
                 .add(Attributes.MOVEMENT_SPEED, 0.21)
                 .add(Attributes.ATTACK_DAMAGE, 9.0)
                 .add(Attributes.FOLLOW_RANGE, 32.0)
                 .add(Attributes.ARMOR, 8.0)
-                // Not 1.0. A boss is immovable; this is heavy — you can still shove it, you
-                // just cannot chain-stagger it the way you can a Failure.
+                // Not 1.0 — that is for bosses. Heavy, not immovable: you can shove it, you
+                // just cannot chain-stagger it.
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.6);
     }
 
-    /**
-     * Two Mediums, plus Looting — the only one of the three worth killing for the drop rather
-     * than because it is in the way. See {@link DvFailure#dropCustomDeathLoot} for why the drop
-     * is in code.
-     */
+    /** Two Mediums plus Looting. See {@link DvFailure#dropCustomDeathLoot} for why it is here. */
     @Override
     protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHitByPlayer) {
         super.dropCustomDeathLoot(source, looting, recentlyHitByPlayer);

@@ -5,21 +5,18 @@ import net.minecraftforge.common.ForgeConfigSpec;
 /**
  * The mod's server config — {@code serverconfig/priestess-server.toml} inside a world save.
  *
- * <p><b>SERVER, not COMMON.</b> Every value here decides what the server permits, so it has
- * to travel with the world rather than with the installation: a shared world and a
- * single-player world of the same pack should be able to disagree about whether progression
- * is shared, and a client must never be the one holding the answer.
+ * <p><b>SERVER, not COMMON</b>: every value here decides what the server permits, so it has to
+ * travel with the world rather than the installation, and a client must never be the one
+ * holding the answer.
  */
 public final class PriestessConfig {
 
     public static final ForgeConfigSpec SPEC;
 
-    // ── Dungeon lockdown ──────────────────────────────────────────────────────
 
     public static final ForgeConfigSpec.BooleanValue LOCKDOWN_ENABLED;
     public static final ForgeConfigSpec.BooleanValue SHARED_PROGRESS;
 
-    // ── Flight restriction ────────────────────────────────────────────────────
 
     public static final ForgeConfigSpec.BooleanValue FLIGHT_BAN_ENABLED;
     public static final ForgeConfigSpec.BooleanValue FLIGHT_BAN_EXEMPTS_CREATIVE;

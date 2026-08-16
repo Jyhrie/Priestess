@@ -13,25 +13,17 @@ import net.minecraft.world.level.Level;
  * The parts of being a boss that are the same for every boss: a bar at the top of the
  * screen, and not being something the world can quietly take away from you.
  *
- * <h2>What is in here, and what is deliberately not</h2>
- * Everything below is <em>mechanical</em> — true of any boss by definition, with no design
- * content to get wrong. That is the test for what belongs in this class.
+ * <p>Everything here is <em>mechanical</em> — true of any boss by definition. What is not here
+ * is the fight: there is no {@code tickBoss()} template and no phase machinery, because the
+ * bosses' tick loops share only a silhouette and a shared shape forced over them would grow
+ * flags to opt out of itself. Subclasses override {@link #customServerAiStep} and call
+ * {@code super}; that is the whole contract.
  *
- * <p>What is not here is the fight. There is no {@code tickBoss()} template method and no
- * phase machinery, because the bosses' tick loops share only a silhouette: Jesselton moves
- * and phases off his health, the Failed Vision cannot move at all and gates damage inside
- * {@code hurt}, and {@link DvAwaken} does nothing whatsoever. A shared shape forced over those
- * three would immediately grow flags to opt out of itself, which costs more than the
- * duplication it removes. Subclasses override {@link #customServerAiStep} and call
- * {@code super} — that is the whole contract.
+ * <p>The bar is named from the entity type, so it follows the language file. Progress is
+ * health by default; a boss whose bar should count something else overrides
+ * {@link #barProgress()} rather than writing to {@code bossEvent} from its own tick.
  *
- * <h2>The bar</h2>
- * Named from the entity type, so the bar follows the language file with nothing to keep in
- * sync. Progress is health by default; a boss whose bar should count something else first —
- * a phase gauge, a tally of parts still standing — overrides {@link #barProgress()} rather
- * than writing to {@code bossEvent} from its own tick.
- *
- * <h2>Adding a boss</h2>
+ * <p>Adding a boss:
  * <ol>
  *   <li>extend this, passing a bar colour and overlay to the constructor,</li>
  *   <li>write a {@code static AttributeSupplier.Builder attributes()} and register it in
@@ -43,11 +35,7 @@ import net.minecraft.world.level.Level;
  */
 public abstract class BossMonster extends Monster {
 
-    /**
-     * Protected rather than private: subclasses recolour it on a phase change, and hiding
-     * that behind a setter per property would be ceremony around a field they all legitimately
-     * own.
-     */
+    /** Protected because subclasses recolour it on a phase change. */
     protected final ServerBossEvent bossEvent;
 
     protected BossMonster(EntityType<? extends BossMonster> type, Level level,
@@ -58,10 +46,8 @@ public abstract class BossMonster extends Monster {
     }
 
     /**
-     * What the bar shows, in [0,1]. Health unless a subclass says otherwise.
-     *
-     * <p>Called once per tick from {@link #customServerAiStep}, so an override is the single
-     * place the bar is decided — there is no second path that can disagree with it.
+     * What the bar shows, in [0,1]. Called once per tick from {@link #customServerAiStep}, so
+     * an override is the single place the bar is decided.
      */
     protected float barProgress() {
         return this.getHealth() / this.getMaxHealth();
@@ -73,9 +59,8 @@ public abstract class BossMonster extends Monster {
         bossEvent.setProgress(barProgress());
     }
 
-    // ── Bar plumbing ──────────────────────────────────────────────────────────
-    // Vanilla calls these when a player starts and stops tracking the entity. The bar is
-    // not automatic; without them it never appears for anyone.
+    // The bar is not automatic: vanilla calls these when a player starts and stops tracking
+    // the entity, and without them it never appears for anyone.
 
     @Override
     public void startSeenByPlayer(ServerPlayer player) {
@@ -95,8 +80,6 @@ public abstract class BossMonster extends Monster {
         super.setCustomName(name);
         bossEvent.setName(this.getDisplayName());
     }
-
-    // ── Housekeeping ──────────────────────────────────────────────────────────
 
     /** A boss that despawns because nobody stood near it is a boss you can lose. */
     @Override

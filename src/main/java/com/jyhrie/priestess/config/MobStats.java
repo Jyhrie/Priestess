@@ -5,9 +5,8 @@ import net.minecraftforge.common.ForgeConfigSpec;
 /**
  * The trash mobs — {@code config/priestess/mob.toml}.
  *
- * <p>Twelve of them, grouped by dungeon in the order the chapter meets them, which is also the
- * order they appear in the file. This is the one of the four that is tuned as a <em>set</em>: a
- * dungeon's difficulty is the shape of its whole roster, not any single entry, so the file is
+ * <p>Grouped by dungeon in the order the chapter meets them. This is the one of the four tuned
+ * as a <em>set</em>: a dungeon's difficulty is the shape of its whole roster, so the file is
  * meant to be read top to bottom.
  *
  * <p>See {@link Stats} for the six keys, the bounds, and how any of this reaches a live entity.
@@ -48,7 +47,6 @@ public final class MobStats {
         ORIGINIUM_SLUG = block(builder, 8.0, 0.32, 2.0, 24.0, 0.0, 0.0);
         builder.pop();
 
-        // ── Dorothy's Vision ──────────────────────────────────────────────────
 
         builder.push("dv_failure");
         DV_FAILURE = block(builder, 24.0, 0.30, 4.0, 24.0, 0.0, 0.0);
@@ -62,7 +60,6 @@ public final class MobStats {
         DV_BIONIC = block(builder, 60.0, 0.21, 9.0, 32.0, 8.0, 0.6);
         builder.pop();
 
-        // ── Mansfield Break ───────────────────────────────────────────────────
 
         builder.push("mb_imprisoned_pugilist");
         MB_IMPRISONED_PUGILIST = block(builder, 22.0, 0.25, 4.0, 32.0, 1.0, 0.0);
@@ -84,7 +81,6 @@ public final class MobStats {
                 .defineInRange("arrowDamage", 3.0, 0.0, Stats.DAMAGE_LIMIT);
         builder.pop();
 
-        // ── Under Tides ───────────────────────────────────────────────────────
 
         builder.push("sv_crawler");
         SV_CRAWLER = block(builder, 12.0, 0.31, 3.0, 20.0, 1.0, 0.0);

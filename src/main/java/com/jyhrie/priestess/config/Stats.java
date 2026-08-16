@@ -18,21 +18,14 @@ import java.util.function.BooleanSupplier;
  * the act of writing them onto a live entity — is here, so the four files stay a list of numbers
  * and nothing else.
  *
- * <h2>Why four files</h2>
- * They are read at different times by different people. Boss health is tuned while designing a
- * fight; mob health is tuned while pacing a dungeon; weapon damage is tuned against both. One
- * six-hundred-line file made every one of those edits a scroll through the other two. The split
- * costs four {@code registerConfig} calls in {@link com.jyhrie.priestess.Priestess} and nothing
- * else — Forge tracks configs by filename, so a mod may register as many as it likes, and a
- * filename containing a directory is created for it ({@code ConfigFileTypeHandler.setupConfigFile}
- * calls {@code Files.createDirectories} on the parent).
+ * <p>Four files rather than one because they are read at different times by different people.
+ * The split costs four {@code registerConfig} calls and nothing else — Forge tracks configs by
+ * filename and creates a filename's parent directory for it.
  *
- * <h2>Bounds</h2>
- * Vanilla's own limits for each attribute, so nothing configured can be silently clamped later
- * by the attribute itself — {@code AttributeInstance.calculateValue} ends by passing the total
- * through {@code Attribute.sanitizeValue}, which is a clamp, so a config value past the ceiling
- * is not a bigger number but an invisible one. Movement speed is the single exception: vanilla
- * allows 1024, which is not a speed so much as a teleport.
+ * <p>The bounds are vanilla's own limits for each attribute, so nothing configured is silently
+ * clamped later: {@code AttributeInstance.calculateValue} ends by passing the total through
+ * {@code Attribute.sanitizeValue}, so a value past the ceiling is not a bigger number but an
+ * invisible one. Movement speed is the exception — vanilla allows 1024, which is a teleport.
  */
 public final class Stats {
 
@@ -43,11 +36,7 @@ public final class Stats {
     static final double ARMOUR_LIMIT = 30.0;
     static final double FRACTION_LIMIT = 16.0;
 
-    /**
-     * The header every one of the three creature files carries, so the six keys are explained
-     * once per file rather than once per mob. Sixteen mobs times six identical comments is a
-     * config nobody reads.
-     */
+    /** The header every creature file carries, so the six keys are explained once per file. */
     static final String[] ATTRIBUTE_KEYS = {
             "Each table below takes the same six keys:",
             "",
@@ -80,8 +69,8 @@ public final class Stats {
     }
 
     /**
-     * The six attributes, in one table. The caller has already pushed the table and pops it
-     * afterwards, so ability keys declared around this call land beside these.
+     * The caller has already pushed the table and pops it afterwards, so ability keys declared
+     * around this call land beside these.
      */
     static Block attributes(ForgeConfigSpec.Builder builder, BooleanSupplier loaded,
                             double health, double speed, double damage,
@@ -99,27 +88,23 @@ public final class Stats {
                          double damage, double speed) {
         return new Weapon(loaded, damage, speed,
                 builder.defineInRange("attackDamage", damage, 0.0, DAMAGE_LIMIT),
-                // Negative, and allowed positive for anyone who wants a weapon that swings
-                // faster than a bare fist. The floor is where attack speed reaches zero and the
-                // swing never recovers.
+                // The floor is where attack speed reaches zero and the swing never recovers.
                 builder.defineInRange("attackSpeed", speed, -3.9, 16.0));
     }
 
     /**
      * One creature's six attributes, and the ability to write them onto an entity.
      *
-     * <p>Base values rather than modifiers: this is what the thing <em>is</em>, so there is
-     * nothing to remove later and nothing that should compose with a second source. Runtime
-     * effects that change a stat — the miniboss enraging, say — use modifiers on top, which is
-     * what keeps them from being erased the next time this runs.
+     * <p>Base values rather than modifiers, because this is what the thing <em>is</em>. Runtime
+     * effects that change a stat use modifiers on top, which is what keeps them from being
+     * erased the next time this runs.
      */
     public static final class Block {
 
         /**
-         * Whether the owning file has been read. Each of the four configs loads independently,
-         * so a {@code Block} has to be able to answer for its own — and
-         * {@code ForgeConfigSpec.ConfigValue.get()} throws rather than returning a default if it
-         * is asked too early.
+         * Whether the owning file has been read. The four configs load independently, and
+         * {@code ForgeConfigSpec.ConfigValue.get()} throws rather than returning a default if
+         * asked too early.
          */
         private final BooleanSupplier loaded;
 
@@ -148,13 +133,11 @@ public final class Stats {
 
         /**
          * Overwrites the entity's base attributes with the configured ones. A no-op if the
-         * owning file has not been read, which leaves the compiled attributes standing — a
-         * working creature, and the right answer in the absence of a config.
+         * owning file has not been read, which leaves the compiled attributes standing.
          *
-         * <p>Health is carried across as a <em>fraction</em>. A boss reloaded at a third of its
-         * health comes back at a third of whatever the new maximum is — not healed to full,
-         * which would make unloading a chunk a way to reset a fight, and not left holding a
-         * number the new maximum cannot contain.
+         * <p>Health carries across as a <em>fraction</em>, so a boss reloaded at a third of its
+         * health comes back at a third of the new maximum. Healing to full would make unloading
+         * a chunk a way to reset a fight.
          */
         public void applyTo(LivingEntity entity) {
             if (!loaded.getAsBoolean()) {
@@ -177,10 +160,9 @@ public final class Stats {
         }
 
         /**
-         * Null-checked because not every attribute exists on every living thing — {@code
-         * ATTACK_DAMAGE} and {@code FOLLOW_RANGE} come from {@code Monster} and {@code Mob}
-         * rather than from {@code LivingEntity}, so a creature that stopped being a Monster
-         * would otherwise take this down with it.
+         * Null-checked because not every attribute exists on every living thing:
+         * {@code ATTACK_DAMAGE} and {@code FOLLOW_RANGE} come from {@code Monster} and
+         * {@code Mob} rather than {@code LivingEntity}.
          */
         private static void setBase(LivingEntity entity, Attribute attribute, double value) {
             AttributeInstance instance = entity.getAttribute(attribute);
@@ -191,14 +173,10 @@ public final class Stats {
     }
 
     /**
-     * One weapon's damage and swing speed.
-     *
-     * <p>Both are readable two ways. {@link #defaultAttackDamage()} and
-     * {@link #defaultAttackSpeed()} are the compiled-in numbers, needed by the item constructor,
-     * which runs during registration and may well beat the config file to it.
-     * {@link #attackDamage()} and {@link #attackSpeed()} are the configured ones, and fall back
-     * to the compiled numbers if they are asked before the file has been read — which is exactly
-     * that registration window, so the fallback is not theoretical.
+     * One weapon's damage and swing speed, readable two ways. The {@code default*} accessors
+     * give the compiled-in numbers, needed by the item constructor, which runs during
+     * registration and may beat the config file to it. The others give the configured numbers
+     * and fall back to the compiled ones inside that same window.
      */
     public static final class Weapon {
 

@@ -26,34 +26,20 @@ import java.util.UUID;
 /**
  * The shared body of Devil's Devastation's two projectiles.
  *
- * <p>In Lethality the scythe and the pitchfork are two 190-line files that differ in four
- * numbers. They are one class here for the same reason {@code GeoMonster} exists: the
- * behaviour is the interesting part and it should have exactly one copy.
+ * <p>In Lethality the scythe and the pitchfork are two files that differ in four numbers.
  *
- * <h2>How it hits</h2>
- * Not through {@code onHitEntity} — that fires once, on one target, and these are meant to
- * cut through a crowd. Instead every tick it walks a 200° arc of thirty sample points on a
- * one-block radius around itself and damages everything near each one. The arc is oriented by
- * the projectile's own yaw and pitch, so it sweeps as a blade rather than a sphere.
+ * <p>It does not hit through {@code onHitEntity}, which fires once on one target — these are
+ * meant to cut through a crowd. Every tick it walks a 200° arc of sample points around itself,
+ * oriented by its own yaw and pitch so it sweeps as a blade rather than a sphere.
+ * {@link #alreadyHit} makes that a <em>pierce</em> rather than a blender. Thirty AABB queries
+ * per tick per projectile is why these get a short, hard life rather than a long flight.
  *
- * <p>{@link #alreadyHit} is what makes it a <em>pierce</em> rather than a blender: a target
- * is damaged once by a given projectile and then ignored for the rest of its life, however
- * many sample points sweep over it. Five projectiles per swing still means a target can take
- * up to five hits from one swing, which is the intended burst.
+ * <p>There is no collision and no timeout: it flies straight, then decays, and crossing two
+ * speed thresholds detonates and discards it. Terrain is not consulted — these pass through
+ * walls deliberately.
  *
- * <p>The sweep costs thirty AABB queries per tick per projectile, so a full swing is around a
- * hundred and fifty. That is survivable for something that lives under a second, and it is
- * the reason these projectiles are given a hard, short life rather than a long flight.
- *
- * <h2>How it dies</h2>
- * There is no collision and no timeout. It flies straight for ten ticks, then decays its
- * velocity by 20% a tick; crossing one speed threshold sprays the burst of particles and
- * crossing a lower one discards it. Terrain is not consulted at all — these pass through
- * walls, which is deliberate.
- *
- * <p>Note this never calls {@code super.tick()}. {@link AbstractHurtingProjectile} is
- * inherited for its spawn packet and owner tracking, not its movement; position is stepped by
- * hand below.
+ * <p>This never calls {@code super.tick()}. {@link AbstractHurtingProjectile} is inherited for
+ * its spawn packet and owner tracking, not its movement; position is stepped by hand below.
  */
 public abstract class DevilsProjectile extends AbstractHurtingProjectile implements GeoEntity {
 
@@ -81,12 +67,8 @@ public abstract class DevilsProjectile extends AbstractHurtingProjectile impleme
     private static final double DISCARD_SPEED_SQR = 0.18;
 
     /**
-     * The trail and burst particle.
-     *
-     * <p>Substituted. Lethality uses its own {@code forbidden_glint}, which is a registered
-     * particle type with a client factory and a texture sheet behind it — three more files and
-     * a registry for something that is set dressing. Soul fire flame is the closest vanilla
-     * read: dark, cold-burning, and it does not look like a torch.
+     * Substituted for Lethality's own {@code forbidden_glint}, which needs a registered
+     * particle type, a client factory and a texture sheet for something that is set dressing.
      */
     private static final ParticleOptions TRAIL_PARTICLE = ParticleTypes.SOUL_FIRE_FLAME;
 
@@ -157,12 +139,10 @@ public abstract class DevilsProjectile extends AbstractHurtingProjectile impleme
     }
 
     /**
-     * Damages everything along the swept arc that this projectile has not hit yet.
-     *
-     * <p>The three unit-vector components below rotate a circle in the projectile's local
-     * plane out into world space by its yaw and pitch. The {@code +90} offsets and the sign
-     * flips are what stand the circle up edge-on to the direction of travel — read as a
-     * rotation matrix rather than as trigonometry with meaning of its own.
+     * The three unit-vector components below rotate a circle in the projectile's local plane
+     * out into world space by its yaw and pitch; the {@code +90} offsets and sign flips stand
+     * that circle edge-on to the direction of travel. Read it as a rotation matrix rather than
+     * as trigonometry with meaning of its own.
      */
     private void sweepForTargets(Level level) {
         double yaw = Math.toRadians(this.getYRot() + 90.0);
@@ -208,14 +188,12 @@ public abstract class DevilsProjectile extends AbstractHurtingProjectile impleme
         }
     }
 
-    // ── Plumbing ──────────────────────────────────────────────────────────────
-
     @Override
     protected void defineSynchedData() {
-        // Nothing is synced. Damage is server-only and position comes from entity tracking.
+        // Damage is server-only and position comes from entity tracking.
     }
 
-    /** Always rendered: it is small, short-lived, and popping out of view mid-flight reads as a bug. */
+    /** Always rendered: popping out of view mid-flight reads as a bug. */
     @Override
     public boolean shouldRender(double camX, double camY, double camZ) {
         return true;

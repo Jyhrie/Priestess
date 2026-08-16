@@ -19,22 +19,18 @@ import org.jetbrains.annotations.Nullable;
 /**
  * You cannot mine a block that belongs to a dungeon you have not finished.
  *
- * <h2>One rule</h2>
- * A break is refused if the block is in an uncleared dungeon's
- * {@linkplain Dungeon#sealedBlocks() tag}, wherever in the world it stands. That is the whole
- * of it — <b>a dungeon has no sealed area</b>. Sealing the structure instead was tried and
- * removed: it gates a <em>region</em>, so it catches the generator's backfill and every pipe,
- * door and fitting inside the build along with the walls that are actually the gate. Tagging
- * the build set gates exactly the blocks meant to be a wall, leaves the rest of a dungeon's
- * furniture mineable, follows the blocks wherever a later build puts them, and is a datapack
- * file — so growing a gate is JSON, not code.
+ * <p>One rule: a break is refused if the block is in an uncleared dungeon's
+ * {@linkplain Dungeon#sealedBlocks() tag}, wherever it stands — <b>a dungeon has no sealed
+ * area</b>. Sealing the structure was tried and removed, because gating a <em>region</em>
+ * catches the generator's backfill and every pipe and fitting inside the build. Tagging the
+ * build set gates exactly the walls, follows them wherever a later build puts them, and is a
+ * datapack file.
  *
- * <p>Placing is untouched, and the rule does not ask who put a block there. That costs
- * something: a gated block a player places is one they cannot take back until the dungeon is
- * cleared. The alternative is tracking every position a player has built on, which is
- * persistent state to keep correct against creepers, pistons and water.
+ * <p>Placing is untouched and the rule does not ask who put a block there, so a gated block a
+ * player places is one they cannot take back until the dungeon is cleared. The alternative is
+ * tracking every position a player has built on, against creepers, pistons and water.
  *
- * <h2>Three events</h2>
+ * <p>Three events:
  * <ul>
  *   <li>{@link PlayerInteractEvent.LeftClickBlock} — the refusal. Cancelling stops the dig
  *       before it starts, and it is the only one that reliably fires for a sealed block, so
@@ -106,8 +102,6 @@ public final class DungeonLockdown {
         }
     }
 
-    // ── Clearing ──────────────────────────────────────────────────────────────
-
     /** A boss dying clears the dungeon it belongs to. */
     @SubscribeEvent
     public static void onBossDeath(LivingDeathEvent event) {
@@ -123,9 +117,8 @@ public final class DungeonLockdown {
     }
 
     /**
-     * Picking up the right item clears a dungeon with no boss in it. Rhine Lab is the only
-     * one — it ends in a chest, so the Blueprint leaving the floor is the only moment that
-     * unambiguously means "done".
+     * Picking up the right item clears a dungeon with no boss in it — Rhine Lab ends in a
+     * chest, so the Blueprint leaving the floor is the only unambiguous "done".
      */
     @SubscribeEvent
     public static void onItemPickup(PlayerEvent.ItemPickupEvent event) {
@@ -142,8 +135,6 @@ public final class DungeonLockdown {
             }
         }
     }
-
-    // ── Internals ─────────────────────────────────────────────────────────────
 
     /**
      * The uncleared dungeon whose tag {@code state} is in, or null if the break is allowed.

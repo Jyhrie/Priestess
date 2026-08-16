@@ -18,18 +18,11 @@ import net.minecraft.world.level.Level;
  * health is two hits with an iron sword; eleven damage is most of an unarmoured player's
  * bar.
  *
- * <h2>It does not actually pierce yet</h2>
- * The name promises armour-piercing and this delivers raw damage instead — armour reduces
- * it like anything else. Making it literal is a damage type in the
- * {@code minecraft:bypasses_armor} tag, exactly as {@code void_arts} is for Jesselton's
- * second phase, plus an override of {@code doHurtTarget} to use it. That was left out
- * deliberately rather than forgotten: a new damage type comes with a death message and a
- * name for the thing doing the piercing, and naming it is a design call rather than a
- * wiring one. Until then this is a mob that hits hard, not a mob that ignores your gear.
- *
- * <p>Note that the fix is not free balance-wise. Eleven armour-piercing damage would be the
- * hardest hit in the mod by a wide margin; the number should come down when the tag
- * goes on.
+ * <p><b>It does not actually pierce yet.</b> Armour reduces its damage like anything else.
+ * Making it literal means a damage type in the {@code minecraft:bypasses_armor} tag plus an
+ * override of {@code doHurtTarget} — left out because naming that damage type is a design
+ * call. The attack damage should come down when the tag goes on; eleven armour-piercing would
+ * be the hardest hit in the mod by a wide margin.
  */
 public class SvPiercer extends GeoMonster {
 
@@ -37,15 +30,10 @@ public class SvPiercer extends GeoMonster {
         super(type, level);
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code MobStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code MobStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
-                // Deliberately frail. See the class note — this is meant to be a threat you
-                // answer by killing it first, not one you out-tank.
+                // Frail on purpose: a threat you answer by killing it first, not out-tanking.
                 .add(Attributes.MAX_HEALTH, 16.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.28)
                 .add(Attributes.ATTACK_DAMAGE, 11.0)

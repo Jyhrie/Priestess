@@ -8,17 +8,13 @@ import net.minecraft.world.entity.Entity;
 /**
  * The one model class every non-humanoid placeholder in this mod uses.
  *
- * <p>It is a bag of cubes with an optional hover, and that is all it will ever be. The
- * mobs it draws are stand-ins; giving each of them a hand-written model with real
- * animation would be several hundred lines of work thrown away the moment somebody makes
- * actual art. What is worth having now is a distinct silhouette per mob — which comes from
- * the {@link net.minecraft.client.model.geom.builders.LayerDefinition} in
- * {@link PriestessModelLayers}, not from this class — and something that visibly moves for
- * the ones that fly, so a hovering drone does not read as a floating block.
+ * <p>A bag of cubes with an optional hover, and that is all it will ever be — the mobs it
+ * draws are stand-ins. The silhouette comes from the
+ * {@link net.minecraft.client.model.geom.builders.LayerDefinition} in
+ * {@link PriestessModelLayers} rather than from this class.
  *
- * <p>Humanoid mobs deliberately do <em>not</em> come through here: they use vanilla's
+ * <p>Humanoid mobs do <em>not</em> come through here: they use vanilla's
  * {@code HumanoidModel} on the zombie layer, which already walks, swings and looks around.
- * Reimplementing that badly would be the worst of both worlds.
  */
 public class PriestessEntityModel<T extends Entity> extends HierarchicalModel<T> {
 

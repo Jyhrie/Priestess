@@ -18,11 +18,11 @@ import java.util.concurrent.CompletableFuture;
  * slot it goes in.</b> The item is listed in {@code curios:module}, and the "tag" validator on
  * the Module slot does the rest.
  *
- * <p>This is the step that actually makes a curio wearable, and the one that fails quietly —
- * skip it and the item registers, renders, and stacks in the inventory forever.
+ * <p>This is the step that makes a curio wearable, and the one that fails quietly — skip it and
+ * the item registers, renders, and stacks in the inventory forever.
  *
- * <p>Takes the block tag provider's contents because {@code ItemTagsProvider} can copy a block
- * tag into an item tag, and it has to be able to resolve one to do so. Nothing copies one yet.
+ * <p>It takes the block tag provider's contents because {@code ItemTagsProvider} can copy a
+ * block tag into an item tag and has to resolve one to do so. Nothing copies one yet.
  */
 public class ModItemTagsProvider extends ItemTagsProvider {
 

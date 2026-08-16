@@ -13,54 +13,38 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Where a one-per-world structure goes: somewhere inside a named region, chosen from the
- * world seed.
+ * world seed. Every save puts Mansfield somewhere different, and every save puts it in
+ * Columbia.
  *
- * <h2>What "one per world, anywhere in the biome" means here</h2>
- * The dungeon is not at a coordinate this mod ships. It is at a coordinate this class
- * <em>derives</em>, from two things: the region map, which says where the biome physically
- * is, and the world seed, which picks a spot within it. So every save puts Mansfield
- * somewhere different, and every save puts it in Columbia.
- *
- * <p>That is a deliberate exception to Terra's usual rule. The map is seed-independent on
- * purpose — the continent is the same continent in every world — but a landmark is not
- * geography, and a prison that is in the same field in everybody's world is a wiki
+ * <p>That is a deliberate exception to Terra's seed-independence — the continent is the same
+ * in every world, but a landmark that is in the same field in everybody's world is a wiki
  * coordinate rather than a thing you find.
  *
- * <h2>Candidates</h2>
- * The map is sampled on a coarse grid, and a point survives only if it is in the region,
- * above the shore band, <em>and</em> has eight neighbours one step out that are also both.
- * That last test is not tidiness. A structure whose chunk lands just outside the region
- * fails its biome check when the chunk generates and simply does not appear — and a
- * missing dungeon looks exactly like a bug in the placement code rather than like a spot
- * that was two hundred blocks too close to the coast.
- *
- * <h2>Cost</h2>
- * The candidate scan is the whole map and runs once per region, at runtime, the first time
- * a structure asks — so it happens during world creation and not during play. The result is
- * cached; so is the per-seed choice on top of it. Both caches are keyed on immutable data
- * and are safe to hit from the several threads worldgen runs on.
+ * <p>The candidate scan runs the whole map, once per region, the first time a structure asks
+ * — so during world creation, not during play. Both caches are keyed on immutable data and
+ * safe to hit from the several threads worldgen runs on.
  */
 public final class TerraAnchors {
 
     private static final Logger LOG = LogUtils.getLogger();
 
     /**
-     * Grid spacing for the candidate scan, in blocks. 256 is sixteen chunks: fine enough
-     * that a region the size of Columbia still offers hundreds of distinct spots, coarse
-     * enough that scanning Terra is tens of thousands of samples rather than millions.
+     * Grid spacing for the candidate scan, in blocks. Sixteen chunks: fine enough that a
+     * region the size of Columbia still offers hundreds of spots, coarse enough that
+     * scanning Terra is tens of thousands of samples rather than millions.
      */
     private static final int SAMPLE_STEP = 256;
 
     /**
-     * Slots at or above this count as dry land. {@link TerraSlot#SHORE} is deliberately
-     * excluded — its band straddles the waterline, so half of it is surf.
+     * Slots at or above this count as dry land. {@link TerraSlot#SHORE} is excluded because
+     * its band straddles the waterline, so half of it is surf.
      */
     private static final TerraSlot MINIMUM_LAND = TerraSlot.LOWLAND;
 
     /**
-     * How far apart two structures in the same region have to be, in blocks. Far enough
-     * that finding one tells you nothing about where the next is, and that their bounding
-     * boxes cannot argue with each other.
+     * How far apart two structures in the same region have to be, in blocks. Far enough that
+     * finding one tells you nothing about where the next is, and that their bounding boxes
+     * cannot argue with each other.
      */
     private static final int MINIMUM_SEPARATION = 1_024;
 
@@ -76,16 +60,13 @@ public final class TerraAnchors {
 
     /**
      * {@code count} chunk positions inside {@code region}, chosen for this world and stable
-     * for as long as it has this seed.
+     * for as long as it has this seed. The same arguments always return the same list, which
+     * is what lets a {@code StructurePlacement} answer "is this my chunk?" consistently
+     * across the many threads that ask it.
      *
-     * <p>The same call with the same arguments always returns the same list, which is what
-     * lets a {@code StructurePlacement} answer "is this my chunk?" consistently across the
-     * many threads that ask it.
-     *
-     * @throws IllegalStateException if the region has no interior at all. That is a map
-     *         problem — a region painted too thin or too wet to hold a building — and it
-     *         has to be loud, because the alternative is a chapter whose dungeons quietly
-     *         do not exist.
+     * @throws IllegalStateException if the region has no interior at all — a map problem that
+     *         has to be loud, because the alternative is a chapter whose dungeons quietly do
+     *         not exist.
      */
     public static List<ChunkPos> forWorld(long seed, TerraRegion region, int count) {
         return CHOSEN.computeIfAbsent(new SeededKey(seed, region, count), key -> choose(key));
@@ -101,8 +82,7 @@ public final class TerraAnchors {
                     key.region(), key.count()));
         }
 
-        // Seeded off the world seed and the region, so two regions do not draw the same
-        // sequence and a given world always lays its dungeons out the same way.
+        // Mixed with the region so two regions do not draw the same sequence.
         RandomSource random = RandomSource.create(key.seed() ^ ((long) key.region().ordinal() << 40));
 
         List<Sample> chosen = new ArrayList<>(key.count());
@@ -114,9 +94,8 @@ public final class TerraAnchors {
         for (Sample sample : chosen) {
             anchors.add(new ChunkPos(sample.blockX() >> 4, sample.blockZ() >> 4));
         }
-        // Logged because there is no other way to find out. /locate only searches a hundred
-        // chunks or so, and one of these can be thousands away; the server log is the only
-        // place the coordinates exist.
+        // /locate only searches a hundred chunks or so and one of these can be thousands
+        // away, so the server log is the only place the coordinates exist.
         LOG.info("Terra anchors in {} for seed {}: {} candidates, chose {}",
                 key.region(), key.seed(), candidates.size(),
                 anchors.stream().map(pos -> "(" + pos.getMiddleBlockX() + ", " + pos.getMiddleBlockZ() + ")").toList());
@@ -125,13 +104,10 @@ public final class TerraAnchors {
 
     /**
      * A candidate at random, retried until it clears {@link #MINIMUM_SEPARATION} from
-     * everything already picked.
-     *
-     * <p>Rejection sampling rather than filtering the whole list: the list is hundreds of
-     * entries and almost every draw succeeds on the first try, so filtering would do far
-     * more work to reach the same answer. After {@link #PLACEMENT_ATTEMPTS} failures it
-     * takes whatever it drew — in a region too cramped to satisfy the rule, two dungeons
-     * closer together than intended is a far better outcome than one that never generates.
+     * everything already picked. Rejection sampling beats filtering the list because almost
+     * every draw succeeds first try. After {@link #PLACEMENT_ATTEMPTS} failures it takes
+     * what it drew — in a cramped region, two dungeons too close together beats one that
+     * never generates.
      */
     private static Sample pickApartFrom(List<Sample> candidates, List<Sample> taken, RandomSource random) {
         Sample fallback = candidates.get(random.nextInt(candidates.size()));
@@ -157,16 +133,10 @@ public final class TerraAnchors {
     }
 
     /**
-     * Every spot in the region a structure could stand on, strictest first. Runs once per
-     * region.
-     *
-     * <p>Three standards are collected in one pass and the best non-empty one wins:
-     * interior land, then any land, then any ground at all. The ladder exists because a
-     * region does not have to be the size of Columbia. A region painted specifically to
-     * hold one dungeon — which is where this is going — can easily be narrower than two
-     * sample steps, at which point the eight-neighbour interior test rejects every pixel of
-     * it and the strict answer is "nowhere". Relaxing and saying so is right; refusing to
-     * place a structure in the region that was painted for it is not.
+     * Every spot in the region a structure could stand on, strictest first: interior land,
+     * then any land, then any ground at all. The ladder exists because a region painted to
+     * hold one dungeon can be narrower than two sample steps, at which point the interior
+     * test rejects every pixel of it.
      */
     private static List<Sample> scan(TerraRegion region) {
         TerraMap map = TerraMap.get();
@@ -215,8 +185,10 @@ public final class TerraAnchors {
 
     /**
      * In the region, on dry land, and surrounded on all eight sides by ground that is also
-     * both — one sample step out, which is comfortably more than the map's domain warp can
-     * move a border.
+     * both. A structure whose chunk lands just outside the region fails its biome check and
+     * simply does not appear, which looks like a bug rather than like a spot two hundred
+     * blocks too close to the coast. One sample step out is comfortably more than the map's
+     * domain warp can move a border.
      */
     private static boolean isInterior(TerraMap map, TerraRegion region, int blockX, int blockZ) {
         for (int dz = -1; dz <= 1; dz++) {

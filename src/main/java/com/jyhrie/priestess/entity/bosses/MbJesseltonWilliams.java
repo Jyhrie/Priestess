@@ -30,27 +30,12 @@ import net.minecraft.world.level.Level;
  * took Mansfield in the assimilated universe, projected into this one by the effigy standing
  * in his cell block. The first boss of Movement I, Columbia: Those who Take the Future.
  *
- * <p>The distinction matters for how the fight reads. Nothing here died in Mansfield: the
- * projector reaches sideways rather than backwards, and what it pulls through is a living
- * man who won, wearing the confidence of a version of events the player never got. The
- * dog tags that wake the effigy are this world's Jesselton, and they are the anchor it
- * aims with.
+ * <p>Two phases, different in kind. The prison hands out riot gear on the way in, so phase one
+ * answers "was that armour worth carrying" — ordinary kinetic damage every looted point
+ * subtracts from. At half health he switches to {@code priestess:void_arts}, which sits in the
+ * {@code minecraft:bypasses_armor} tag, so that armour does nothing for the second half.
  *
- * <h2>Two phases, and why they are different in kind</h2>
- * The prison hands out riot gear on the way in, so the fight has to answer the question
- * "was that armour worth carrying". Phase one says yes: iron arts thrown across the cell
- * block, heavy but ordinary kinetic damage, and every point of armour you looted subtracts
- * from it.
- *
- * <p>At half health he stops caring. Phase two is {@code priestess:void_arts}, which sits in
- * the {@code minecraft:bypasses_armor} tag, so the armour that carried the first half of the
- * fight does nothing for the second. He used to pull the dead inmates out of their cells to
- * swarm you as well; that went with the Imprisoned Shadow, and phase two is currently the
- * damage-type change on its own.
- *
- * <p>He is knockback-immune by attribute rather than by a special case in {@code hurt} —
- * what stands in the room is a projection with no mass to shove, and the difference the
- * player notices is that a shield bash moves everything in the cell block except him.
+ * <p>Knockback immunity is an attribute rather than a special case in {@code hurt}.
  */
 public class MbJesseltonWilliams extends BossMonster {
 
@@ -71,20 +56,13 @@ public class MbJesseltonWilliams extends BossMonster {
         this.xpReward = 250;
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/boss.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code BossStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code BossStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 220.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.28)
                 .add(Attributes.ATTACK_DAMAGE, 8.0)
                 .add(Attributes.FOLLOW_RANGE, 48.0)
-                // Some armour, but not much: phase one is meant to be survivable in gear and
-                // phase two is meant to ignore gear, so his own armour is not where the
-                // difficulty lives.
                 .add(Attributes.ARMOR, 6.0)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1.0);
     }
@@ -106,12 +84,11 @@ public class MbJesseltonWilliams extends BossMonster {
 
     @Override
     protected void customServerAiStep() {
-        // super drives the boss bar off barProgress() — health, in his case.
         super.customServerAiStep();
 
-        // Anchored to wherever the prison generated him, on his first server tick. Structures
-        // place entities directly rather than through finalizeSpawn, so there is no spawn hook
-        // to do this in — and without it he can be walked out of the dungeon and lost.
+        // Anchored on his first server tick, because structures place entities directly rather
+        // than through finalizeSpawn — so there is no spawn hook to do it in, and without this
+        // he can be walked out of the dungeon and lost.
         if (!this.hasRestriction()) {
             this.restrictTo(this.blockPosition(), HOME_RADIUS);
         }
@@ -133,9 +110,8 @@ public class MbJesseltonWilliams extends BossMonster {
     }
 
     /**
-     * The arts themselves. Both phases use the same hitscan beam and differ only in the
-     * damage type, which is the entire design: the attack looks the same and stops being
-     * something armour can answer.
+     * Both phases use the same hitscan beam and differ only in damage type, which is the whole
+     * design: the attack looks the same and stops being something armour can answer.
      */
     private void castArts(LivingEntity target) {
         if (rangedCooldown > 0 || this.distanceToSqr(target) > RANGED_RANGE * RANGED_RANGE) {
@@ -156,14 +132,7 @@ public class MbJesseltonWilliams extends BossMonster {
         this.playSound(SoundEvents.EVOKER_CAST_SPELL, 1.0F, isPhaseTwo() ? 0.6F : 1.0F);
     }
 
-    /**
-     * The turn, which is now a damage-type change and a sound and nothing else.
-     *
-     * <p>It used to also pull the dead inmates out of their cells; that half went with the
-     * Imprisoned Shadow. What is left still works as a phase — the beam stops being
-     * something armour answers — but it is thinner than it was, and the swarm is the obvious
-     * place to put whatever replaces it.
-     */
+    /** A damage-type change and a sound. The inmate swarm that went with it is unreplaced. */
     private void enterPhaseTwo() {
         announcedPhaseTwo = true;
         bossEvent.setColor(BossEvent.BossBarColor.RED);
@@ -171,17 +140,14 @@ public class MbJesseltonWilliams extends BossMonster {
     }
 
     /**
-     * The Master Key is dropped here rather than from a loot table because it is the gate
-     * on the rest of the chapter: exactly one, every time, regardless of Looting, difficulty
-     * or whether the kill rolled anything else.
+     * Dropped in code rather than from a loot table because it gates the rest of the chapter:
+     * exactly one, every time, regardless of Looting or difficulty.
      */
     @Override
     protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHitByPlayer) {
         super.dropCustomDeathLoot(source, looting, recentlyHitByPlayer);
         this.spawnAtLocation(new ItemStack(ModItems.MANSFIELD_MASTER_KEY.get()));
     }
-
-    // The boss bar, the despawn rules and the push rules are all BossMonster's.
 
     @Override
     protected SoundEvent getAmbientSound() {

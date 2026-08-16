@@ -156,10 +156,16 @@ placement.
 
 - Mod metadata (id, name, version, description) lives in **`gradle.properties`**; `mods.toml`
   reads it via `${...}` substitution. Edit `gradle.properties`, never `mods.toml`.
-- Comments in this codebase explain **why**, often at length, especially where a subtle
-  Forge/Minecraft behaviour forced the design (see the mixin refmap block in `build.gradle`, or
-  the codec notes in `Priestess.java`). Match that density and register rather than stripping
-  it back to terse one-liners.
+- **Comment sparingly.** Existing files are over-commented to the point of being hard to read —
+  that is a known problem, not the house style to imitate. Do **not** match the surrounding
+  comment density. Write a comment only when a subtle Forge/Minecraft behaviour forced the
+  design and the code cannot show it on its own (the mixin refmap block in `build.gradle` and
+  the codec notes in `Priestess.java` are the bar). Never restate what the line already says,
+  narrate a diff, label obvious sections, or leave a javadoc that only repeats the signature.
+  The mob-class javadoc naming the in-game name stays — that one carries real information.
+  Prefer a clear name or a short method over a comment explaining an unclear one. When editing
+  a file that is already bloated with comments, deleting the dead weight around your change is
+  welcome.
 - GeckoLib is `implementation` + `fg.deobf()`, and dev runs remap its mixin refmap via two
   properties in `build.gradle` — without them the client dies before the main menu. Curios ships
   mixins too and relies on those same two properties; it compiles against its slim `:api`
@@ -167,11 +173,15 @@ placement.
 - Placeholder textures are generated, not drawn: `tools/generate_placeholder_art.py` is pure
   stdlib, seeded and idempotent. Add an entry there rather than hand-making a PNG, and remove
   an entry once real art replaces it so a re-run cannot clobber the real thing.
-- Adding a weapon touches seven files in five packages — the item class, `config/WeaponStats`,
-  `ModWeapons`, `ModLanguageProvider`, `ModItemModelProvider`, the placeholder-art table, and
-  both ends of the swing packet. Missing one usually fails *silently* rather than at compile
-  time: a weapon with no name, no texture, or one that swings and never fires. `docs/WEAPONS.md`
-  is the checklist; work through it rather than from memory.
+- Adding a weapon starts by **copying `weapons/item/TemplateWeaponItem.java`**, which carries the
+  constructor, tooltip, swing entry point and — as a nested `Model` class — the weapon's own item
+  model. It then touches six more files in four packages: `config/WeaponStats`, `ModWeapons`,
+  `ModLanguageProvider`, one call line in `ModItemModelProvider`, the placeholder-art table, and
+  both ends of the swing packet. **Each weapon owns its model**; `ModItemModelProvider`'s shared
+  `bigWeapon`/`chargedWeapon` helpers are legacy, kept only for the three weapons that predate
+  the template, and nothing new should call them. Missing a step usually fails *silently* rather
+  than at compile time: a weapon with no name, no texture, or one that swings and never fires.
+  `docs/WEAPONS.md` is the checklist; work through it rather than from memory.
 
 ## Where to look
 

@@ -30,11 +30,9 @@ import net.minecraftforge.fml.common.Mod;
  * Everything the client needs to draw the mob roster, which is currently sixteen mobs on
  * three different paths — one hand-built mesh, one vanilla mesh, fourteen GeckoLib models.
  *
- * <p>Client-only, and enforced by {@code value = Dist.CLIENT} rather than by care — a
- * dedicated server that classloads {@code HumanoidModel} crashes, and the annotation is
- * what makes that impossible rather than unlikely.
+ * <p>Client-only, enforced by {@code value = Dist.CLIENT}: a dedicated server that classloads
+ * {@code HumanoidModel} crashes.
  *
- * <h2>The three paths</h2>
  * <ul>
  *   <li><b>Originium Slug</b> — a hand-built mesh from {@link PriestessModelLayers}.</li>
  *   <li><b>Jesselton Williams</b> — {@link ModelLayers#ZOMBIE}, which is not a zombie but
@@ -68,9 +66,8 @@ public class PriestessClient {
                         new HumanoidModel<>(context.bakeLayer(ModelLayers.ZOMBIE)),
                         0.7F, texture("mb_jesselton_williams"), 1.15F));
 
-        // GeckoLib draws from its own model hierarchy, which MobRenderer cannot host, so
-        // everything below is on the parallel shared renderer instead. Geometry and texture
-        // come from resource paths derived from the name, not from arguments here.
+        // GeckoLib draws from its own model hierarchy, which MobRenderer cannot host.
+        // Geometry and texture come from paths derived from the name, not from arguments here.
         event.registerEntityRenderer(ModEntities.DV_FAILURE.get(), context ->
                 new PriestessGeoRenderer<DvFailure>(context, "dv_failure", 0.4F));
         event.registerEntityRenderer(ModEntities.DV_REPLICA.get(), context ->
@@ -99,9 +96,8 @@ public class PriestessClient {
                 new PriestessGeoRenderer<SvPiercer>(context, "sv_piercer", 0.4F));
         event.registerEntityRenderer(ModEntities.SV_THE_FIRST_TO_TALK.get(), context ->
                 new PriestessGeoRenderer<SvTheFirstToTalk>(context, "sv_the_first_to_talk", 0.8F));
-        // Immobile and four blocks tall, but still on the shared renderer: it is drawn at 1:1
-        // like everything else, so unlike DvAwaken there is no scale constant to keep in step
-        // with its hitbox.
+        // Drawn at 1:1 like everything else, so unlike DvAwaken there is no scale constant to
+        // keep in step with its hitbox.
         event.registerEntityRenderer(ModEntities.SV_BISHOP_QUINTUS.get(), context ->
                 new PriestessGeoRenderer<SvBishopQuintus>(context, "sv_bishop_quintus", 1.6F));
 

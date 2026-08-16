@@ -14,20 +14,14 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Renders {@code docs/terra_world_preview.png} during datagen.
  *
- * <p>Unusual for a provider in two ways, both deliberate:
- * <ul>
- *   <li>It writes outside {@code src/generated/resources}. The preview is documentation,
- *       not a datapack file, and shipping a 200 KB PNG inside the mod jar to look at once
- *       would be silly.</li>
- *   <li>It ignores {@link CachedOutput}, so it is not hash-cached. Its real input is the
- *       Terra map PNGs and the warp constants in the Java, neither of which the cache
- *       tracks; being told the preview is "up to date" when it is not would be worse than
- *       re-rendering a small image every run.</li>
- * </ul>
+ * <p>Unusual in two deliberate ways. It writes outside {@code src/generated/resources},
+ * because the preview is documentation rather than a datapack file. And it ignores
+ * {@link CachedOutput}: its real inputs are the map PNGs and the warp constants in the Java,
+ * neither of which the cache tracks, so being told it is up to date when it is not would be
+ * worse than re-rendering a small image every run.
  *
- * <p>It runs here rather than as a standalone tool because touching {@code TerraRegion}
- * initialises {@code Registries}, which throws unless the game has bootstrapped, and
- * Forge cannot bootstrap outside its own launcher. Datagen is already inside one.
+ * <p>It runs inside datagen because touching {@code TerraRegion} initialises
+ * {@code Registries}, which throws unless the game has bootstrapped.
  */
 public class ModTerraPreviewProvider implements DataProvider {
 
@@ -45,8 +39,7 @@ public class ModTerraPreviewProvider implements DataProvider {
             try {
                 LOG.info("{}", TerraMapPreview.render(previewFile()));
             } catch (Exception e) {
-                // A broken preview must not fail the build — the datapack it sits
-                // alongside is still perfectly valid without it.
+                // A broken preview must not fail the build; the datapack is still valid.
                 LOG.error("Could not render the Terra preview", e);
             }
         });

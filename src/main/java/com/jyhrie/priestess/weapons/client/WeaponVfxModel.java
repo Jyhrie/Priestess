@@ -19,13 +19,11 @@ import software.bernie.geckolib.model.GeoModel;
  * effect needs no class at all — just the three files under the same name.
  *
  * <p>Generic over the entity rather than fixed to {@link WeaponVfx}, because
- * {@link AegirWhirlpool} is an animated effect that deliberately is <em>not</em> one — it deals
- * damage across its whole life, which {@code WeaponVfx} promises never to do. The lookup here
- * needs nothing from either class beyond its entity type, so both use this unchanged.
+ * {@link AegirWhirlpool} is an animated effect that deliberately is <em>not</em> one. The
+ * lookup needs nothing beyond the entity type, so both use this unchanged.
  *
- * <p>Unlike the mob and projectile models this returns a <em>real</em> animation path rather
- * than null. These are the only animated models in the mod; everything else is static
- * geometry with an empty controller.
+ * <p>Unlike the mob and projectile models this returns a real animation path rather than null:
+ * these are the only animated models in the mod.
  */
 public class WeaponVfxModel<T extends Entity & GeoEntity> extends GeoModel<T> {
 

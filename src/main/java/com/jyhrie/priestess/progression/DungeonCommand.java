@@ -18,11 +18,9 @@ import java.util.stream.Collectors;
 /**
  * {@code /dungeon} — read and rewrite dungeon clear flags. Op-only (permission level 2).
  *
- * <p>Purely a testing tool, and the mechanics need one: both the lockdown and the flight ban
- * key off a flag that gameplay only ever sets in <em>one</em> direction. Without this the
- * only way to re-seal a dungeon is to shut the world down and edit
- * {@code data/priestess_dungeon_progress.dat} by hand, which makes the two features
- * effectively untestable.
+ * <p>A testing tool, and the mechanics need one: gameplay only ever sets the clear flag in
+ * <em>one</em> direction, so without this the only way to re-seal a dungeon is to shut the
+ * world down and edit {@code data/priestess_dungeon_progress.dat} by hand.
  *
  * <pre>
  * /dungeon list [target]                   what is cleared, and which storage is live
@@ -30,17 +28,13 @@ import java.util.stream.Collectors;
  * /dungeon seal  &lt;dungeon|all&gt; [targets]   mark uncleared
  * </pre>
  *
- * <h2>What {@code targets} means depends on the config</h2>
- * In per-player mode it is whose record to write, defaulting to the sender. In shared mode
- * there is only one record, so targets are accepted and ignored — and the command says so
- * rather than letting an operator believe they changed one person's progress. Which mode is
- * live is printed by {@code list}, because guessing wrong is the obvious way to waste ten
- * minutes wondering why nothing happened.
+ * <p>{@code targets} depends on the config: in per-player mode it is whose record to write,
+ * and in shared mode there is one record, so targets are accepted and ignored — and the
+ * command says so rather than letting an operator believe otherwise. {@code list} prints which
+ * mode is live.
  *
- * <h2>Why the dungeon argument is a literal per dungeon</h2>
- * Built in a loop from {@link Dungeon#values()}, so a new dungeon needs no change here and
- * gets tab-completion and validation for free. A string argument would need a suggestion
- * provider and its own error handling to reach the same place.
+ * <p>The dungeon argument is a literal per dungeon, built in a loop from
+ * {@link Dungeon#values()}, so a new dungeon gets tab-completion and validation for free.
  */
 public final class DungeonCommand {
 
@@ -93,8 +87,7 @@ public final class DungeonCommand {
                 }
             }
             if (DungeonProgress.isShared()) {
-                // One record — writing it once per target would just count the same change
-                // several times and read as though something more had happened.
+                // One record: writing it per target would count the same change several times.
                 break;
             }
         }
@@ -127,11 +120,9 @@ public final class DungeonCommand {
     }
 
     /**
-     * How many block types this dungeon's flag actually holds shut.
-     *
-     * <p>Printed per line because "SEALED" on its own is not an answer — a dungeon with nothing
-     * tagged to it gates nothing at all, which looks exactly like a broken lockdown from the
-     * inside and is the report this is meant to pre-empt.
+     * How many block types this dungeon's flag holds shut. Printed per line because "SEALED"
+     * alone is not an answer: a dungeon with nothing tagged to it gates nothing, which from
+     * the inside looks exactly like a broken lockdown.
      */
     private static String gates(Dungeon dungeon) {
         if (!dungeon.hasClearCondition()) {

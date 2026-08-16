@@ -32,31 +32,19 @@ import java.util.List;
 /**
  * Devil's Devastation. A greatsword that throws a fan of five projectiles on every swing.
  *
- * <p>Ported from Lethality. <b>{@code docs/LETHALITY WEAPONS.md} is the record of what changed
- * on the way in</b> — three behaviours here are stubbed rather than absent, and editing this
- * file without reading that will look like fixing bugs that are actually decisions.
+ * <p>Ported from Lethality. <b>{@code docs/LETHALITY WEAPONS.md} records what changed on the
+ * way in</b> — several behaviours here are stubbed rather than absent, and editing this file
+ * without reading it will look like fixing bugs that are actually decisions.
  *
- * <h2>The swing</h2>
- * Swinging is a client-side event, and only the server may spawn entities, so the fan is not
- * fired from this class directly. The chain is:
- * {@code WeaponSwingEvents} (client, sees the swing) → {@code SwingSlashC2S} (the wire) →
- * {@link #fireFan} (server, spawns the five). That indirection is not optional; a weapon that
- * spawns its projectiles client-side spawns them nowhere.
+ * <p>Swinging is a client-side event and only the server may spawn entities, so the chain is
+ * {@code WeaponSwingEvents} → {@code SwingSlashC2S} → {@link #fireFan}. That indirection is
+ * not optional; a weapon that spawns projectiles client-side spawns them nowhere.
  *
- * <h2>The numbers</h2>
- * 15 base damage at -2.0 swing speed, so about 16 on a full charge once the player's own base
- * attack damage is counted, once every second. The tier adds nothing to damage — see
- * {@link WeaponTiers}. Each projectile carries half the sword's damage, pitchforks +2.
- *
- * <p>All four of those are <em>defaults</em>. They live in {@code config/priestess/weapon.toml}
- * under {@code [weapon.devils_devastation]}, and an installation is free to disagree with every
- * one of them; see {@link ConfiguredSwordItem}.
+ * <p>The compiled numbers are defaults — see {@link ConfiguredSwordItem} and
+ * {@code config/priestess/weapon.toml}. The tier adds nothing to damage; see
+ * {@link WeaponTiers}.
  */
 public class DevilsDevastationItem extends ConfiguredSwordItem {
-
-    // Damage, swing speed, the projectile fraction and the pitchfork bonus all live in
-    // config/priestess/weapon.toml — see WeaponStats and ConfiguredSwordItem. What is left here
-    // is the fan's geometry and its muzzle velocity.
 
     /** Muzzle velocity of every projectile in the fan. */
     private static final float PROJECTILE_SPEED = 1.75F;
@@ -70,15 +58,14 @@ public class DevilsDevastationItem extends ConfiguredSwordItem {
     /** Degrees off-centre for the two pitchforks — inside the scythes. */
     private static final float PITCHFORK_ANGLE = 12.5F;
 
-    /** Height above the player's feet the fan leaves from. Double, because it is added to {@code getY()}. */
+    /** Height above the player's feet the fan leaves from. */
     private static final double SPAWN_HEIGHT = 0.25;
 
     /**
-     * Lethality plays {@code terramity:crescent_moonblade_wave} here. That is a soft
-     * dependency rather than a hard one — it is looked up by name at runtime, so without
-     * Terramity installed it simply resolves to null — but Lethality then passes the null
-     * straight to {@code playSound} and crashes. Kept as a lookup so it comes back for free if
-     * Terramity is ever added, with a null check and a vanilla fallback so it does not.
+     * Terramity is not a dependency, so this resolves to null without it — which is what
+     * crashes Lethality, since it passes the null straight to {@code playSound}. Kept as a
+     * runtime lookup so the sound comes back for free if Terramity is ever added, with the
+     * null check and vanilla fallback in {@link #playSwingSound} so it does not crash.
      */
     private static final ResourceLocation PREFERRED_SWING_SOUND =
             new ResourceLocation("terramity", "crescent_moonblade_wave");
@@ -92,13 +79,7 @@ public class DevilsDevastationItem extends ConfiguredSwordItem {
         return WeaponRarities.CALAMITOUS;
     }
 
-    /**
-     * The animated name. Thirty-one stops from warm white through fire, blood and violet to
-     * magenta and back, cycled along the text so it reads as heat moving through the blade.
-     *
-     * <p>Kept verbatim from Lethality — the palette <em>is</em> the weapon's identity and there
-     * is nothing to gain by trimming it. See {@link WeaponText#gradient}.
-     */
+    /** Warm white through fire, blood and violet to magenta and back. Verbatim from Lethality. */
     @Override
     public Component getName(ItemStack stack) {
         return WeaponText.gradient(Component.translatable(this.getDescriptionId(stack)), 0.25F, 2.0F,
@@ -139,9 +120,8 @@ public class DevilsDevastationItem extends ConfiguredSwordItem {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level,
                                 List<Component> tooltip, TooltipFlag flag) {
-        // The rarity line, in its own gradient. Lethality renders this in a custom font
-        // ("lethality:homicide") which did not come across — no font asset, and a missing font
-        // silently falls back to the default anyway. Same palette, default glyphs.
+        // Lethality renders this in a custom font ("lethality:homicide") that did not come
+        // across. Same palette, default glyphs.
         tooltip.add(WeaponText.gradient(Component.literal("Calamitous"), 0.25F, 5.0F,
                 new int[]{255, 254, 251},
                 new int[]{255, 242, 203},
@@ -176,8 +156,8 @@ public class DevilsDevastationItem extends ConfiguredSwordItem {
             tooltip.add(Component.translatable("tooltip.priestess.devils_devastation.on_hit"));
             tooltip.add(Component.translatable("tooltip.priestess.devils_devastation.on_hit_detail"));
         } else {
-            // Lethality's key here says "hold_ctrl" while the check above is hasShiftDown, so
-            // the prompt asks for the wrong key. Renamed to match what actually works.
+            // Lethality's key says "hold_ctrl" while the check above is hasShiftDown, so its
+            // prompt asks for the wrong key. Renamed to match what works.
             tooltip.add(Component.translatable("tooltip.priestess.hold_shift"));
         }
 
@@ -186,33 +166,21 @@ public class DevilsDevastationItem extends ConfiguredSwordItem {
 
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        // Lethality also stacks Terramity's Nyxium Fire here, incrementing the amplifier on
-        // every hit up to a cap of 9 — that stacking burn is the weapon's real damage curve.
-        // Terramity is not a dependency; see docs/LETHALITY WEAPONS.md, "Terramity".
-        //
-        // int amplifier = 0;
-        // if (target.hasEffect(TerramityModMobEffects.NYXIUM_FIRE.get())) {
-        //     amplifier = target.getEffect(TerramityModMobEffects.NYXIUM_FIRE.get()).getAmplifier() + 1;
-        // }
-        // amplifier = Math.min(amplifier, 9);
-        // target.addEffect(new MobEffectInstance(
-        //         TerramityModMobEffects.NYXIUM_FIRE.get(), 200, amplifier), attacker);
-
+        // Lethality stacks Terramity's Nyxium Fire here, which is the weapon's real damage
+        // curve. Terramity is not a dependency; see docs/LETHALITY WEAPONS.md, "Terramity".
         target.setSecondsOnFire(10);
 
         // Clearing hurt-immunity is what lets the projectile fan land on a target the melee
-        // swing just hit, instead of the whole burst being eaten by invulnerability frames.
-        // It is the reason this weapon bursts as hard as it does — do not "tidy" it away.
+        // swing just hit, rather than the burst being eaten by invulnerability frames. It is
+        // why this weapon bursts as hard as it does — do not tidy it away.
         target.invulnerableTime = 0;
 
         return super.hurtEnemy(stack, target, attacker);
     }
 
     /**
-     * Spawns the fan. Called on the server, from the swing packet — never directly.
-     *
-     * <p>Checks both hands because the weapon works off-hand too, and no-ops for any hand not
-     * holding one.
+     * Spawns the fan. Called on the server from the swing packet, never directly. Checks both
+     * hands because the weapon works off-hand.
      */
     public static void fireFan(Level level, Player user) {
         for (InteractionHand hand : InteractionHand.values()) {
@@ -224,17 +192,16 @@ public class DevilsDevastationItem extends ConfiguredSwordItem {
             float scytheDamage = WeaponText.itemAttackDamage(stack)
                     * WeaponStats.DEVILS_PROJECTILE_FRACTION.get().floatValue();
 
-            // Better Combat drives its own attack timing, so when it is installed Lethality
-            // lets it own the rate limit and skips the cooldown entirely. Not integrated yet
-            // by request — the cooldown below always applies. To restore, guard this block
-            // with: if (!ModList.get().isLoaded("bettercombat")) { ... }
+            // Lethality skips this cooldown when Better Combat is installed and lets it own
+            // the rate limit. Not integrated; to restore, guard with
+            // if (!ModList.get().isLoaded("bettercombat")).
             if (user.getCooldowns().isOnCooldown(stack.getItem())) {
                 return;
             }
             AttributeInstance attribute = user.getAttribute(Attributes.ATTACK_SPEED);
             float attackSpeed = attribute != null ? (float) attribute.getValue() : 4.0F;
-            // One swing's worth of ticks, so the fan fires at exactly the rate the sword
-            // swings rather than as fast as the player can click.
+            // One swing's worth of ticks, so the fan fires at the rate the sword swings
+            // rather than as fast as the player can click.
             user.getCooldowns().addCooldown(stack.getItem(), (int) (20.0F / attackSpeed));
 
             if (!level.isClientSide()) {
@@ -263,12 +230,9 @@ public class DevilsDevastationItem extends ConfiguredSwordItem {
     }
 
     /**
-     * Aims one projectile and adds it to the world.
-     *
-     * <p>The {@code setDeltaMovement} before {@code shootFromRotation} looks redundant — the
-     * second overwrites the first. It is not: the entity's very first {@code tick} can run
-     * before the aimed velocity is applied, and without a delta already set it steps by zero
-     * and briefly renders sitting on the player's feet.
+     * The {@code setDeltaMovement} before {@code shootFromRotation} looks redundant but is
+     * not: the entity's first {@code tick} can run before the aimed velocity is applied, and
+     * without a delta already set it steps by zero and renders on the player's feet.
      */
     private static <T extends net.minecraft.world.entity.projectile.AbstractHurtingProjectile>
     void shoot(Level level, T projectile, Player user, float yawOffset) {

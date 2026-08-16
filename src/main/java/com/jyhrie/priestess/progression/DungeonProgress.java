@@ -19,24 +19,14 @@ import java.util.Set;
 /**
  * Which dungeons are cleared — for the world, or for one player, depending on the config.
  *
- * <p>Both storages exist at all times and only one is consulted, which is deliberate: a
- * server that flips {@code sharedProgress} does not lose the other record, so flipping it
- * back restores exactly what was there. Nothing migrates between them, because there is no
- * correct migration — "everyone has cleared it" and "this player has cleared it" are not the
- * same fact and guessing either way would silently rewrite someone's progress.
+ * <p>Both storages exist at all times and only one is consulted, so flipping
+ * {@code sharedProgress} back and forth loses nothing. Nothing migrates between them, because
+ * "everyone has cleared it" and "this player has cleared it" are not the same fact.
  *
- * <h2>Where each lives</h2>
- * <ul>
- *   <li><b>Shared</b> — a {@link SavedData} on the <em>Overworld's</em> storage. Per-dimension
- *       storage would put Terra's record in Terra's folder, which is fine until someone asks
- *       whether a dungeon in another dimension is cleared; anchoring on the Overworld makes
- *       it unambiguously world-wide.</li>
- *   <li><b>Per player</b> — the player's Forge persistent tag. That survives death and
- *       respawn for free, which a plain entity tag would not, and needs no capability, no
- *       provider and no clone handler for what is a set of short strings. {@code Oripathy}
- *       is a capability because it is read and written every tick by several systems; this
- *       is read on a block break and written once per dungeon per lifetime.</li>
- * </ul>
+ * <p><b>Shared</b> is a {@link SavedData} on the <em>Overworld's</em> storage, which makes it
+ * unambiguously world-wide rather than per-dimension. <b>Per player</b> is the player's Forge
+ * persistent tag, which survives death and respawn for free and needs no capability, provider
+ * or clone handler for a set of short strings.
  */
 public final class DungeonProgress extends SavedData {
 
@@ -45,8 +35,6 @@ public final class DungeonProgress extends SavedData {
     private static final String PLAYER_KEY = "priestess:cleared_dungeons";
 
     private final Set<String> cleared = new HashSet<>();
-
-    // ── Reading ───────────────────────────────────────────────────────────────
 
     /**
      * Whether {@code player} may treat {@code dungeon} as done.
@@ -66,15 +54,12 @@ public final class DungeonProgress extends SavedData {
         return personal(player).contains(dungeon.getSerializedName());
     }
 
-    // ── Writing ───────────────────────────────────────────────────────────────
-
     /**
      * Marks {@code dungeon} cleared, for the world or for the players who earned it.
      *
-     * <p>In per-player mode this credits everyone within {@link #CREDIT_RADIUS} of where it
-     * happened, not just whoever landed the kill. A boss fought by three people and finished
-     * by one is cleared by three people; the alternative is a co-op group where two of them
-     * walk back out into a sealed dungeon.
+     * <p>In per-player mode this credits everyone within {@link #CREDIT_RADIUS}, not just
+     * whoever landed the kill — otherwise two thirds of a co-op group walk back out into a
+     * sealed dungeon.
      */
     public static void markCleared(ServerLevel level, net.minecraft.core.BlockPos where, Dungeon dungeon) {
         if (PriestessConfig.SHARED_PROGRESS.get()) {
@@ -99,11 +84,9 @@ public final class DungeonProgress extends SavedData {
     /** How far from a clearing event a player has to be to be credited, in per-player mode. */
     private static final double CREDIT_RADIUS = 64.0;
 
-    // ── Direct control, for the command ───────────────────────────────────────
-    // Deliberately separate from markCleared: that one is the gameplay path and carries the
-    // radius credit and the announcement. These two set exactly what they are told to and
-    // say nothing, because an operator undoing a flag should not tell the whole server a
-    // dungeon just opened.
+    // Separate from markCleared, which is the gameplay path and carries the radius credit and
+    // the announcement. These set exactly what they are told and say nothing, because an
+    // operator undoing a flag should not tell the whole server a dungeon just opened.
 
     /**
      * Sets or clears the flag in whichever storage the config is currently using.
@@ -147,13 +130,11 @@ public final class DungeonProgress extends SavedData {
         return PriestessConfig.SHARED_PROGRESS.get();
     }
 
-    // ── Shared storage ────────────────────────────────────────────────────────
-
     private static DungeonProgress shared(MinecraftServer server) {
         ServerLevel overworld = server.getLevel(Level.OVERWORLD);
         if (overworld == null) {
-            // Cannot happen on a running server, but returning a throwaway is better than a
-            // crash in a block-break handler.
+            // Cannot happen on a running server, but a throwaway beats a crash in a
+            // block-break handler.
             return new DungeonProgress();
         }
         return overworld.getDataStorage()
@@ -178,8 +159,6 @@ public final class DungeonProgress extends SavedData {
         tag.put("Cleared", list);
         return tag;
     }
-
-    // ── Per-player storage ────────────────────────────────────────────────────
 
     private static Set<String> personal(Player player) {
         CompoundTag persisted = player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG);
@@ -215,8 +194,6 @@ public final class DungeonProgress extends SavedData {
         root.put(Player.PERSISTED_NBT_TAG, persisted);
         return true;
     }
-
-    // ── Feedback ──────────────────────────────────────────────────────────────
 
     private static void announce(Iterable<ServerPlayer> to, Dungeon dungeon) {
         Component message = Component.translatable("message.priestess.dungeon.cleared",

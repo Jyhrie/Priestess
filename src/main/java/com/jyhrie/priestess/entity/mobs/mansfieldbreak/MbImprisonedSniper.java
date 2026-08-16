@@ -34,23 +34,15 @@ import net.minecraft.world.level.Level;
  * difficulty. That is the whole reason it exists — Mansfield needs one threat that punishes
  * standing in the open rather than one that punishes being in line of sight.
  *
- * <h2>Why it does not extend the shared goal set</h2>
- * {@link GeoMonster#registerGoals} gives every mob a {@code MeleeAttackGoal}, and a sniper
- * that walks into melee is not a sniper. This overrides the method outright, which is the
- * escape hatch {@code GeoMonster} documents for exactly this case — no flag on the base class,
- * no {@code isRanged()} branch.
+ * <p>It overrides {@link GeoMonster#registerGoals} outright, because the shared set opens with
+ * a {@code MeleeAttackGoal}. {@link RangedBowAttackGoal} is what makes it read as a skeleton
+ * rather than a turret — it strafes, backs off, and holds fire without line of sight — and is
+ * also why the mob carries a real bow: it checks {@code isHolding(BowItem)} every tick and
+ * refuses to run otherwise.
  *
- * <p>{@link RangedBowAttackGoal} is what makes it read as a skeleton rather than as a turret:
- * it strafes, it backs off when you close, and it holds fire while it has no line of sight.
- * That goal is also why the mob carries a real bow — it refuses to run otherwise, checking
- * {@code isHolding(BowItem)} on every tick.
- *
- * <h2>The bow is invisible, and that is a known gap</h2>
- * GeckoLib does not draw held items unless the renderer asks it to, and
- * {@code PriestessGeoRenderer} does not. So the mob is holding a bow that the player cannot
- * see. Harmless while the model is a placeholder cube humanoid — there is nowhere sensible to
- * put a bow on it anyway — but when the real model arrives it wants a bone for the weapon and
- * a {@code GeoItemLayer} on the renderer to fill it.
+ * <p><b>The bow is invisible</b>, a known gap: GeckoLib draws held items only if the renderer
+ * asks, and {@code PriestessGeoRenderer} does not. When the real model arrives it wants a bone
+ * for the weapon and a {@code GeoItemLayer} to fill it.
  */
 public class MbImprisonedSniper extends GeoMonster implements RangedAttackMob {
 
@@ -63,27 +55,21 @@ public class MbImprisonedSniper extends GeoMonster implements RangedAttackMob {
     public MbImprisonedSniper(EntityType<? extends MbImprisonedSniper> type, Level level) {
         super(type, level);
 
-        // Equipped here rather than in finalizeSpawn on purpose. Structures place entities
-        // directly and never call finalizeSpawn — the same trap MbJesseltonWilliams documents
-        // for his home position — so a sniper generated inside Mansfield would come out
-        // unarmed and, because RangedBowAttackGoal needs the bow, entirely inert.
+        // Here rather than in finalizeSpawn, because structures place entities directly and
+        // never call it — so a sniper generated inside Mansfield would come out unarmed and,
+        // since RangedBowAttackGoal needs the bow, entirely inert.
         this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
         // Otherwise every one of these is a free bow.
         this.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code MobStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code MobStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 // A skeleton's 20. It is not meant to survive being reached.
                 .add(Attributes.MAX_HEALTH, 20.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.25)
-                // Only used if something ever gives it a melee goal — arrows carry their own
-                // damage, from ARROW_DAMAGE above, and never read this.
+                // Unused: arrows carry their own damage and never read this.
                 .add(Attributes.ATTACK_DAMAGE, 2.0)
                 // Further than it will shoot from, so it notices you before it engages.
                 .add(Attributes.FOLLOW_RANGE, 32.0)
@@ -91,10 +77,7 @@ public class MbImprisonedSniper extends GeoMonster implements RangedAttackMob {
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.0);
     }
 
-    /**
-     * Replaces {@link GeoMonster}'s melee set entirely. Same shape otherwise — float, engage,
-     * wander, look about — with the bow goal where the melee goal was.
-     */
+    /** Replaces {@link GeoMonster}'s set, with the bow goal where the melee goal was. */
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
@@ -108,19 +91,15 @@ public class MbImprisonedSniper extends GeoMonster implements RangedAttackMob {
     }
 
     /**
-     * Vanilla's skeleton shot, near enough verbatim.
-     *
-     * <p>The {@code + horizontal * 0.2} is the arc: it aims above the target by a fifth of the
-     * horizontal distance so the arrow drops onto them rather than falling short. The last
-     * argument to {@code shoot} is inaccuracy in degrees — 10 on Easy, 6 on Normal, 2 on Hard,
-     * which is how a skeleton gets deadlier with difficulty without dealing more damage.
+     * Vanilla's skeleton shot, near enough verbatim. The {@code + horizontal * 0.2} is the
+     * arc, aiming above the target so the arrow drops onto them rather than falling short; the
+     * last argument to {@code shoot} is inaccuracy in degrees — 10 on Easy, 6 on Normal, 2 on
+     * Hard, which is how a skeleton gets deadlier with difficulty without dealing more damage.
      */
     @Override
     public void performRangedAttack(LivingEntity target, float velocity) {
         Arrow arrow = new Arrow(this.level(), this);
-        // Damage before the velocity multiplier, which shoot() applies on top. A vanilla arrow
-        // is 2.0; the default here is a little meaner because there are meant to be few of
-        // these and they are meant to be the reason you take cover.
+        // Before the velocity multiplier, which shoot() applies on top.
         arrow.setBaseDamage(MobStats.SNIPER_ARROW_DAMAGE.get());
 
         double dx = target.getX() - this.getX();

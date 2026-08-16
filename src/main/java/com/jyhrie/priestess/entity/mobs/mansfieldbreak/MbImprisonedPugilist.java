@@ -28,17 +28,12 @@ public class MbImprisonedPugilist extends GeoMonster {
         super(type, level);
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/mob.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code MobStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code MobStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 // A zombie's 20, rounded up a little for the extra damage it deals.
                 .add(Attributes.MAX_HEALTH, 22.0)
-                // A zombie is 0.23. This is a shade quicker: an inmate who has just been let
-                // out of a cell should not amble.
+                // A zombie is 0.23; an inmate just let out of a cell should not amble.
                 .add(Attributes.MOVEMENT_SPEED, 0.25)
                 .add(Attributes.ATTACK_DAMAGE, 4.0)
                 .add(Attributes.FOLLOW_RANGE, 32.0)

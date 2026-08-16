@@ -13,15 +13,11 @@ import net.minecraft.resources.ResourceLocation;
  * Geometry for the mobs that are neither humanoid shapes nor GeckoLib models — currently
  * just the slug.
  *
- * <p>Each is a handful of cubes chosen to give a readable silhouette and nothing more —
- * see {@link PriestessEntityModel} for why placeholders stop there. The numbers are model
- * units (16 to a block), origin at the mob's feet, +Y up, −Z forward.
+ * <p>The numbers are model units (16 to a block), origin at the mob's feet, +Y up, −Z forward.
  *
  * <p>The UV origins matter more than they look: a cube of size {@code (x, y, z)} needs
- * {@code 2(x + z)} pixels of texture width and {@code y + z} of height starting at its UV
- * origin, and a cube that runs off the edge of the texture renders as garbage rather than
- * as an error. Every entry below is sized against the texture
- * {@code generate_placeholder_art.py} writes for it.
+ * {@code 2(x + z)} pixels of texture width and {@code y + z} of height from its UV origin, and
+ * a cube running off the edge of the texture renders as garbage rather than as an error.
  */
 public final class PriestessModelLayers {
 

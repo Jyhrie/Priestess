@@ -23,32 +23,19 @@ import java.util.UUID;
  * it. Columbia is grounded until Rhine Lab is done, which is the end of Movement I — so the
  * sky is something the chapter hands you, not something you arrive with.
  *
- * <h2>How much of "flight" this actually covers — read this before trusting it</h2>
- * Everything here works by clearing {@link Abilities#mayfly} and {@link Abilities#flying}
- * every tick. That is the flag vanilla creative flight uses, and it is also what the large
- * majority of modded flight uses — jetpacks, flight rings, baubles, curios, most
- * armour-granted flight — because granting the vanilla ability is far less work than writing
- * a movement controller. Anything on that path is stopped, whatever mod it came from, with
- * no compatibility code and no mod list.
+ * <p><b>Read this before trusting it.</b> It works by clearing {@link Abilities#mayfly} and
+ * {@link Abilities#flying} every tick, which catches vanilla creative flight and most modded
+ * flight — jetpacks, rings, curios — because granting the vanilla ability is far less work
+ * than writing a movement controller.
  *
- * <p><b>What is not stopped:</b> anything that moves the player directly instead of asking
- * permission — a jetpack that adds to {@code deltaMovement} while a key is held never touches
- * the ability flags and will keep working. There is no general way to catch that: the only
- * signal is "this player is going up and should not be", which is also what a jump, a bubble
- * column, a slime block and a boat on ice look like. Catching those properly means a
- * compatibility shim per mod, and that is a real cost to weigh rather than something to
- * pretend is already handled.
+ * <p>It does <b>not</b> catch anything that moves the player directly instead of asking
+ * permission. There is no general way to: the only signal is "this player is going up and
+ * should not be", which is also what a jump, a bubble column and a boat on ice look like.
+ * Elytra are the other hole and are closed separately, since gliding is not a flag either.
  *
- * <p>Elytra are the other hole, and are closed separately — gliding is not a flag either, so
- * {@code stopsElytra} cancels it explicitly. It is on by default because an elytra is
- * otherwise a complete bypass of the mechanic.
- *
- * <h2>Restoring what it took</h2>
- * Leaving a restricted biome hands flight back only to the extent that the game mode grants
- * it. A player whose flight came from a mod may have to re-equip whatever gave it, because
- * most such mods grant on an event rather than every tick, and there is nothing to ask. That
- * is unavoidable without knowing who granted it — and it is why {@link #GROUNDED} exists at
- * all rather than blindly re-granting.
+ * <p>Leaving a restricted biome hands flight back only to the extent the game mode grants it.
+ * A player whose flight came from a mod may have to re-equip it, which is unavoidable without
+ * knowing who granted it — and is why {@link #GROUNDED} exists rather than blind re-granting.
  */
 @Mod.EventBusSubscriber(modid = Priestess.MOD_ID)
 public final class FlightRestriction {
@@ -74,8 +61,7 @@ public final class FlightRestriction {
             release(player);
             return;
         }
-        // Spectators are always exempt. They pass through the world rather than playing it,
-        // and grounding one is the one case that is never what anybody wanted.
+        // Spectators pass through the world rather than playing it.
         if (player.isSpectator()) {
             return;
         }
@@ -97,11 +83,9 @@ public final class FlightRestriction {
     }
 
     /**
-     * Whether the player is standing in a biome some uncleared dungeon has grounded.
-     *
-     * <p>Checked every tick rather than on a timer. A biome lookup on a loaded chunk is a
-     * palette read, and the alternative — caching it — buys a rounding error's worth of work
-     * in exchange for a stale answer at exactly the moment the player crosses the border.
+     * Checked every tick rather than on a timer: a biome lookup on a loaded chunk is a palette
+     * read, and caching it would buy a stale answer at exactly the moment the player crosses
+     * the border.
      */
     private static boolean isRestricted(ServerPlayer player) {
         ResourceKey<Biome> here = player.level().getBiome(player.blockPosition())

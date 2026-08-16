@@ -19,33 +19,18 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 /**
  * An ordinary melee monster that draws through GeckoLib instead of a vanilla mesh.
  *
- * <p>Same test for what belongs here as {@link BossMonster}: only the parts that are
- * <em>mechanical</em> — true of any mob of this shape, with no design content to get wrong.
- * That is the GeckoLib plumbing and the stock "walk up to the player and hit them" goal set.
- * Everything a subclass actually is — how much health, how hard it hits, what it leaves
- * behind, what it sounds like — stays in the subclass.
+ * <p>Same test for what belongs here as {@link BossMonster}: only the <em>mechanical</em>
+ * parts, true of any mob of this shape. Everything a subclass actually is — health, damage,
+ * drops, sounds — stays in the subclass, and one that needs a goal these do not have should
+ * override {@link #registerGoals} rather than growing a flag here.
  *
- * <p>Three mobs share it today ({@code DvFailure}, {@code DvReplica}, {@code DvBionic}) and they
- * differ in nothing but numbers, which is exactly the case a base class is for. A fourth that
- * needs a goal these do not have should override {@link #registerGoals} rather than growing a
- * flag here.
- *
- * <h2>What a subclass still owes the mod</h2>
- * The GeckoLib half of a mob is three resource paths derived from its registry name, and
- * {@code PriestessGeoRenderer} is what derives them — so a subclass is not finished until
- * there is a {@code geo/entity/<name>.geo.json} and a {@code textures/entity/<name>.png} to
- * go with it. The animation file is the one that can wait: GeckoLib resolves it lazily and
- * {@link #registerControllers} asks for no clips, so a static pose costs nothing until
- * someone animates it.
+ * <p>A subclass is not finished until there is a {@code geo/entity/<name>.geo.json} and a
+ * {@code textures/entity/<name>.png}, which {@code PriestessGeoRenderer} derives from the
+ * registry name. The animation file can wait — GeckoLib resolves it lazily.
  */
 public abstract class GeoMonster extends Monster implements GeoEntity {
 
-    /**
-     * Per-entity animation state. {@code createInstanceCache} rather than the singleton
-     * variant for the same reason as {@code DvAwaken}: every mob in the world needs its own
-     * playhead, and the singleton cache is for items and blocks where one shared state is
-     * the point.
-     */
+    /** Per-entity, because every mob needs its own playhead. */
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     protected GeoMonster(EntityType<? extends GeoMonster> type, Level level) {
@@ -53,12 +38,9 @@ public abstract class GeoMonster extends Monster implements GeoEntity {
     }
 
     /**
-     * Entirely stock, and in the order every vanilla melee monster uses it: don't drown,
-     * chase and hit, otherwise wander and look about.
-     *
-     * <p>{@code MeleeAttackGoal(this, 1.0, false)} — the {@code false} is "keep pathing to a
-     * target you cannot currently see", which is what stops one of these giving up the moment
-     * you step behind a pillar.
+     * Entirely stock. The {@code false} on {@code MeleeAttackGoal} is "keep pathing to a
+     * target you cannot currently see", which stops one of these giving up the moment you
+     * step behind a pillar.
      */
     @Override
     protected void registerGoals() {
@@ -73,13 +55,8 @@ public abstract class GeoMonster extends Monster implements GeoEntity {
     }
 
     /**
-     * No controllers, because none of the models have animations yet — they render as a
-     * static pose, exactly as {@code DvAwaken} does.
-     *
-     * <p>Safe to leave empty: GeckoLib only reads
-     * {@code animations/entity/<name>.animation.json} when a controller asks for a clip by
-     * name, so the missing file costs nothing. Add the file and a controller together, in the
-     * subclass that owns the model.
+     * Empty on purpose: GeckoLib only reads the animation file when a controller asks for a
+     * clip by name. Add the file and a controller together, in the subclass owning the model.
      */
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {

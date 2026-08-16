@@ -24,23 +24,20 @@ import java.util.function.Supplier;
  * Tells the client which dungeons it has cleared, so a sealed block does not <em>look</em>
  * mineable.
  *
- * <p>Mining is client-predicted: the client runs its own destroy timer and, on completion,
- * removes the block and throws the particles without waiting for permission. A server-only
- * {@link DungeonLockdown} therefore showed the block cracking, shattering and reappearing.
- * Refusing on the server makes the rule true; refusing on the client makes it look true.
+ * <p>Mining is client-predicted — the client runs its own destroy timer and removes the block
+ * without waiting for permission — so a server-only {@link DungeonLockdown} showed the block
+ * cracking, shattering and reappearing. Refusing on the server makes the rule true; refusing
+ * on the client makes it look true.
  *
- * <p>One packet per player: the lockdown switch, and a bit per dungeon. Together with the
- * block tags, which already ship to the client with the datapack, that is everything the rule
- * needs — so the client can answer it in full and a sealed block never moves. This is why the
- * lockdown gates blocks rather than an area: structure starts live in server chunk data that
- * is never sent, so "is this position inside a dungeon" is a question the client could not
- * have answered at any price.
+ * <p>One packet per player: the lockdown switch and a bit per dungeon. With the block tags,
+ * which already ship with the datapack, that is everything the rule needs. It is also why the
+ * lockdown gates blocks rather than an area — structure starts live in server chunk data that
+ * is never sent, so the client could not answer "is this position inside a dungeon" at any
+ * price.
  *
- * <p>Sent on login, respawn and dimension change, and on every write in
- * {@link DungeonProgress} — which is what makes {@code /dungeon seal} land on a player who is
- * standing there. {@code lockdown.enabled} is therefore read at those moments and not after:
- * turning it off mid-session frees the server at once but leaves the client refusing until the
- * next of them. Not worth a config-reload listener for a switch flipped between test runs.
+ * <p>Sent on login, respawn, dimension change and every write in {@link DungeonProgress}, so
+ * {@code lockdown.enabled} is read at those moments and not after: turning it off mid-session
+ * frees the server at once but leaves the client refusing until the next one.
  */
 @Mod.EventBusSubscriber(modid = Priestess.MOD_ID)
 public final class DungeonSync {
@@ -53,8 +50,7 @@ public final class DungeonSync {
 
     /**
      * What the client last believed. Static rather than hung off the local player, which is
-     * rebuilt on respawn and on a dimension change; this has to outlive both. Never read on a
-     * dedicated server — every path to it has already established it is on a client.
+     * rebuilt on respawn and on a dimension change; this has to outlive both.
      */
     private static volatile Set<Dungeon> clientCleared = EnumSet.noneOf(Dungeon.class);
 
@@ -66,8 +62,6 @@ public final class DungeonSync {
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
-    // ── The client's side of the answer ───────────────────────────────────────
-
     /** Whether the client should behave as though the lockdown is on at all. */
     public static boolean clientLockdownEnabled() {
         return clientLockdownEnabled;
@@ -77,8 +71,6 @@ public final class DungeonSync {
     public static boolean clientHasCleared(Dungeon dungeon) {
         return clientCleared.contains(dungeon);
     }
-
-    // ── Sending ───────────────────────────────────────────────────────────────
 
     public static void sendTo(ServerPlayer player) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), Payload.of(player));
@@ -111,8 +103,6 @@ public final class DungeonSync {
             sendTo(player);
         }
     }
-
-    // ── The packet ────────────────────────────────────────────────────────────
 
     /**
      * The lockdown switch and one bit per dungeon. Bit positions are {@link Dungeon} ordinals

@@ -21,9 +21,6 @@ import java.util.function.Supplier;
 /**
  * The dungeons, declared once, with everything the two progression mechanics need.
  *
- * <p>The only place two otherwise-unrelated facts meet: what <em>clears</em> a dungeon, and
- * which <em>biomes</em> it unlocks flight in.
- *
  * <p><b>Adding one:</b> add a constant, and nothing else changes. {@link DungeonLockdown} and
  * {@link FlightRestriction} iterate these, and {@link DungeonProgress} keys off
  * {@link #getSerializedName()}. The {@linkplain #sealedBlocks() tag} is derived from the
@@ -34,9 +31,8 @@ import java.util.function.Supplier;
  * by picking up an item. A dungeon with neither can never seal anything; see
  * {@link #hasClearCondition()}.
  *
- * <p>Note that a dungeon has no <em>physical extent</em> here, and deliberately so. The
- * lockdown gates a declared set of blocks, not an area, so a structure's pipes, doors and
- * decoration stay mineable and only the walls that are the gate do not.
+ * <p>A dungeon has no <em>physical extent</em> here: the lockdown gates a declared set of
+ * blocks rather than an area, so a structure's pipes, doors and decoration stay mineable.
  */
 public enum Dungeon {
 

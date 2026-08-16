@@ -15,32 +15,21 @@ import java.util.List;
 /**
  * Tool tiers for the ported weapons.
  *
- * <p>A {@link Tier} carries durability, mining level, enchantability and the repair
- * ingredient. It does <em>not</em> carry attack damage for these weapons — every one of them
- * gets its damage and swing speed from {@code config/priestess/weapon.toml} by way of
- * {@code ConfiguredSwordItem}, and leaves the tier's {@code attackDamageBonus} at zero. Changing
- * numbers here will not change how hard anything hits, and a bonus set here would be the one
- * part of a weapon's damage the config could not reach.
+ * <p>A {@link Tier} carries durability, mining level, enchantability and the repair ingredient
+ * — <em>not</em> attack damage. Every weapon here leaves {@code attackDamageBonus} at zero and
+ * takes its damage from {@code config/priestess/weapon.toml}, because a bonus set here would
+ * be the one part of a weapon's damage the config could not reach.
  *
- * <p>{@link TierSortingRegistry} is what makes a modded tier sort against vanilla's, so that
- * "needs better than diamond" checks resolve correctly. Sorting after {@code NETHERITE} with
- * nothing after it means these sit at the top of the ladder.
+ * <p>{@link TierSortingRegistry} is what makes a modded tier sort against vanilla's, so
+ * "needs better than diamond" checks resolve correctly.
  */
 public final class WeaponTiers {
 
     /**
-     * Lethality's demonic tier.
-     *
-     * <p>Two values were changed on the way in, because the originals named things that do
-     * not exist in this mod:
-     * <ul>
-     *   <li><b>Mineable tag</b> — {@code BlockTags.NEEDS_DIAMOND_TOOL} in place of Lethality's
-     *       custom {@code ANCIENT_WEAPON} tag. It is a sword; the tag decides what it can mine,
-     *       which is cobwebs and not much else, and is not worth a bespoke tag file.</li>
-     *   <li><b>Repair ingredient</b> — a netherite ingot in place of the Bladecrest Oathsword,
-     *       a Lethality item that did not come across. Swap this the moment there is a
-     *       Columbia material that ought to repair it.</li>
-     * </ul>
+     * Lethality's demonic tier. Two values changed on the way in because the originals named
+     * things this mod does not have: the mineable tag (was a custom {@code ANCIENT_WEAPON}
+     * tag) and the repair ingredient (was the Bladecrest Oathsword — swap it once there is a
+     * Columbia material that ought to repair this).
      */
     public static final Tier DEMONIC = TierSortingRegistry.registerTier(
             new ForgeTier(5, 1850, 0.0F, 0.0F, 25,

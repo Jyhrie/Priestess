@@ -16,18 +16,14 @@ import net.minecraftforge.fml.common.Mod;
 /**
  * Turns a left-click into a swing packet.
  *
- * <h2>Why two events</h2>
- * Neither one alone sees every swing. {@link PlayerInteractEvent.LeftClickEmpty} fires when
- * the click hits nothing, and {@link AttackEntityEvent} when it hits a mob — Minecraft routes
- * a left-click down one path or the other and never both, so listening to just one means the
- * weapon silently stops throwing whenever the player happens to connect (or happens to miss).
+ * <p>Two events, because neither alone sees every swing:
+ * {@link PlayerInteractEvent.LeftClickEmpty} fires when the click hits nothing and
+ * {@link AttackEntityEvent} when it hits a mob, and Minecraft routes a left-click down one
+ * path or the other, never both. Clicking a <em>block</em> is the deliberate gap — that is a
+ * mining swing.
  *
- * <p>Clicking a <em>block</em> is the deliberate gap: that is a mining swing, and a greatsword
- * should not spray projectiles at a wall the player is breaking.
- *
- * <p>The held-item check here is only an optimisation — it keeps the client from sending a
- * packet on every punch. The server re-checks what is actually held and is the authority; see
- * {@link SwingSlashC2S}.
+ * <p>The held-item check is only an optimisation, to avoid a packet on every punch. The server
+ * re-checks what is held and is the authority; see {@link SwingSlashC2S}.
  */
 @Mod.EventBusSubscriber(modid = Priestess.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public final class WeaponSwingEvents {

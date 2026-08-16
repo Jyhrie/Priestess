@@ -46,19 +46,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * the particle and sound it comes up with. Everything else, which is all of the fiddly
  * parts, lives here.
  *
- * <h2>Why subclasses rather than one parameterised block</h2>
- * The two bosses do not spawn the same way. Jesselton is 0.7 x 2.2 and walks; "Awaken" is
- * 6.75 on a side and cannot move at all once placed, so it needs a great deal more clear
- * space and it needs that space checked before the item is taken off the player rather than
- * after. {@link #clearanceFor} is the hook, and having a class per boss means the answer to
- * "how much room does this one need" sits next to the boss it is about instead of in a
- * switch.
+ * <p>Subclasses rather than one parameterised block because the bosses do not spawn the same
+ * way — Jesselton walks, "Awaken" is 6.75 blocks across and cannot move once placed, so it
+ * needs far more clear space. {@link #clearanceFor} is the hook, and a class per boss keeps
+ * that answer next to the boss instead of in a switch.
  *
- * <h2>{@link #ARMED}</h2>
- * One boolean, in the blockstate rather than only in the block entity, for two reasons: the
- * model changes with it, so the altar visibly reads as spent from across the room; and the
- * ticker is only attached while it is {@code false}, so an armed altar waiting to be used
- * costs nothing per tick.
+ * <p>{@link #ARMED} is in the blockstate rather than only in the block entity for two reasons:
+ * the model changes with it, so a spent altar reads as spent from across the room, and the
+ * ticker is only attached while it is {@code false}.
  */
 public abstract class BossSummonerBlock extends BaseEntityBlock {
 
@@ -72,8 +67,6 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(ARMED, true));
     }
-
-    // ── What a subclass has to answer ─────────────────────────────────────────
 
     /** The boss this altar calls. */
     protected abstract EntityType<? extends Mob> boss();
@@ -94,8 +87,6 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
         return boss().getAABB(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
     }
 
-    // ── Interaction ───────────────────────────────────────────────────────────
-
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
@@ -104,8 +95,8 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
                 player.displayClientMessage(
                         Component.translatable("message.priestess.summoner.spent", boss().getDescription()), true);
             }
-            // CONSUME, not PASS: the altar answered, it just said no. PASS would fall
-            // through to placing whatever block is in the other hand against it.
+            // CONSUME, not PASS: PASS would fall through to placing whatever block is in the
+            // other hand against it.
             return InteractionResult.CONSUME;
         }
 
@@ -120,8 +111,8 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
         }
 
         if (level.isClientSide) {
-            // The client cannot know whether there is room, so it optimistically swings and
-            // lets the server correct it. Every vanilla block that can fail does this.
+            // The client cannot know whether there is room, so it swings optimistically and
+            // lets the server correct it, as every vanilla block that can fail does.
             return InteractionResult.SUCCESS;
         }
 
@@ -137,8 +128,7 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
 
-        // Only now is the item spent. Everything that can refuse has already refused, so
-        // there is no path that eats the catalyst and produces nothing.
+        // Only now, so there is no path that eats the catalyst and produces nothing.
         if (!player.getAbilities().instabuild) {
             held.shrink(1);
         }
@@ -151,11 +141,9 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
     }
 
     /**
-     * The first position at or above the altar where the boss actually fits, or null.
-     *
-     * <p>Checked before anything is consumed. A boss summoned into a one-block cellar either
-     * suffocates or is shoved through the wall, and both of those cost the player a catalyst
-     * for a fight they did not get.
+     * The first position at or above the altar where the boss fits, or null. Checked before
+     * anything is consumed: a boss summoned into a one-block cellar either suffocates or is
+     * shoved through the wall, and both cost the player a catalyst for a fight they did not get.
      */
     private BlockPos findRoom(ServerLevel level, BlockPos altar) {
         for (int rise = 1; rise <= MAX_SPAWN_RISE; rise++) {
@@ -172,8 +160,8 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
         if (mob == null) {
             return null;
         }
-        // Facing whoever called it, which is the only orientation that reads as being
-        // summoned rather than as having been standing there all along.
+        // Facing whoever called it, so it reads as summoned rather than as having been
+        // standing there all along.
         mob.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5,
                 Mth.wrapDegrees(player.getYRot() + 180.0F), 0.0F);
         mob.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), MobSpawnType.TRIGGERED, null, null);
@@ -184,8 +172,6 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
         level.playSound(null, pos, summonSound(), SoundSource.HOSTILE, 2.0F, 1.0F);
         return mob;
     }
-
-    // ── Block entity plumbing ─────────────────────────────────────────────────
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
@@ -207,16 +193,10 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
     }
 
     /**
-     * Nothing is drawn from a baked block model. The altar is a GeckoLib model drawn by
-     * {@code BossSummonerRenderer}, and {@link RenderShape#INVISIBLE} is what stops the game
-     * drawing a cube inside it as well.
-     *
-     * <p>The blockstate still points at a model file, and that file still matters: it is where
-     * break and landing particles take their texture from. See {@code ModBlockStateProvider}.
-     *
-     * <p>The <em>item</em> is unaffected and is still an ordinary cube — a block model and an
-     * item model are separate things, and an altar that vanished in the inventory would be
-     * unplaceable in practice.
+     * The altar is a GeckoLib model drawn by {@code BossSummonerRenderer}, and
+     * {@link RenderShape#INVISIBLE} stops the game drawing a cube inside it as well. The
+     * blockstate still points at a model file, which is where break and landing particles take
+     * their texture from. The <em>item</em> model is separate and still an ordinary cube.
      */
     @Override
     public RenderShape getRenderShape(BlockState state) {
@@ -225,16 +205,12 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
 
     /**
      * Which GeckoLib model this altar is drawn with, as a file name under
-     * {@code assets/priestess/geo/block/}.
+     * {@code assets/priestess/geo/block/}. Both altars share one because they differ by texture
+     * rather than shape; override to give one its own silhouette, and add a matching entry to
+     * {@code BLOCK_ROSTER} in {@code tools/generate_placeholder_models.py}.
      *
-     * <p>Both altars share one, because they differ by texture rather than by shape — the same
-     * arrangement the 16x16 cube tiles had before. Override in a subclass to give one its own
-     * silhouette, and add a matching entry to {@code BLOCK_ROSTER} in
-     * {@code tools/generate_placeholder_models.py}.
-     *
-     * <p>The <em>texture</em> is not overridable here: it is derived from the block's registry
-     * name and its {@link #ARMED} value, so a new altar gets its own automatically. See
-     * {@code BossSummonerModel}.
+     * <p>The <em>texture</em> is not overridable here — it is derived from the registry name
+     * and {@link #ARMED}, so a new altar gets its own automatically.
      */
     public String modelName() {
         return "boss_summoner";
@@ -250,21 +226,15 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
         return state.getValue(ARMED) ? 8 : 0;
     }
 
-    // ── Standing down while the fight is on ───────────────────────────────────
-    // A spent altar is gone: no geometry, no collision, no outline, and no obstacle as far as
-    // pathfinding is concerned. The block is still there — it has to be, because its block
-    // entity is what notices the boss has died and re-arms it — but nothing in the world can
-    // touch it or has to route around it.
+    // A spent altar stands down completely: no geometry, no collision, no outline, and no
+    // obstacle to pathfinding — the block stays only because its block entity is what notices
+    // the boss died and re-arms it. Otherwise the plinth is something the boss's pathfinder has
+    // to solve around for the whole encounter.
     //
-    // The reason is the fight. A one-block plinth in the middle of an arena is something the
-    // boss's pathfinder has to solve around for the whole encounter, and "the altar you
-    // summoned it from" is a poor thing for a boss to get stuck on. Standing the altar down
-    // for the duration removes the question.
-    //
-    // Three separate systems, and all three have to be told. Collision governs what bumps
-    // into it, isPathfindable governs how the A* graph is built, and the outline shape governs
-    // what the cursor can hit. Changing one and not the others produces a block that is
-    // invisible but still solid, or walkable but still routed around.
+    // Three separate systems have to be told: collision governs what bumps into it,
+    // isPathfindable governs how the A* graph is built, and the outline shape governs what the
+    // cursor can hit. Change one and not the others and you get a block that is invisible but
+    // solid, or walkable but still routed around.
 
     private static boolean stoodDown(BlockState state) {
         return !state.getValue(ARMED);
@@ -278,13 +248,10 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
     }
 
     /**
-     * No outline and no ray-trace hit while spent, which is what makes it properly absent
-     * rather than an invisible thing the cursor keeps catching on.
-     *
-     * <p>It also means a spent altar cannot be broken. That is safe rather than a trap: the
-     * block entity re-arms itself from a presence poll that has no failure mode which survives
-     * the next second — see {@link com.jyhrie.priestess.block.entity.BossSummonerBlockEntity} —
-     * so the block always comes back on its own, and the worst case is a five-second wait.
+     * No outline and no ray-trace hit while spent, so it is properly absent rather than an
+     * invisible thing the cursor catches on. It also means a spent altar cannot be broken,
+     * which is safe: the block entity re-arms itself from a presence poll with no failure mode
+     * that survives the next second, so the worst case is a short wait.
      */
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos,
@@ -293,13 +260,8 @@ public abstract class BossSummonerBlock extends BaseEntityBlock {
     }
 
     /**
-     * Whether a mob may path <em>through</em> this block.
-     *
-     * <p>False while armed, which is the ordinary answer for a solid block and makes the altar
-     * an obstacle. True while spent, so the pathfinder builds its graph as though the block
-     * were not there at all. An empty collision shape alone would not do this — the A* graph is
-     * built from this method, so a mob would still refuse to plot a route through a block it
-     * could physically walk into.
+     * An empty collision shape alone is not enough: the A* graph is built from this method, so
+     * without it a mob refuses to plot a route through a block it could physically walk into.
      */
     @Override
     public boolean isPathfindable(BlockState state, BlockGetter level, BlockPos pos,

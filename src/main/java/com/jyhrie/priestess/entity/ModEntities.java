@@ -34,53 +34,25 @@ import net.minecraftforge.registries.RegistryObject;
  * <p>What each of them is <em>for</em> lives in {@code docs/SCORE_MOVEMENTS.md}; this file
  * is the registry and the wiring.
  *
- * <p>Unlike the dimension and its biomes, entities are <em>runtime</em> registrations — a
- * mob is code, not data, so there is no {@code runData} step for anything in this package.
- * What does still go through datagen is the biome spawn list ({@code ModBiomes}), the
- * language file, and the loot tables, so a new mob here is not finished until those three
- * know about it.
+ * <p>Entities are <em>runtime</em> registrations, so there is no {@code runData} step for
+ * anything in this package. What does go through datagen is the biome spawn list, the language
+ * file and the loot tables, so a new mob is not finished until those three know about it.
  *
  * <p><b>Nothing in this mod spawns naturally.</b> Every mob is reached through its spawn egg,
- * except the bosses a structure places. See {@code docs/SPAWNING.md} for how to give a
- * movement its population back.
+ * except the bosses a structure places. See {@code docs/SPAWNING.md}.
  *
- * <h2>How this package is laid out</h2>
- * The root holds only the registry and the base classes — {@link BossMonster} and
- * {@link GeoMonster}. Everything that <em>is</em> a mob lives one level down:
- * <ul>
- *   <li>{@code mobs/} — the trash mobs, in a package per dungeon:
- *       {@code mobs/dorothysvision/}, {@code mobs/mansfieldbreak/},
- *       {@code mobs/undertides/}. Anything belonging to no dungeon sits directly in
- *       {@code mobs/}, which today is the slug alone.</li>
- *   <li>{@code minibosses/} — a tier of its own: mobs that carry a boss bar and all the
- *       {@link BossMonster} machinery, but are a fight inside a dungeon rather than the end
- *       of one, and gate no progression item. One so far.</li>
- *   <li>{@code bosses/} — the three that end a dungeon.</li>
- *   <li>{@code projectiles/} — {@code ArtsBeam}, which is a static helper rather than an
- *       entity but is the mod's whole ranged-attack story, and the place a real projectile
- *       entity would go when one exists.</li>
- * </ul>
- * Packages are invisible to the game: a mob's registry name is the string passed to
- * {@code ENTITY_TYPES.register} below, and its assets are keyed off that name, not off where
- * the class sits. Moving a class between these folders is a rename-and-recompile, nothing
- * more.
+ * <p>The root holds only the registry and the base classes, {@link BossMonster} and
+ * {@link GeoMonster}; mobs live one level down in {@code mobs/} (a package per dungeon),
+ * {@code minibosses/}, {@code bosses/} and {@code projectiles/}. Packages are invisible to the
+ * game — a mob's registry name is the string passed to {@code ENTITY_TYPES.register} below and
+ * its assets key off that, so moving a class between folders is a rename-and-recompile.
  *
- * <h2>Everything carries a dungeon code</h2>
- * Packages are invisible to the game and to most IDE searches, so the grouping is spelled out
- * in the names: {@code dv_}, {@code mb_}, {@code sv_}, or none for a mob belonging to no
- * dungeon. <b>The table in the README is the authority for which code is whose</b> — it is not
- * always the package's initials.
+ * <p>That is why the grouping is also spelled out in the names: {@code dv_}, {@code mb_},
+ * {@code sv_}, or none. <b>The table in the README is the authority for which code is
+ * whose</b> — it is not always the package's initials. The prefix never appears in display
+ * names, so rename identifiers freely and leave the prose alone.
  *
- * <p>Two spellings of the same prefix. {@code snake_case} for anything the game reads — the
- * entity id, the spawn egg id, {@code geo/entity/<id>.geo.json},
- * {@code textures/entity/<id>.png} — and {@code SCREAMING_SNAKE} for the constants here and in
- * {@code ModItems}, which track their registry names. {@code PascalCase} for classes. The
- * renderer follows the boss it draws: {@code DvAwakenRenderer}.
- *
- * <p>The prefix never appears in <b>display names</b>: it is a developer-facing filing system,
- * so rename identifiers freely and leave the prose alone.
- *
- * <h2>Adding a mob</h2>
+ * <p>Adding a mob:
  * <ol>
  *   <li>write the class in {@code mobs/} or {@code bosses/}, extending {@link GeoMonster} or
  *       {@link BossMonster} as appropriate,</li>
@@ -99,8 +71,6 @@ public class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
             DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, Priestess.MOD_ID);
 
-    // ── The wastes ────────────────────────────────────────────────────────────
-
     /** Low and long, so it reads as vermin rather than as a threat you should stop for. */
     public static final RegistryObject<EntityType<OriginiumSlug>> ORIGINIUM_SLUG =
             ENTITY_TYPES.register("originium_slug", () -> EntityType.Builder
@@ -109,19 +79,9 @@ public class ModEntities {
                     .clientTrackingRange(8)
                     .build("originium_slug"));
 
-    // ── The Medium-bearers ────────────────────────────────────────────────────
-    // Three melee mobs that differ in nothing but numbers and silhouette, and the only
-    // source of Medium. They share {@link GeoMonster}, which is the goal set and the
-    // GeckoLib plumbing; what each of them is lives in its own class.
-    //
-    // They have no home yet. Nothing spawns them naturally and no structure places them,
-    // so today they are a spawn egg — deliberately, because deciding which dungeon they
-    // belong to is a design call rather than a wiring one. When that is settled it is a
-    // SpawnPlacements rule and a ModBiomes spawner entry, or a line in a dungeon's NBT.
-    //
-    // Hitbox widths are the model's shoulders, not its arm span: arms hanging outside the
-    // box is how every vanilla humanoid works, and boxing the arms in would make them
-    // impossible to walk past in a corridor.
+    // The Medium-bearers: three melee mobs differing only in numbers and silhouette. Hitbox
+    // widths are the model's shoulders, not its arm span — arms hanging outside the box is how
+    // every vanilla humanoid works, and boxing them in makes a mob impossible to walk past.
 
     /** Short and hunched — the shortest hitbox of the three, and the fastest. */
     public static final RegistryObject<EntityType<DvFailure>> DV_FAILURE =
@@ -147,17 +107,9 @@ public class ModEntities {
                     .clientTrackingRange(10)
                     .build("dv_bionic"));
 
-    // ── Mansfield State Prison ────────────────────────────────────────────────
-    // The break: the inmates Jesselton let out, and the population of the dungeon he sits at
-    // the end of. Three rungs of one ladder — a body, a bigger body, and the one that shoots.
-    //
-    // The Sniper is the only mob in the mod that throws a projectile the player can dodge.
-    // Everything else ranged is ArtsBeam, which is hitscan, so cover is the counterplay
-    // rather than movement; the Sniper is the exception that makes a cell block's pillars
-    // worth using in the other direction.
-    //
-    // Like everything else here they have no spawn wiring. They are meant to be placed by
-    // Mansfield's structure, and until that NBT has them in it they are spawn eggs.
+    // Mansfield State Prison: three rungs of one ladder — a body, a bigger body, and the one
+    // that shoots. The Sniper is the only mob in the mod throwing a projectile the player can
+    // dodge; everything else ranged is ArtsBeam, which is hitscan.
 
     /** A zombie by another name; the body that fills a corridor. */
     public static final RegistryObject<EntityType<MbImprisonedPugilist>> MB_IMPRISONED_PUGILIST =
@@ -172,8 +124,6 @@ public class ModEntities {
             ENTITY_TYPES.register("mb_imprisoned_recidivist", () -> EntityType.Builder
                     .of(MbImprisonedRecidivist::new, MobCategory.MONSTER)
                     .sized(1.0F, 2.5F)
-                    // Taller than the others and worth seeing coming, so it is tracked from
-                    // further out than the two mobs it shares a room with.
                     .clientTrackingRange(12)
                     .build("mb_imprisoned_recidivist"));
 
@@ -182,7 +132,6 @@ public class ModEntities {
             ENTITY_TYPES.register("mb_imprisoned_sniper", () -> EntityType.Builder
                     .of(MbImprisonedSniper::new, MobCategory.MONSTER)
                     .sized(0.6F, 1.99F)
-                    // It opens fire at 16 blocks, so it has to still be rendered at 16.
                     .clientTrackingRange(12)
                     .build("mb_imprisoned_sniper"));
 
@@ -191,23 +140,17 @@ public class ModEntities {
                     .of(MbJesseltonWilliams::new, MobCategory.MONSTER)
                     .sized(0.7F, 2.2F)
                     .fireImmune()
-                    // A boss the player is meant to kite around a cell block has to stay
-                    // rendered from further away than the mob that shares its arena.
                     .clientTrackingRange(16)
                     .build("mb_jesselton_williams"));
 
-    // ── Sal Viento ────────────────────────────────────────────────────────────
-    // Under Tides. Five trash mobs built as a rock-paper-scissors rather than a ladder —
-    // unlike Mansfield's three, which are the same mob at three sizes, no two of these are
-    // answered the same way:
+    // Sal Viento's five trash mobs, built as a rock-paper-scissors rather than a ladder: no two
+    // are answered the same way.
     //
-    //   Runner    outruns you            kill it or be caught
-    //   Crawler   comes in numbers, low  clear it or be nibbled
-    //   Reaper    hits hardest, slow     walk away and come back
-    //   Piercer   hits nearly as hard, dies instantly   notice it first
-    //   Spitter   outranges everything   break line of sight
-    //
-    // Then a miniboss and a boss, in minibosses/ and bosses/ respectively.
+    //   Runner    outruns you                          kill it or be caught
+    //   Crawler   comes in numbers, low                clear it or be nibbled
+    //   Reaper    hits hardest, slow                   walk away and come back
+    //   Piercer   hits nearly as hard, dies instantly  notice it first
+    //   Spitter   outranges everything                 break line of sight
 
     /** Faster than a sprinting player — the only mob in the mod that is. */
     public static final RegistryObject<EntityType<SvRunner>> SV_RUNNER =
@@ -222,7 +165,6 @@ public class ModEntities {
             ENTITY_TYPES.register("sv_spitter", () -> EntityType.Builder
                     .of(SvSpitter::new, MobCategory.MONSTER)
                     .sized(0.9F, 1.4F)
-                    // It opens fire at 12 blocks, so it must still be tracked at 12.
                     .clientTrackingRange(10)
                     .build("sv_spitter"));
 
@@ -235,9 +177,8 @@ public class ModEntities {
                     .build("sv_reaper"));
 
     /**
-     * Knee-high on purpose: at 0.7 it sits under a normal swing arc, so clearing a room of
-     * these is a thing you have to choose to do rather than something that happens while you
-     * fight what is behind them.
+     * Knee-high on purpose: it sits under a normal swing arc, so clearing a room of these is
+     * something you choose to do rather than something that happens incidentally.
      */
     public static final RegistryObject<EntityType<SvCrawler>> SV_CRAWLER =
             ENTITY_TYPES.register("sv_crawler", () -> EntityType.Builder
@@ -263,35 +204,24 @@ public class ModEntities {
                     .build("sv_the_first_to_talk"));
 
     /**
-     * The boss, and the second immobile one in the mod. The box is sized to the model's own
-     * geometry rather than scaled up by the renderer — see {@code SvBishopQuintus} — so what
-     * you can see and what you can hit are the same shape. It is wide enough that placement
-     * matters: it cannot be pushed out of a wall it overlaps, so it wants an open arena.
+     * The box is sized to the model's own geometry rather than scaled up by the renderer, so
+     * what you can see and what you can hit are the same shape. Placement matters: it cannot
+     * be pushed out of a wall it overlaps, so it wants an open arena.
      */
     public static final RegistryObject<EntityType<SvBishopQuintus>> SV_BISHOP_QUINTUS =
             ENTITY_TYPES.register("sv_bishop_quintus", () -> EntityType.Builder
                     .of(SvBishopQuintus::new, MobCategory.MONSTER)
                     .sized(2.6F, 4.0F)
                     .fireImmune()
-                    // It shoots to 28 blocks; it has to stay rendered at least that far out.
                     .clientTrackingRange(24)
                     .build("sv_bishop_quintus"));
 
-    // ── Dorothy's Vision ──────────────────────────────────────────────────────
-
     /**
-     * "Awaken". A floating boss with no behaviour yet — see {@link DvAwaken}. It inherited
-     * Dorothy's Vision when the Failed Vision was removed, so
-     * {@code DorothysTerminalBlock} is what summons it; the spawn egg still works.
+     * "Awaken", summoned by {@code DorothysTerminalBlock}. The width is the model's own at the
+     * 3x {@code DvAwakenRenderer.SCALE} draws it, so the two constants have to move together —
+     * rescale the renderer and the hitbox stops matching what you can see.
      *
-     * <p>6.75 is the model's own width at the 3x {@code DvAwakenRenderer.SCALE} draws it at,
-     * rather than the placeholder box scaled up: the box is sized to the geometry so that
-     * what you can see and what you can hit are the same shape. The two constants have to
-     * move together — rescale the renderer and this stops being true.
-     *
-     * <p>Wide enough to matter for placement. It cannot be pushed out of a wall it overlaps
-     * ({@code setNoGravity} plus a no-op {@code push}), so it wants an open arena rather
-     * than a corridor.
+     * <p>It cannot be pushed out of a wall it overlaps, so it wants an open arena.
      */
     public static final RegistryObject<EntityType<DvAwaken>> DV_AWAKEN =
             ENTITY_TYPES.register("dv_awaken", () -> EntityType.Builder
@@ -300,8 +230,6 @@ public class ModEntities {
                     .fireImmune()
                     .clientTrackingRange(16)
                     .build("dv_awaken"));
-
-    // ── Attributes ────────────────────────────────────────────────────────────
 
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
@@ -323,21 +251,11 @@ public class ModEntities {
         event.put(SV_BISHOP_QUINTUS.get(), SvBishopQuintus.attributes().build());
     }
 
-    // ── Spawn placements ──────────────────────────────────────────────────────
-    // There are none, and so there is no FMLCommonSetupEvent handler here at all.
-    //
-    // Nothing in the mod spawns naturally any more. The slug was the last one that did — it
-    // had an ON_GROUND rule with Monster::checkAnyLightMonsterSpawnRules, deliberately not
-    // checkMonsterSpawnRules, because it was meant to be a daylight problem — and that went
-    // when the slug was stripped back. Every mob is now placed by a structure or reached
-    // through a spawn egg.
-    //
-    // Putting one back is two halves that must both be present: a SpawnPlacements.register
-    // call in a method subscribed to FMLCommonSetupEvent (wrapped in event.enqueueWork —
-    // placement state is not thread safe and setup runs in parallel), *and* a spawner entry
-    // in ModBiomes. Either one alone does nothing.
-    //
-    // docs/SPAWNING.md walks through both, and has the exact code the slug used.
+    // There are no spawn placements, so there is no FMLCommonSetupEvent handler here at all.
+    // Putting one back is two halves that must both be present: a SpawnPlacements.register call
+    // subscribed to FMLCommonSetupEvent (wrapped in event.enqueueWork — placement state is not
+    // thread safe and setup runs in parallel), *and* a spawner entry in ModBiomes. Either alone
+    // does nothing. docs/SPAWNING.md walks through both.
 
     public static void register(IEventBus eventBus) {
         ENTITY_TYPES.register(eventBus);

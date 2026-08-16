@@ -15,32 +15,24 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 /**
  * Binds renderers for everything the weapons package throws.
  *
- * <p>The mod's own {@code client/PriestessClient} does the same job for the mob roster. These
- * are kept apart on purpose: this compartment is meant to be deletable, and a renderer
- * registration sitting in a file outside it would be a compile error the moment the folder
- * went.
+ * <p>Kept apart from {@code client/PriestessClient} so the compartment stays deletable.
  *
- * <p>{@code value = Dist.CLIENT} is load-bearing, not decorative — every class touched here
- * reaches into client-only rendering, and a dedicated server that classloads them dies.
+ * <p>{@code value = Dist.CLIENT} is load-bearing: every class touched here reaches into
+ * client-only rendering, and a dedicated server that classloads them dies.
  */
 @Mod.EventBusSubscriber(modid = Priestess.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class WeaponsClient {
 
     /**
-     * Wires up the two predicates that make Laevatain <em>look</em> like it is being drawn.
-     *
-     * <p>{@code UseAnim.BOW} on its own does less than it sounds like: it gives the player the
-     * bow-holding arm pose in third person and, in first person, essentially nothing. The
-     * reason a real bow visibly bends is that <b>its item model swaps</b>, through overrides on
-     * these two predicates — so a weapon without them draws for a second while looking
-     * completely idle in the hand.
+     * The two predicates that make Laevatain <em>look</em> like it is being drawn.
+     * {@code UseAnim.BOW} alone gives almost nothing in first person — a real bow bends because
+     * <b>its item model swaps</b>, through overrides on these two, so a weapon without them
+     * draws for a second while looking idle in the hand.
      *
      * <ul>
      *   <li>{@code pulling} — 1 while this exact stack is the one being used, else 0.</li>
      *   <li>{@code pull} — 0 to 1 across {@link LaevatainItem#CHARGE_TICKS}.</li>
      * </ul>
-     *
-     * <p>The overrides that consume them are built in {@code ModItemModelProvider.chargedWeapon}.
      */
     @SubscribeEvent
     public static void clientSetup(FMLClientSetupEvent event) {
@@ -70,18 +62,15 @@ public final class WeaponsClient {
         event.registerEntityRenderer(ModWeapons.DEVILS_PITCHFORK.get(), context ->
                 new DevilsProjectileRenderer<>(context, new DevilsPitchforkModel()));
 
-        // Laevatain's three VFX. One renderer and one model for all of them — the model reads
-        // the entity type's registry name to find its assets, so a fourth effect adds no code.
+        // One renderer and model for all of them — the model reads the entity type's registry
+        // name to find its assets, so a fourth effect adds no code.
         event.registerEntityRenderer(ModWeapons.LAEVATAIN_SLASH.get(), WeaponVfxRenderer::new);
         event.registerEntityRenderer(ModWeapons.LAEVATAIN_STAB.get(), WeaponVfxRenderer::new);
         event.registerEntityRenderer(ModWeapons.LAEVATAIN_ERUPTION.get(), WeaponVfxRenderer::new);
 
-        // Aegir Greatspear. The thrown lance is drawn by its particle trail and nothing else,
-        // so it is bound to a renderer that draws nothing rather than left unbound — an entity
-        // type with no renderer logs an error and falls back to a missing-model cube.
+        // Bound to a renderer that draws nothing rather than left unbound: an entity type with
+        // no renderer logs an error and falls back to a missing-model cube.
         event.registerEntityRenderer(ModWeapons.AEGIR_TIDE.get(), InvisibleEntityRenderer::new);
-        // The whirlpool takes the same VFX renderer as Laevatain's effects despite not being a
-        // WeaponVfx — see AegirWhirlpool and WeaponVfxModel.
         event.registerEntityRenderer(ModWeapons.AEGIR_WHIRLPOOL.get(), WeaponVfxRenderer::new);
     }
 

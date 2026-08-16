@@ -27,37 +27,24 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 /**
  * Sal Viento Bishop Quintus — the thing the town is built around now. It does not move.
  *
- * <h2>Fully immobile, and what that costs</h2>
- * Zero movement speed, no navigation goals, no melee goal, knockback immunity by attribute,
- * and a no-op {@code push} — nothing in the world relocates it, including a piston, a
- * current, or the blast trying to kill it. Unlike {@code DvAwaken} it keeps gravity: it is
- * built like architecture rather than hung in the air, so it should sit on the seabed and
- * not float above a hole in it.
+ * <p>Fully immobile: zero movement speed, no navigation or melee goals, knockback immunity by
+ * attribute, and a no-op {@code push}. Unlike {@code DvAwaken} it keeps gravity, because it is
+ * built like architecture and should sit on the seabed rather than float above a hole in it.
  *
- * <p>An immobile boss has one hard requirement: <b>it must be able to reach you</b>. A boss
- * that cannot move and cannot shoot is scenery you are allowed to hit, which is the gap
- * {@code DvAwaken} is currently sitting in and openly documents. So unlike Awaken this ships
- * with its attack — a hitscan {@code ArtsBeam} on a cooldown, the same one both other bosses
- * use. Cover is the counterplay, which is what its arena has to be built to provide.
+ * <p>An immobile boss must be able to reach you or it is scenery you are allowed to hit, so
+ * this ships with its attack — a hitscan {@code ArtsBeam} on a cooldown. Cover is the
+ * counterplay, which its arena has to be built to provide.
  *
- * <h2>Why it turns</h2>
- * {@link #facePlayerSlowly()} is lifted from {@code DvAwaken} and for the same reason:
- * vanilla's rotation does not ease for a mob that never moves. {@code BodyRotationControl}
- * only runs its body-follows-head step while {@code isMoving()}, and this never is, so the
- * stationary path waits for a 15-degree drift and then closes the whole gap in one tick —
- * which on something two and a half blocks across reads as a snap. Owning the rotation is
- * the only way to get a constant rate.
- *
- * <p>The turn is also the fight's clock. It is slow on purpose: getting behind Quintus is
- * the only thing resembling a dodge against a beam that has already landed by the time it
- * is drawn, so how fast it comes round <em>is</em> the difficulty dial.
+ * <p>{@link #facePlayerSlowly} owns the rotation for the same reason {@code DvAwaken} does:
+ * vanilla's does not ease for a mob that never moves. The turn is also the fight's clock —
+ * getting behind Quintus is the only dodge against a beam that has already landed by the time
+ * it is drawn, so how fast it comes round <em>is</em> the difficulty dial.
  */
 public class SvBishopQuintus extends BossMonster implements GeoEntity {
 
     /**
-     * Degrees of yaw per tick, so 20x this is degrees per second. At 1.8 a half turn takes
-     * five seconds — slower than {@code DvAwaken}, because unlike Awaken this one is
-     * shooting at whatever it faces and the window behind it has to be worth running for.
+     * Degrees of yaw per tick. Slower than {@code DvAwaken}'s, because this one is shooting at
+     * whatever it faces and the window behind it has to be worth running for.
      */
     private static final float TURN_DEGREES_PER_TICK = 1.8F;
 
@@ -76,18 +63,12 @@ public class SvBishopQuintus extends BossMonster implements GeoEntity {
         this.xpReward = 400;
     }
 
-    /**
-     * Defaults only. {@code EntityStats} overwrites all six of these from
-     * {@code config/priestess/boss.toml} as it joins the world, so editing a number
-     * here alone changes nothing — change it in {@code BossStats} too.
-     */
+    /** Defaults only; {@code EntityStats} overwrites all six from {@code BossStats} on join. */
     public static AttributeSupplier.Builder attributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 400.0)
-                // Zero, and nothing to use it if it were not. It stands where it is put.
                 .add(Attributes.MOVEMENT_SPEED, 0.0)
-                // Zero: it has no melee goal, and a boss that chips you for standing inside
-                // it is a boss with an attack nobody designed. The beam carries the fight.
+                // Zero: it has no melee goal, and the beam carries the fight.
                 .add(Attributes.ATTACK_DAMAGE, 0.0)
                 .add(Attributes.FOLLOW_RANGE, 48.0)
                 .add(Attributes.ARMOR, 10.0)
@@ -119,10 +100,8 @@ public class SvBishopQuintus extends BossMonster implements GeoEntity {
     }
 
     /**
-     * Self-guarding, like Jesselton's {@code castArts}: it returns unless the cooldown is up,
-     * the target is in range, there is line of sight, and the target is inside the firing
-     * arc. The arc is the part that makes the slow turn matter — step round the side and it
-     * has to come about before it can shoot you again.
+     * The firing arc is what makes the slow turn matter: step round the side and it has to
+     * come about before it can shoot you again.
      */
     private void fireBeam(LivingEntity target) {
         if (beamCooldown > 0 || this.distanceToSqr(target) > BEAM_RANGE * BEAM_RANGE) {
@@ -146,9 +125,8 @@ public class SvBishopQuintus extends BossMonster implements GeoEntity {
     }
 
     /**
-     * Turns to face its target at a fixed rate. Head, body and entity yaw are all set to the
-     * same value, which is also what stops {@code BodyRotationControl} interfering — it still
-     * runs, but with no gap between head and body there is nothing for it to close.
+     * Head, body and entity yaw are all set to the same value, which leaves
+     * {@code BodyRotationControl} no gap to close.
      */
     private void facePlayerSlowly(LivingEntity target) {
         double dx = target.getX() - this.getX();

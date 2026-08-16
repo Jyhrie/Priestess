@@ -21,30 +21,20 @@ import net.minecraftforge.network.NetworkHooks;
 /**
  * Aegir Greatspear's left-click throw: a lance of white water that hauls back whatever it hits.
  *
- * <p>It has <b>no model</b>, and that is the design rather than a gap. What the player sees is
- * the trail — a line of white drawn along the path it took this tick — so the ability reads as a
- * jet of water rather than as an object flying through the air, and there is no mesh whose
- * facing has to be kept honest against the direction of travel. Its renderer draws nothing; see
- * {@code InvisibleEntityRenderer}.
+ * <p>It has <b>no model</b> by design: the trail is the whole of what you see, so the ability
+ * reads as a jet of water and there is no mesh whose facing has to be kept honest against the
+ * direction of travel. Its renderer draws nothing; see {@code InvisibleEntityRenderer}.
  *
- * <p>Unlike {@link DevilsProjectile} this hits <b>once and stops</b>. That projectile sweeps an
- * arc every tick and pierces a crowd, because five of them are thrown per swing and the burst is
- * the point. One of these is thrown per swing and it is a spear: it finds the first thing in its
- * way, pulls it in, and is done. Consequently it uses vanilla's own collision — the hit result
- * {@link AbstractHurtingProjectile} already computes — instead of hand-rolled sampling.
- *
- * <p>It also respects terrain, which {@code DevilsProjectile} deliberately does not. A pull that
- * drags a mob through a wall to your feet would make the ability an unanswerable opener; stopping
- * at the wall is what makes cover work against it.
+ * <p>Unlike {@link DevilsProjectile} this hits once and stops, so it uses vanilla's own
+ * collision rather than hand-rolled sampling. It also respects terrain: a pull that dragged a
+ * mob through a wall would make the ability an unanswerable opener, and stopping at the wall
+ * is what makes cover work against it.
  */
 public class AegirTide extends AbstractHurtingProjectile {
 
     /**
-     * How long it flies before giving up, in ticks.
-     *
-     * <p>{@link AbstractHurtingProjectile} has no timeout of its own — it flies until it hits
-     * something or the chunk unloads — so without this a shot fired at open sky is an entity
-     * that never goes away.
+     * {@link AbstractHurtingProjectile} has no timeout of its own, so without this a shot
+     * fired at open sky is an entity that never goes away.
      */
     private static final int MAX_LIFE_TICKS = 8;
 
@@ -55,12 +45,9 @@ public class AegirTide extends AbstractHurtingProjectile {
     private static final ParticleOptions TRAIL_PARTICLE = ParticleTypes.END_ROD;
 
     /**
-     * Particles per block travelled.
-     *
-     * <p>The base class already drops one particle a tick, which at this projectile's speed is
-     * one every two blocks — a dotted line, not a lance. The trail is therefore drawn here
-     * instead, interpolated across the step the projectile just took, so the line is continuous
-     * at any speed.
+     * The base class drops one particle a tick, which at this speed is one every two blocks —
+     * a dotted line, not a lance. So the trail is drawn here instead, interpolated across the
+     * step just taken, and stays continuous at any speed.
      */
     private static final double TRAIL_PARTICLES_PER_BLOCK = 4.0;
 
@@ -120,8 +107,7 @@ public class AegirTide extends AbstractHurtingProjectile {
 
         if (struck instanceof LivingEntity target) {
             target.hurt(this.damageSources().indirectMagic(this, thrower), damage);
-            // Pulled toward the thrower rather than toward this projectile: the point of the
-            // ability is to bring something to you, and by the time it lands the projectile is
+            // Toward the thrower, not this projectile — by the time it lands the projectile is
             // already wherever the target was standing.
             if (thrower != null) {
                 WeaponPhysics.pullTowards(target, thrower.position(), PULL_STRENGTH);
@@ -147,12 +133,9 @@ public class AegirTide extends AbstractHurtingProjectile {
                 SoundSource.PLAYERS, 0.8F, 1.4F);
     }
 
-    // ── Plumbing ──────────────────────────────────────────────────────────────
-
     /**
-     * The base class draws one of these a tick by itself. It is left as the trail particle
-     * rather than switched off, because the two agree — one more white fleck on a white line
-     * costs nothing and keeps the projectile visible on the tick it spawns.
+     * Left as the trail particle rather than switched off: one more white fleck on a white
+     * line costs nothing and keeps the projectile visible on the tick it spawns.
      */
     @Override
     protected ParticleOptions getTrailParticle() {
@@ -177,7 +160,7 @@ public class AegirTide extends AbstractHurtingProjectile {
 
     @Override
     protected void defineSynchedData() {
-        // Nothing is synced. Damage is server-only and position comes from entity tracking.
+        // Damage is server-only and position comes from entity tracking.
     }
 
     @Override

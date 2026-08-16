@@ -21,33 +21,22 @@ import java.util.Map;
 /**
  * The text and numbers helpers a ported weapon expects to find.
  *
- * <p>Trimmed hard from Lethality's {@code ModUtils}, which is a fifteen-method grab bag —
- * everything here is something a weapon in this package actually calls, and the rest was left
- * behind rather than carried across on the chance it might be wanted.
+ * <p>Trimmed from Lethality's {@code ModUtils}: everything here is something a weapon in this
+ * package actually calls.
  *
- * <h2>The gradient</h2>
- * These weapons paint their display name one character at a time, cycling the whole palette
- * along the string over time, so the name shimmers in the tooltip and the hotbar. It is
- * per-character {@link Style} colours on a chain of literals — there is no shader and nothing
- * clever, just a component per letter.
- *
- * <p>The animation is driven off the local player's tick count, which is a <em>client</em>
- * concept. See {@link #animationTick()} for what happens when there is no client.
+ * <p>The gradient paints a display name one character at a time, cycling the palette along the
+ * string over time. It is per-character {@link Style} colours on a chain of literals — no
+ * shader, just a component per letter — animated off the local player's tick count, which is a
+ * <em>client</em> concept. See {@link #animationTick()}.
  */
 public final class WeaponText {
 
     /**
-     * The clock the gradient animates against.
-     *
-     * <p>Lethality reads {@code Minecraft.getInstance().player.tickCount} through
-     * {@code DistExecutor.unsafeCallWhenOn(Dist.CLIENT, ...)}, which returns {@code null} on a
-     * dedicated server and then throws {@link NullPointerException} the moment it is unboxed to
-     * an {@code int}. That is latent in Lethality because {@code getName} rarely runs
-     * server-side — but "rarely" includes death messages and anything that logs an item, so it
-     * is a real crash waiting on a coincidence.
-     *
-     * <p>Here the dist is checked first and the server falls through to wall-clock time. The
-     * server's answer is never rendered by anything, so it only has to not explode.
+     * The clock the gradient animates against. Lethality reads the player's tickCount through
+     * {@code DistExecutor.unsafeCallWhenOn(Dist.CLIENT, ...)}, which returns null on a
+     * dedicated server and throws on unboxing — latent there, but {@code getName} does run
+     * server-side for death messages and anything that logs an item. Checking the dist first
+     * and falling through to wall-clock time only has to not explode; nothing renders it.
      */
     private static int animationTick() {
         if (FMLEnvironment.dist == Dist.CLIENT) {
@@ -145,14 +134,12 @@ public final class WeaponText {
     }
 
     /**
-     * The attack damage a stack actually deals, read back off its own attribute modifiers.
+     * The attack damage a stack actually deals, read back off its own attribute modifiers, so
+     * an enchanted sword throws proportionally harder projectiles. The starting 1.0 is the
+     * player's own base attack damage, which the modifiers are relative to.
      *
-     * <p>Weapons here scale their projectiles off this rather than off a constant, so an
-     * enchanted or attribute-modified sword throws proportionally harder projectiles. The
-     * {@code + 1} is the player's own base attack damage, which the modifiers are relative to.
-     *
-     * <p>{@link MobType#UNDEFINED} for the enchantment bonus means Sharpness counts and Smite
-     * and Bane of Arthropods do not — the projectile does not know yet what it will hit.
+     * <p>{@link MobType#UNDEFINED} means Sharpness counts and Smite and Bane of Arthropods do
+     * not — the projectile does not know yet what it will hit.
      */
     public static float itemAttackDamage(ItemStack weapon) {
         if (weapon.isEmpty()) {

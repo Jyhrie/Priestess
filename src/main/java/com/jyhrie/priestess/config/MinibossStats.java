@@ -6,14 +6,8 @@ import net.minecraftforge.common.ForgeConfigSpec;
  * The minibosses — {@code config/priestess/miniboss.toml}.
  *
  * <p>Its own file rather than a section of {@link BossStats}, for the same reason
- * {@code minibosses/} is its own package: a miniboss is a statement about where a fight sits in
- * a movement. It has the bar and the permanence of a boss at a third of the scale, and it gates
- * nothing. Keeping the two apart means tuning the fight that ends a dungeon never scrolls past
- * the fight that sits halfway down it.
- *
- * <p>One entry today. That is fine — the file is cheap, and the alternative is moving The First
- * to Talk out of {@link BossStats} later, once there are three of them and the mixing has
- * already caused a mistake.
+ * {@code minibosses/} is its own package: a miniboss has the bar and permanence of a boss at a
+ * third of the scale, and gates nothing.
  *
  * <p>See {@link Stats} for the six keys, the bounds, and how any of this reaches a live entity.
  */

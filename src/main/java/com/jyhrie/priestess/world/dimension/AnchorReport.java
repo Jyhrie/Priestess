@@ -24,25 +24,18 @@ import java.util.List;
 /**
  * Tells an operator, on login, where this world's one-per-world structures actually are.
  *
- * <h2>Why this exists</h2>
- * A {@link SingleInRegionStructurePlacement} anchor is derived from the world seed, so it is
- * in a different place in every save and written down nowhere. {@code /locate} does find it,
- * but only within its own hundred-chunk search radius, and an anchor can be several thousand
- * blocks away — so in practice the coordinates existed only in the server log, which is a
- * poor place to keep something you need while you are standing in the game.
+ * <p>A {@link SingleInRegionStructurePlacement} anchor is derived from the world seed and
+ * written down nowhere, and {@code /locate} only searches a hundred chunks or so — so without
+ * this the coordinates exist only in the server log.
  *
- * <h2>Read from the world, not from {@link ModStructures}</h2>
- * The sets come from {@link ChunkGeneratorStructureState#possibleStructureSets()} — what this
- * dimension's generator actually loaded — rather than from the configuration block that
- * generated the JSON. Those agree today, and this way they cannot quietly stop agreeing: a
- * datapack that overrides a structure set, or a stale {@code src/generated} tree that was not
- * re-run through {@code runData}, is reported as it is rather than as it was declared.
+ * <p>The sets are read from {@link ChunkGeneratorStructureState#possibleStructureSets()},
+ * what this dimension's generator actually loaded, rather than from the configuration block
+ * in {@link ModStructures}. So a datapack override or a stale {@code src/generated} tree is
+ * reported as it is rather than as it was declared.
  *
- * <h2>Operators only</h2>
- * Gated on permission level {@value #REQUIRED_PERMISSION_LEVEL}. The seeded placement exists
- * so that finding Mansfield is something a player does rather than something a wiki tells
- * them; handing every player three coordinates on login would spend exactly the thing
- * {@code TerraAnchors} was written to create. This is a builder's tool.
+ * <p>Gated on permission level {@value #REQUIRED_PERMISSION_LEVEL}: this is a builder's tool,
+ * and handing every player the coordinates on login would spend the thing
+ * {@code TerraAnchors} was written to create.
  */
 public class AnchorReport {
 
@@ -53,13 +46,9 @@ public class AnchorReport {
     private record Anchor(String name, int blockX, int blockY, int blockZ) {}
 
     /**
-     * Operators, and anyone already in creative.
-     *
-     * <p>Creative is here because permission level alone gets the common case wrong: a
-     * single-player world made without cheats gives even its host level 0, so a builder
-     * testing the mod in their own world would be told nothing. Someone in creative can
-     * already fly to the coordinate and spawn what is in the chest — there is no secret left
-     * for the permission check to be protecting.
+     * Operators, and anyone already in creative — permission level alone gets the common case
+     * wrong, because a single-player world made without cheats gives even its host level 0.
+     * Someone in creative can already fly there and spawn what is in the chest anyway.
      */
     private static boolean maySee(ServerPlayer player) {
         return player.hasPermissions(REQUIRED_PERMISSION_LEVEL) || player.isCreative();
@@ -76,7 +65,6 @@ public class AnchorReport {
         }
         ServerLevel terra = server.getLevel(ModDimensions.TERRA_KEY);
         if (terra == null) {
-            // Terra failed to load — a broken datapack, most likely. That is loud elsewhere.
             return;
         }
 
@@ -84,9 +72,8 @@ public class AnchorReport {
         try {
             anchors = resolve(terra);
         } catch (IllegalStateException e) {
-            // TerraAnchors throws when a region has no ground at all. Worth saying here,
-            // because the alternative is a login that silently reports nothing and a player
-            // who concludes the feature is broken rather than the map.
+            // TerraAnchors throws when a region has no ground at all. Said out loud, because
+            // otherwise the login reports nothing and the map looks fine.
             player.sendSystemMessage(Component.literal("Terra anchors unavailable: " + e.getMessage())
                     .withStyle(ChatFormatting.RED));
             return;
@@ -103,13 +90,10 @@ public class AnchorReport {
     }
 
     /**
-     * Every unique structure in Terra, with the ground height at its anchor.
-     *
-     * <p>The scan behind {@link com.jyhrie.priestess.world.terra.TerraAnchors} is cached per
-     * region and has almost always been run already — the structures resolved their own
-     * anchors when Terra's spawn chunks generated. A login that does trigger it pays for one
-     * pass over the map, which is the same cost world creation pays and is not worth
-     * deferring off-thread to avoid.
+     * Every unique structure in Terra, with the ground height at its anchor. The scan behind
+     * {@link com.jyhrie.priestess.world.terra.TerraAnchors} is cached per region and has
+     * almost always run already; a login that does trigger it pays one pass over the map,
+     * the same cost world creation pays.
      */
     private static List<Anchor> resolve(ServerLevel terra) {
         ChunkGeneratorStructureState state = terra.getChunkSource().getGeneratorState();
@@ -125,14 +109,14 @@ public class AnchorReport {
             int blockX = anchor.getMiddleBlockX();
             int blockZ = anchor.getMiddleBlockZ();
             // The generator's own height sample rather than a heightmap lookup, so this does
-            // not force the chunk to generate — and so the Y quoted is the one the structure
-            // was placed against, WORLD_SURFACE_WG being what ModStructures projects onto.
+            // not force the chunk to generate, and so the Y quoted is the one the structure
+            // was placed against.
             int blockY = terra.getChunkSource().getGenerator().getBaseHeight(
                     blockX, blockZ, Heightmap.Types.WORLD_SURFACE_WG, terra, state.randomState());
             anchors.add(new Anchor(nameOf(set), blockX, blockY, blockZ));
         }
-        // Registry iteration order is not the declaration order in ModStructures and is not
-        // worth relying on either way; alphabetical at least does not move between runs.
+        // Registry iteration order is not declaration order; alphabetical at least does not
+        // move between runs.
         anchors.sort(Comparator.comparing(Anchor::name));
         return anchors;
     }
