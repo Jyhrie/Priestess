@@ -373,3 +373,5 @@ If the altar is completely invisible in the world, the renderer is not registere
 `registerBlockEntityRenderer` line in `PriestessClient`. If it renders as a missing-texture blob,
 the texture path is wrong; the model resolves it from the block's registry name, so a new altar
 whose textures are not named after it will land here.
+
+Test
